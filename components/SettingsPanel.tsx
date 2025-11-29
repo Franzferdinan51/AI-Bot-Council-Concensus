@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument } from '../types';
+import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument, BotMemory } from '../types';
 import { MCP_PRESETS, PERSONA_PRESETS, PUBLIC_MCP_REGISTRY } from '../constants';
-import { getMemories } from '../services/knowledgeService';
+import { getMemories, getBotMemories, addBotMemory, deleteBotMemory } from '../services/knowledgeService';
 
 interface SettingsPanelProps {
   settings: Settings;
@@ -17,10 +17,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
   const [memories, setMemories] = useState(getMemories());
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
+  
+  // Bot Memory State
+  const [botMemories, setBotMemories] = useState<BotMemory[]>([]);
+  const [newMemoryContent, setNewMemoryContent] = useState('');
+  const [newMemoryType, setNewMemoryType] = useState<'fact'|'directive'|'observation'>('fact');
 
   useEffect(() => {
       if (isOpen) setMemories(getMemories());
   }, [isOpen]);
+
+  // Load specific bot memories when editing
+  useEffect(() => {
+      if (editingBot) {
+          setBotMemories(getBotMemories(editingBot.id));
+      }
+  }, [editingBot]);
 
   // --- Bot Management ---
   const toggleBot = (id: string) => {
@@ -70,6 +82,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
               persona: preset.persona || editingBot.persona
           });
       }
+  };
+
+  // --- Bot Memory Handlers ---
+  const handleAddBotMemory = () => {
+      if (!editingBot || !newMemoryContent.trim()) return;
+      const mem = addBotMemory(editingBot.id, newMemoryContent, newMemoryType);
+      setBotMemories([...botMemories, mem]);
+      setNewMemoryContent('');
+  };
+
+  const handleDeleteBotMemory = (id: string) => {
+      deleteBotMemory(id);
+      setBotMemories(botMemories.filter(m => m.id !== id));
   };
 
   // --- Helpers ---
@@ -265,12 +290,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         <h3 className="text-white font-bold">Edit Member</h3>
                     </div>
                     
-                    <div>
-                        <label className="text-xs text-slate-400">Name</label>
-                        <input value={editingBot.name} onChange={e => setEditingBot({...editingBot, name: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" />
-                    </div>
-                    
+                    {/* Bot Basic Info */}
                     <div className="grid grid-cols-2 gap-2">
+                         <div>
+                            <label className="text-xs text-slate-400">Name</label>
+                            <input value={editingBot.name} onChange={e => setEditingBot({...editingBot, name: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" />
+                        </div>
                         <div>
                             <label className="text-xs text-slate-400">Role</label>
                             <select value={editingBot.role} onChange={e => setEditingBot({...editingBot, role: e.target.value as any})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
@@ -280,6 +305,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                 <option value="specialist">Specialist Agent</option>
                             </select>
                         </div>
+                    </div>
+                    
+                    {/* Bot Provider Info */}
+                    <div className="grid grid-cols-2 gap-2">
                         <div>
                             <label className="text-xs text-slate-400">Provider</label>
                             <select value={editingBot.authorType} onChange={e => setEditingBot({...editingBot, authorType: e.target.value as any})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
@@ -291,14 +320,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                 <option value={AuthorType.OPENAI_COMPATIBLE}>Generic OpenAI</option>
                             </select>
                         </div>
+                        <div>
+                            <label className="text-xs text-slate-400">Model ID</label>
+                            <input value={editingBot.model} onChange={e => setEditingBot({...editingBot, model: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" placeholder="e.g. gemini-2.5-flash" />
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="text-xs text-slate-400">Model ID</label>
-                        <input value={editingBot.model} onChange={e => setEditingBot({...editingBot, model: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" placeholder="e.g. gemini-2.5-flash" />
-                    </div>
-
-                    {/* Quick Load Persona */}
                      <div>
                         <label className="text-xs text-cyan-400 font-bold uppercase mb-1 block">Quick Load Persona Preset</label>
                         <select 
@@ -314,8 +341,52 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         <label className="text-xs text-slate-400">System Persona</label>
                         <textarea value={editingBot.persona} onChange={e => setEditingBot({...editingBot, persona: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white h-24 text-sm" />
                     </div>
+
+                    {/* --- MEMORY BANK --- */}
+                    <div className="border-t border-slate-700 pt-4 mt-2">
+                        <h4 className="text-sm font-bold text-emerald-400 mb-2 uppercase tracking-wider">Agent Memory Bank</h4>
+                        <div className="bg-slate-800 p-3 rounded border border-slate-700 mb-3 space-y-2">
+                            <input 
+                                value={newMemoryContent} 
+                                onChange={e => setNewMemoryContent(e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" 
+                                placeholder="Add a persistent fact, directive, or memory..."
+                            />
+                            <div className="flex gap-2">
+                                <select 
+                                    value={newMemoryType} 
+                                    onChange={e => setNewMemoryType(e.target.value as any)}
+                                    className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                                >
+                                    <option value="fact">Fact</option>
+                                    <option value="directive">Directive</option>
+                                    <option value="observation">Observation</option>
+                                </select>
+                                <button onClick={handleAddBotMemory} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded">ADD MEMORY</button>
+                            </div>
+                        </div>
+
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                            {botMemories.length === 0 ? (
+                                <p className="text-xs text-slate-500 italic">No custom memories saved for this agent.</p>
+                            ) : (
+                                botMemories.map(mem => (
+                                    <div key={mem.id} className="flex justify-between items-start bg-slate-900 p-2 rounded border border-slate-800">
+                                        <div>
+                                            <span className={`text-[9px] uppercase font-bold mr-2 px-1 rounded ${
+                                                mem.type === 'directive' ? 'bg-red-900 text-red-300' :
+                                                mem.type === 'fact' ? 'bg-blue-900 text-blue-300' : 'bg-slate-700 text-slate-300'
+                                            }`}>{mem.type}</span>
+                                            <span className="text-xs text-slate-300">{mem.content}</span>
+                                        </div>
+                                        <button onClick={() => handleDeleteBotMemory(mem.id)} className="text-red-500 hover:text-white ml-2">×</button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
                     
-                    <button onClick={() => saveBot(editingBot)} className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded">SAVE MEMBER</button>
+                    <button onClick={() => saveBot(editingBot)} className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded mt-4">SAVE MEMBER</button>
                 </div>
             )}
             

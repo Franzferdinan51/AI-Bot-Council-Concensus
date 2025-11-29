@@ -397,9 +397,24 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         SPEAKER: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Topic: "{{TOPIC}}". Summarize debates and issue a 'FINAL RULING'.`,
         SPEAKER_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. User proposed: "{{TOPIC}}". Use Google Search to PRELOAD facts and brief the Council.`,
         MODERATOR: `${UNCONSTRAINED_DIRECTIVE} You are the Moderator. Ensure strict topic discipline on "{{TOPIC}}".`,
-        MODERATOR_INTERVENTION: `${UNCONSTRAINED_DIRECTIVE} Interject to stop repetitive debates.`,
+        MODERATOR_INTERVENTION: `${UNCONSTRAINED_DIRECTIVE} The debate has become stuck in a repetitive loop between two members. 
+        1. INTERRUPT the current exchange.
+        2. Acknowledge the points made briefly.
+        3. PASS THE FLOOR to a member who has not spoken recently to ensure balanced debate.
+        4. Do NOT lecture. Just redirect.`,
+        
         COUNCILOR_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. State your stance on "{{TOPIC}}".`,
-        COUNCILOR_REBUTTAL: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. Debate "{{TOPIC}}". Use '[CHALLENGE: Name]' or '[PASS]'.`,
+        
+        COUNCILOR_REBUTTAL: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. Debate "{{TOPIC}}".
+        
+        TURN TAKING PROTOCOL:
+        1. IF you strongly disagree with a specific member and want to force them to answer next, start your response with: '[CHALLENGE: Member Name]'.
+           Example: "[CHALLENGE: The Technocrat] Your data is flawed..."
+        
+        2. IF you agree with the previous speaker or have nothing new to add, output ONLY: '[PASS]'. This yields the floor to save time.
+           
+        3. Otherwise, engage normally. Reference previous speakers by name.`,
+        
         COUNCILOR_VOTE: `${UNCONSTRAINED_DIRECTIVE} Vote on "{{TOPIC}}". Use <vote>YEA/NAY</vote> XML format.`,
         ECONOMY_DEBATE: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker acting as a proxy.
         The topic is "{{TOPIC}}".
@@ -415,7 +430,20 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
            
         3. Ensure each councilor speaks at least once.
         `,
-        ECONOMY_VOTE_BATCH: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Simulate votes for all councilors.`,
+        ECONOMY_VOTE_BATCH: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker acting as a proxy.
+        Cast votes on behalf of the following Councilors regarding "{{TOPIC}}":
+        {{COUNCILORS_LIST}}
+        
+        For EACH councilor, you MUST output this exact block:
+        
+        MEMBER: [Exact Name]
+        <vote>YEA or NAY</vote>
+        <confidence>0-10</confidence>
+        <reason>
+        [A specific, unique reason based on their persona. Do NOT use generic text like "Agreed with Speaker". Be detailed.]
+        </reason>
+        ---
+        `,
         SPEAKER_POST_VOTE: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Enact the resolution based on the vote.`
     },
     DELIBERATION: {

@@ -81,12 +81,22 @@ export interface ProviderSettings {
     janAiEndpoint: string;
 }
 
+// --- GLOBAL MEMORY (Laws/Precedents) ---
 export interface MemoryEntry {
     id: string;
     topic: string;
     content: string; // The enactment/ruling
     date: string;
     tags: string[];
+}
+
+// --- AGENT SPECIFIC MEMORY ---
+export interface BotMemory {
+    id: string;
+    botId: string;
+    type: 'fact' | 'directive' | 'observation';
+    content: string;
+    timestamp: number;
 }
 
 export interface RAGDocument {

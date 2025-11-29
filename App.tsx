@@ -166,7 +166,8 @@ const App: React.FC = () => {
       let voteCount = 0;
       const votes: any[] = [];
       
-      const voteBlocks = [...response.matchAll(/MEMBER: (.*?)\s*<vote>(.*?)<\/vote>\s*<confidence>(.*?)<\/confidence>\s*<reason>([\s\S]*?)<\/reason>/g)];
+      // More robust regex to handle case insensitivity and markdown (e.g. MEMBER: **Name**)
+      const voteBlocks = [...response.matchAll(/MEMBER:\s*(?:\*\*)?(.*?)(?:\*\*)?\s*<vote>(.*?)<\/vote>\s*<confidence>(.*?)<\/confidence>\s*<reason>([\s\S]*?)<\/reason>/gi)];
       
       if (voteBlocks.length > 0) {
            voteBlocks.forEach(match => {
@@ -174,7 +175,9 @@ const App: React.FC = () => {
                const choice = match[2].toUpperCase().includes('YEA') ? 'YEA' : 'NAY';
                const conf = parseInt(match[3]) || 5;
                const reason = match[4].trim();
-               const bot = councilors.find(b => b.name === name) || { color: 'from-gray-500 to-gray-600' };
+               
+               // Try to find the bot, stripping markdown if present in config name
+               const bot = councilors.find(b => b.name === name || b.name === name.replace(/\*\*/g, '')) || { color: 'from-gray-500 to-gray-600' };
                
                if (choice === 'YEA') yeas++; else nays++;
                totalConfidence += conf;
@@ -182,9 +185,10 @@ const App: React.FC = () => {
                votes.push({ voter: name, choice, confidence: conf, reason, color: bot.color });
            });
       } else {
-          const choiceMatch = response.match(/<vote>(.*?)<\/vote>/);
-          const confMatch = response.match(/<confidence>(.*?)<\/confidence>/);
-          const reasonMatch = response.match(/<reason>([\s\S]*?)<\/reason>/);
+          // Fallback for single vote or if batch parsing fails but single format exists
+          const choiceMatch = response.match(/<vote>(.*?)<\/vote>/i);
+          const confMatch = response.match(/<confidence>(.*?)<\/confidence>/i);
+          const reasonMatch = response.match(/<reason>([\s\S]*?)<\/reason>/i);
           
           if (choiceMatch) {
                const choice = choiceMatch[1].toUpperCase().includes('YEA') ? 'YEA' : 'NAY';
@@ -233,6 +237,7 @@ const App: React.FC = () => {
     setActiveSessionBots(currentSessionBots);
 
     const speaker = enabledBots.find(b => b.role === 'speaker');
+    const moderator = enabledBots.find(b => b.role === 'moderator');
     const initialCouncilors = enabledBots.filter(b => b.role === 'councilor');
 
     if (!speaker && initialCouncilors.length === 0) {
@@ -311,35 +316,31 @@ const App: React.FC = () => {
              }
         }
         else if (mode === SessionMode.RESEARCH) {
-             // --- RECURSIVE DEEP RESEARCH AGENT LOGIC ---
+             // ... Research Logic ...
              if (speaker) {
-                // 1. Planning Phase
                 await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_PLANNING)} Persona: ${speaker.persona}`, "LEAD INVESTIGATOR");
                 
-                // 2. Breadth Phase (Round 1)
                 setSessionStatus(SessionStatus.DEBATING);
                 await runBatchWithConcurrency(initialCouncilors.slice(0,3), async (bot: BotConfig) => {
                     return await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${bot.persona}`, "RESEARCH AGENT (PHASE 1)");
                 }, maxConcurrency);
 
-                // 3. Gap Analysis Phase (The "Deep" Part)
                 setSessionStatus(SessionStatus.RECONCILING);
                 const gapAnalysis = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_GAP_ANALYSIS)} Persona: ${speaker.persona}`, "GAP ANALYSIS");
                 sessionHistory.push({ id: 'gap-analysis', author: speaker.name, authorType: speaker.authorType, content: gapAnalysis });
 
-                // 4. Depth Phase (Round 2) - Targeted Search
                 setSessionStatus(SessionStatus.DEBATING);
                 await runBatchWithConcurrency(initialCouncilors.slice(0,3), async (bot: BotConfig) => {
                     const depthPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_2).replace('{{GAP_CONTEXT}}', gapAnalysis)} Persona: ${bot.persona}`;
                     return await processBotTurn(bot, sessionHistory, depthPrompt, "RESEARCH AGENT (PHASE 2)");
                 }, maxConcurrency);
                 
-                // 5. Final Report
                 setSessionStatus(SessionStatus.RESOLVING);
                 await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_REPORT)} Persona: ${speaker.persona}`, "FINAL DOSSIER");
              }
         }
         else if (mode === SessionMode.INQUIRY || mode === SessionMode.DELIBERATION) {
+             // ... Inquiry/Deliberation Logic ...
              let openingPrompt = "";
              let councilorPrompt = "";
              let closingPrompt = "";
@@ -370,7 +371,7 @@ const App: React.FC = () => {
              }
         }
         else {
-            // --- LEGISLATIVE PROPOSAL MODE ---
+            // --- LEGISLATIVE PROPOSAL MODE (DEBATE) ---
              if (speaker) {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
                 const res = await processBotTurn(speaker, sessionHistory, prompt, "OPENING BRIEF");
@@ -379,13 +380,12 @@ const App: React.FC = () => {
             setSessionStatus(SessionStatus.DEBATING);
             
             if (settings.cost.economyMode && speaker) {
-                 // ECONOMY DEBATE: Speaker simulates all
+                 // ... Economy Logic (Batch) ...
                  const debatePrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.ECONOMY_DEBATE).replace('{{COUNCILORS_LIST}}', initialCouncilors.map(b => `- ${b.name}: ${b.persona}`).join('\n'))} Persona: ${speaker.persona}`;
                  const rawTranscript = await processBotTurn(speaker, sessionHistory, debatePrompt, "COUNCIL SIMULATION");
                  
                  sessionHistory.push({ id: 'eco-deb', author: speaker.name, authorType: speaker.authorType, content: rawTranscript });
                  
-                 // Regex to match **Name**: Content
                  const turnRegex = /\*\*([^*]+)\*\*:\s*([\s\S]*?)(?=\*\*|$)/g;
                  const turns = [...rawTranscript.matchAll(turnRegex)];
                  
@@ -393,10 +393,9 @@ const App: React.FC = () => {
                      const name = match[1].trim();
                      const content = match[2].trim();
                      const bot = initialCouncilors.find(b => b.name === name) || { color: 'from-gray-500 to-gray-600', role: 'councilor' } as BotConfig;
-                     // Inject distinct messages for visual fidelity
                      addMessage({ 
                          author: name, 
-                         authorType: AuthorType.GEMINI, // Simulated
+                         authorType: AuthorType.GEMINI,
                          content: content, 
                          color: bot.color, 
                          roleLabel: "Councilor (Simulated)" 
@@ -404,21 +403,75 @@ const App: React.FC = () => {
                  });
 
             } else {
-                // STANDARD DEBATE
+                // --- DYNAMIC TURN-TAKING DEBATE LOGIC ---
+                // We use a mutable queue instead of a rigid loop to allow for CHALLENGES and REBUTTALS
                 let debateQueue = [...initialCouncilors];
-                let rounds = 0;
-                while (debateQueue.length > 0 && rounds < 4 * initialCouncilors.length) {
+                let turnsProcessed = 0;
+                let maxTurns = initialCouncilors.length * 2 + 1; // Cap to prevent infinite debating
+                let rebuttalChainLength = 0; // Track back-and-forth challenges
+                let lastSpeakerId = "";
+
+                while (debateQueue.length > 0 && turnsProcessed < maxTurns) {
+                    await checkControlSignal();
+
+                    // If queue is empty but we haven't hit max turns, maybe add a random member for a fresh take?
+                    // For now, let's strictly follow the queue.
+                    
                     const councilor = debateQueue.shift();
                     if (!councilor) break;
-                    let prompt = rounds < initialCouncilors.length ? `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_OPENING)} Persona: ${councilor.persona}` : `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_REBUTTAL)} Persona: ${councilor.persona}`;
+
+                    // If same speaker is somehow queued twice in a row, skip or swap (unless challenged)
+                    if (councilor.id === lastSpeakerId && debateQueue.length > 0) {
+                        debateQueue.push(councilor);
+                        continue;
+                    }
+
+                    // DETERMINE PROMPT TYPE
+                    let prompt = turnsProcessed < initialCouncilors.length 
+                        ? `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_OPENING)} Persona: ${councilor.persona}` 
+                        : `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_REBUTTAL)} Persona: ${councilor.persona}`;
+
+                    // MODERATOR INTERVENTION CHECK
+                    if (rebuttalChainLength >= 3 && moderator) {
+                        addMessage({ author: 'Moderator', authorType: AuthorType.SYSTEM, content: "*Interjecting to break repetitive argument loop...*" });
+                        const modRes = await processBotTurn(moderator, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.MODERATOR_INTERVENTION)} Persona: ${moderator.persona}`, "MODERATOR");
+                        sessionHistory.push({ id: `mod-interjection-${Date.now()}`, author: moderator.name, authorType: moderator.authorType, content: modRes });
+                        rebuttalChainLength = 0;
+                        // Reshuffle remaining queue to reset dynamics
+                        debateQueue = debateQueue.sort(() => Math.random() - 0.5);
+                    }
+
+                    // EXECUTE TURN
                     const res = await processBotTurn(councilor, sessionHistory, prompt, councilor.role);
-                    sessionHistory.push({ id: `deb-${rounds}`, author: councilor.name, authorType: councilor.authorType, content: res });
-                    rounds++;
-                    if (res.includes('[PASS]')) continue;
+                    lastSpeakerId = councilor.id;
+
+                    // CHECK FOR [PASS]
+                    if (res.includes('[PASS]')) {
+                        // Don't add to history or increment substantive turn count heavily
+                        // But we assume the bot generated output, so it counts towards execution
+                        continue; 
+                    }
+
+                    sessionHistory.push({ id: `deb-${turnsProcessed}`, author: councilor.name, authorType: councilor.authorType, content: res });
+                    turnsProcessed++;
+
+                    // CHECK FOR [CHALLENGE: Name]
                     const challengeMatch = res.match(/\[CHALLENGE:\s*([^\]]+)\]/i);
                     if (challengeMatch) {
-                        const challengedBot = currentSessionBots.find(b => b.name.toLowerCase().includes(challengeMatch[1].toLowerCase()));
-                        if (challengedBot) debateQueue.unshift(challengedBot);
+                        const challengedName = challengeMatch[1].toLowerCase();
+                        const challengedBot = currentSessionBots.find(b => b.name.toLowerCase().includes(challengedName));
+                        
+                        if (challengedBot && challengedBot.id !== councilor.id) {
+                            // Prioritize the challenged bot!
+                            // Remove them from current position in queue (if present) and unshift to front
+                            debateQueue = debateQueue.filter(b => b.id !== challengedBot.id);
+                            debateQueue.unshift(challengedBot);
+                            rebuttalChainLength++;
+                        } else {
+                            rebuttalChainLength = 0;
+                        }
+                    } else {
+                        rebuttalChainLength = 0;
                     }
                 }
             }
@@ -430,7 +483,6 @@ const App: React.FC = () => {
                  const votePrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.ECONOMY_VOTE_BATCH).replace('{{COUNCILORS_LIST}}', initialCouncilors.map(b => `- ${b.name}: ${b.persona}`).join('\n'))} Persona: ${speaker.persona}`;
                  const voteRes = await processBotTurn(speaker, sessionHistory, votePrompt, "VOTE TALLY");
                  
-                 // PARSE VOTES
                  const voteData = parseVotesFromResponse(voteRes, topic, initialCouncilors);
                  const voteMsg: Message = { id: `vote-dashboard-${Date.now()}`, author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Voting Results tallied.", voteData: voteData };
                  setMessages(prev => [...prev, voteMsg]);

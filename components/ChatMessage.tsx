@@ -273,13 +273,28 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             </div>
 
             {message.thinking && (
-                <div className="mb-4">
-                     <button onClick={() => setShowThinking(!showThinking)} className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-cyan-400 uppercase tracking-widest transition-colors font-bold mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showThinking ? 'rotate-90' : ''}`}><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        Chain of Thought
+                <div className="mb-3">
+                    <button 
+                        onClick={() => setShowThinking(!showThinking)} 
+                        className={`
+                            flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200
+                            ${showThinking 
+                                ? 'bg-slate-800 text-slate-300' 
+                                : 'bg-slate-900 text-slate-500 hover:bg-slate-800 hover:text-slate-400'}
+                        `}
+                    >
+                        {showThinking ? (
+                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                        ) : (
+                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        )}
+                        <span>Thinking Process</span>
                     </button>
+                    
                     {showThinking && (
-                        <div className="bg-slate-950 p-3 rounded border-l-2 border-cyan-900 text-xs font-mono text-cyan-700/80 whitespace-pre-wrap leading-relaxed animate-fade-in shadow-inner">{message.thinking}</div>
+                        <div className="mt-2 ml-2 pl-4 border-l-2 border-slate-800 text-xs text-slate-400 font-mono italic whitespace-pre-wrap animate-fade-in">
+                            {message.thinking}
+                        </div>
                     )}
                 </div>
             )}

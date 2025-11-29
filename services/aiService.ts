@@ -1,6 +1,8 @@
+
 import { GoogleGenAI, Modality } from "@google/genai";
 import { Message, AuthorType, BotConfig, Settings, Attachment } from '../types';
 import { VOICE_MAP, PUBLIC_MCP_REGISTRY } from '../constants';
+import { searchBotContext } from './knowledgeService';
 
 // --- HELPER: RANDOM JITTER DELAY ---
 const waitWithJitter = (minMs: number, maxMs: number) => {
@@ -159,10 +161,18 @@ const formatHistoryForOpenAI = (history: Message[], settings: Settings) => {
     });
 };
 
-const injectMCPContext = (systemPrompt: string, settings: Settings): string => {
-    // We handle Function Declarations via the API config, but we can also prompt the model about available tools
-    if (!settings.mcp.enabled) return systemPrompt;
-    return systemPrompt;
+const injectMCPContext = (systemPrompt: string, settings: Settings, bot: BotConfig, lastUserMessage: string): string => {
+    let finalPrompt = systemPrompt;
+
+    // 1. Inject Agent Memory (Contextual)
+    const memoryContext = searchBotContext(bot.id, lastUserMessage);
+    if (memoryContext) {
+        finalPrompt += memoryContext;
+    }
+
+    // 2. We handle Function Declarations via the API config, but we can also prompt the model about available tools
+    if (!settings.mcp.enabled) return finalPrompt;
+    return finalPrompt;
 };
 
 // --- AUDIO TRANSCRIPTION ---
@@ -236,7 +246,9 @@ export const streamBotResponse = async (
         effectiveSystemPrompt += "\n\n[ECONOMY MODE ACTIVE: Be concise. Skip pleasantries. Use standard logic, no advanced reasoning required.]";
     }
 
-    const systemPrompt = injectMCPContext(effectiveSystemPrompt, settings);
+    // Determine relevant context for Memory Injection
+    const lastUserMsg = history.filter(m => m.authorType === AuthorType.HUMAN || m.authorType === AuthorType.SYSTEM).pop()?.content || "";
+    const systemPrompt = injectMCPContext(effectiveSystemPrompt, settings, bot, lastUserMsg);
 
     // SAFETY DELAY: Prevent API rate limits with small jitter
     await waitWithJitter(200, 800);
@@ -411,7 +423,8 @@ export const getBotResponse = async (
     // SAFETY DELAY
     await waitWithJitter(200, 800);
     
-    const systemPrompt = injectMCPContext(baseSystemInstruction, settings);
+    const lastUserMsg = history.filter(m => m.authorType === AuthorType.HUMAN || m.authorType === AuthorType.SYSTEM).pop()?.content || "";
+    const systemPrompt = injectMCPContext(baseSystemInstruction, settings, bot, lastUserMsg);
 
     // --- GEMINI ---
     if (bot.authorType === AuthorType.GEMINI) {
