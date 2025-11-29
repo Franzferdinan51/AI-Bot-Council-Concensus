@@ -91,7 +91,7 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
         <div className="flex h-full w-full bg-[#1e1e1e] text-slate-300 font-mono overflow-hidden">
             
             {/* LEFT: EXPLORER */}
-            <div className="w-64 bg-[#252526] border-r border-[#333] flex flex-col shrink-0">
+            <div className="w-64 bg-[#252526] border-r border-[#333] flex flex-col shrink-0 hidden md:flex">
                 <div className="h-10 flex items-center px-4 text-xs font-bold uppercase tracking-widest text-slate-500 bg-[#252526]">Explorer</div>
                 <div className="flex-1 overflow-y-auto">
                     {files.length === 0 ? (
@@ -170,16 +170,16 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
                              </div>
                          ))}
                     </div>
-                    <div className="p-2 bg-[#1e1e1e]">
-                         <MessageInput 
-                            onSendMessage={onSendMessage} 
-                            isLoading={isLoading} 
-                            statusText="" 
-                            enableCodingMode={true} 
-                            currentMode={currentMode}
-                            onModeChange={onModeChange}
-                         />
-                    </div>
+                    {/* Compact Input */}
+                    <MessageInput 
+                        onSendMessage={onSendMessage} 
+                        isLoading={isLoading} 
+                        statusText="" 
+                        enableCodingMode={true} 
+                        currentMode={currentMode}
+                        onModeChange={onModeChange}
+                        compact={true} 
+                    />
                 </div>
             </div>
         </div>

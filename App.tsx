@@ -157,6 +157,73 @@ const App: React.FC = () => {
           return "";
       }
   };
+  
+  // Helper to parse XML votes into VoteData
+  const parseVotesFromResponse = (response: string, topic: string, councilors: BotConfig[]): VoteData => {
+      let yeas = 0;
+      let nays = 0;
+      let totalConfidence = 0;
+      let voteCount = 0;
+      const votes: any[] = [];
+      
+      const voteBlocks = [...response.matchAll(/MEMBER: (.*?)\s*<vote>(.*?)<\/vote>\s*<confidence>(.*?)<\/confidence>\s*<reason>([\s\S]*?)<\/reason>/g)];
+      
+      if (voteBlocks.length > 0) {
+           voteBlocks.forEach(match => {
+               const name = match[1].trim();
+               const choice = match[2].toUpperCase().includes('YEA') ? 'YEA' : 'NAY';
+               const conf = parseInt(match[3]) || 5;
+               const reason = match[4].trim();
+               const bot = councilors.find(b => b.name === name) || { color: 'from-gray-500 to-gray-600' };
+               
+               if (choice === 'YEA') yeas++; else nays++;
+               totalConfidence += conf;
+               voteCount++;
+               votes.push({ voter: name, choice, confidence: conf, reason, color: bot.color });
+           });
+      } else {
+          const choiceMatch = response.match(/<vote>(.*?)<\/vote>/);
+          const confMatch = response.match(/<confidence>(.*?)<\/confidence>/);
+          const reasonMatch = response.match(/<reason>([\s\S]*?)<\/reason>/);
+          
+          if (choiceMatch) {
+               const choice = choiceMatch[1].toUpperCase().includes('YEA') ? 'YEA' : 'NAY';
+               const conf = parseInt(confMatch ? confMatch[1] : '5') || 5;
+               const reason = reasonMatch ? reasonMatch[1].trim() : "No reason provided.";
+               
+               if (choice === 'YEA') yeas++; else nays++;
+               totalConfidence += conf;
+               voteCount = 1;
+               votes.push({ voter: "Councilor", choice, confidence: conf, reason, color: 'gray' }); 
+          }
+      }
+
+      const avgConfidence = voteCount > 0 ? totalConfidence / voteCount : 0;
+      let result: 'PASSED' | 'REJECTED' | 'RECONCILIATION NEEDED' = yeas > nays ? 'PASSED' : 'REJECTED';
+      
+      const margin = Math.abs(yeas - nays);
+      const total = yeas + nays;
+      const unanimity = total > 0 ? margin / total : 0;
+      const consensusScore = Math.round(((unanimity * 0.7) + ((avgConfidence / 10) * 0.3)) * 100);
+      
+      let consensusLabel = "Divided";
+      if (consensusScore > 85) consensusLabel = "Unanimous";
+      else if (consensusScore > 65) consensusLabel = "Strong Consensus";
+      else if (consensusScore > 40) consensusLabel = "Contentious";
+      
+      if (consensusScore < 40 && total > 2) result = 'RECONCILIATION NEEDED';
+
+      return {
+          topic,
+          yeas,
+          nays,
+          result,
+          avgConfidence,
+          consensusScore,
+          consensusLabel,
+          votes
+      };
+  };
 
   const runCouncilSession = async (topic: string, mode: SessionMode, initialHistory: Message[]) => {
     controlSignal.current = { stop: false, pause: false };
@@ -166,7 +233,6 @@ const App: React.FC = () => {
     setActiveSessionBots(currentSessionBots);
 
     const speaker = enabledBots.find(b => b.role === 'speaker');
-    const moderator = enabledBots.find(b => b.role === 'moderator');
     const initialCouncilors = enabledBots.filter(b => b.role === 'councilor');
 
     if (!speaker && initialCouncilors.length === 0) {
@@ -192,59 +258,38 @@ const App: React.FC = () => {
 
     try {
         if (mode === SessionMode.SWARM_CODING) {
-             // --- SWARM CODING (CODEX / CLAUDE CODE STYLE) ---
+             // ... Code Mode Logic ...
              if (speaker) {
-                 // 1. ARCHITECT PLAN
                  addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "INITIALIZING DEV SWARM. CHIEF ARCHITECT IS PLANNING..." });
                  const planPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.ARCHITECT_PLAN)} Persona: ${speaker.persona}`;
                  const planRes = await processBotTurn(speaker, sessionHistory, planPrompt, "CHIEF ARCHITECT");
                  sessionHistory.push({ id: 'arch-plan', author: speaker.name, authorType: speaker.authorType, content: planRes });
                  
-                 // 2. PARSE PLAN (Regex for XML)
                  const fileMatches = planRes.matchAll(/<file name="(.*?)" assignee="(.*?)" description="(.*?)" \/>/g);
                  const tasks: { file: string, assignee: string, desc: string }[] = [];
                  for (const match of fileMatches) {
                      tasks.push({ file: match[1], assignee: match[2], desc: match[3] });
                  }
 
-                 if (tasks.length === 0) {
-                     addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: "No file plan detected. Proceeding with single pass." });
-                     // Fallback logic could go here
-                 } else {
+                 if (tasks.length > 0) {
                      setSessionStatus(SessionStatus.DEBATING);
                      addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `ARCHITECT DEPLOYING ${tasks.length} DEV AGENTS.` });
-                     
-                     // 3. EXECUTE DEV AGENTS
                      await runBatchWithConcurrency(tasks, async (task) => {
-                         // Find the bot matching the assignee name, or fallback to Technocrat/Speaker
                          let assignedBot = enabledBots.find(b => b.name.includes(task.assignee) || task.assignee.includes(b.name));
                          if (!assignedBot) assignedBot = enabledBots.find(b => b.role === 'councilor') || speaker;
-                         
-                         const devPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.DEV_AGENT)
-                             .replace('{{ROLE}}', task.assignee)
-                             .replace('{{FILE}}', task.file)} 
-                             Additional Context: ${task.desc}
-                             Persona: ${assignedBot?.persona}`;
-                         
-                         // Temporarily override role label for UI
-                         const devRoleLabel = `${task.file} (DEV)`;
-                         const res = await processBotTurn(assignedBot!, sessionHistory, devPrompt, devRoleLabel);
-                         return res;
+                         const devPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.DEV_AGENT).replace('{{ROLE}}', task.assignee).replace('{{FILE}}', task.file)} Additional Context: ${task.desc} Persona: ${assignedBot?.persona}`;
+                         return await processBotTurn(assignedBot!, sessionHistory, devPrompt, `${task.file} (DEV)`);
                      }, maxConcurrency);
                  }
-                 
-                 // 4. INTEGRATION
                  setSessionStatus(SessionStatus.RESOLVING);
-                 addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "COMPILING ARTIFACTS..." });
                  const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.INTEGRATOR)} Persona: ${speaker.persona}`;
                  const finalRes = await processBotTurn(speaker, sessionHistory, finalPrompt, "PRODUCT LEAD");
                  sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: finalRes });
              }
         }
         else if (mode === SessionMode.SWARM) {
-             // ... (Existing Swarm Logic) ...
+             // ... Swarm Logic ...
              if (speaker) {
-                 addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PROTOCOL: HIVE DECOMPOSITION." });
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SPEAKER_DECOMPOSITION)} Persona: ${speaker.persona}`;
                  const res = await processBotTurn(speaker, sessionHistory, prompt, "HIVE OVERSEER");
                  sessionHistory.push({ id: 'spk', author: speaker.name, authorType: speaker.authorType, content: res });
@@ -252,105 +297,80 @@ const App: React.FC = () => {
                  const agentMatches = res.matchAll(/- Agent ([A-Za-z0-9\s]+):/g);
                  const swarmAgents: BotConfig[] = [];
                  for (const match of agentMatches) {
-                     const agentName = match[1].trim();
-                     swarmAgents.push({
-                         id: `swarm-${Date.now()}-${agentName}`,
-                         name: `Swarm: ${agentName}`,
-                         role: 'swarm_agent',
-                         authorType: AuthorType.GEMINI,
-                         model: 'gemini-2.5-flash',
-                         persona: "You are a specialized Swarm Agent.",
-                         color: "from-orange-500 to-red-600",
-                         enabled: true
-                     });
+                     swarmAgents.push({ id: `swarm-${Date.now()}-${match[1].trim()}`, name: `Swarm: ${match[1].trim()}`, role: 'swarm_agent', authorType: AuthorType.GEMINI, model: 'gemini-2.5-flash', persona: "You are a specialized Swarm Agent.", color: "from-orange-500 to-red-600", enabled: true });
                  }
                  setActiveSessionBots([...currentSessionBots, ...swarmAgents]);
-                 await wait(1000);
-                 
                  setSessionStatus(SessionStatus.DEBATING);
-                 const results = await runBatchWithConcurrency(swarmAgents, async (agent: BotConfig) => {
+                 await runBatchWithConcurrency(swarmAgents, async (agent: BotConfig) => {
                      const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SWARM_AGENT).replace('{{ROLE}}', agent.name).replace('{{TASK}}', 'Execute.')}`;
-                     const res = await processBotTurn(agent, sessionHistory, prompt, agent.name.toUpperCase());
-                     return res;
+                     return await processBotTurn(agent, sessionHistory, prompt, agent.name.toUpperCase());
                  }, maxConcurrency);
-
                  setSessionStatus(SessionStatus.RESOLVING);
-                 const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SPEAKER_AGGREGATION)} Persona: ${speaker.persona}`;
-                 const finalRes = await processBotTurn(speaker, sessionHistory, finalPrompt, "HIVE CONSENSUS");
+                 const finalRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SPEAKER_AGGREGATION)} Persona: ${speaker.persona}`, "HIVE CONSENSUS");
                  sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: finalRes });
              }
         }
         else if (mode === SessionMode.RESEARCH) {
-            // ... (Existing Research Logic) ...
-            if (speaker) {
-                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_PLANNING)} Persona: ${speaker.persona}`;
-                const res = await processBotTurn(speaker, sessionHistory, prompt, "LEAD INVESTIGATOR");
-                sessionHistory.push({ id: 'spk', author: speaker.name, authorType: speaker.authorType, content: res });
-            }
-            setSessionStatus(SessionStatus.DEBATING);
-            const investigators = initialCouncilors.slice(0, 3);
-            await runBatchWithConcurrency(investigators, async (councilor: BotConfig) => {
-                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${councilor.persona}`;
-                 const res = await processBotTurn(councilor, sessionHistory, prompt, "FIELD AGENT (R1)");
-                 sessionHistory.push({ id: `r1-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
-                 return res;
-            }, maxConcurrency);
-            await runBatchWithConcurrency(investigators, async (councilor: BotConfig) => {
-                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_2)} Persona: ${councilor.persona}`;
-                const res = await processBotTurn(councilor, sessionHistory, prompt, "FIELD AGENT (R2 - DEEP)");
-                sessionHistory.push({ id: `r2-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
-                return res;
-            }, maxConcurrency);
-            if (speaker) {
-                setSessionStatus(SessionStatus.RESOLVING);
-                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_REPORT)} Persona: ${speaker.persona}`;
-                const res = await processBotTurn(speaker, sessionHistory, prompt, "FINAL DOSSIER");
-                sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: res });
-            }
-        }
-        else if (mode === SessionMode.INQUIRY) {
-            // ... (Existing Inquiry Logic) ...
-            if (speaker) {
-                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
-                const res = await processBotTurn(speaker, sessionHistory, prompt, "SPEAKER");
-                sessionHistory.push({ id: 'spk', author: speaker.name, authorType: speaker.authorType, content: res });
-            }
-            setSessionStatus(SessionStatus.DEBATING);
-            const responders = initialCouncilors.slice(0, 3); 
-            await runBatchWithConcurrency(responders, async (councilor: BotConfig) => {
-                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.COUNCILOR)} Persona: ${councilor.persona}`;
-                 const res = await processBotTurn(councilor, sessionHistory, prompt, councilor.role);
-                 return res;
-            }, maxConcurrency);
-            if (speaker) {
-                setSessionStatus(SessionStatus.RESOLVING);
-                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.SPEAKER_ANSWER)} Persona: ${speaker.persona}`;
-                const res = await processBotTurn(speaker, sessionHistory, prompt, "FINAL ANSWER");
-                sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: res });
-            }
-        } 
-        else if (mode === SessionMode.DELIBERATION) {
-             // ... (Existing Deliberation Logic) ...
+             // --- RECURSIVE DEEP RESEARCH AGENT LOGIC ---
              if (speaker) {
-                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
-                 const res = await processBotTurn(speaker, sessionHistory, prompt, "OPENING");
-                 sessionHistory.push({ id: 'spk', author: speaker.name, authorType: speaker.authorType, content: res });
-            }
-            setSessionStatus(SessionStatus.DEBATING);
-            for (const councilor of initialCouncilors) {
-                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.COUNCILOR)} Persona: ${councilor.persona}`;
-                 const res = await processBotTurn(councilor, sessionHistory, prompt, "DELIBERATION");
-                 sessionHistory.push({ id: `res-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
-            }
-            if (speaker) {
+                // 1. Planning Phase
+                await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_PLANNING)} Persona: ${speaker.persona}`, "LEAD INVESTIGATOR");
+                
+                // 2. Breadth Phase (Round 1)
+                setSessionStatus(SessionStatus.DEBATING);
+                await runBatchWithConcurrency(initialCouncilors.slice(0,3), async (bot: BotConfig) => {
+                    return await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${bot.persona}`, "RESEARCH AGENT (PHASE 1)");
+                }, maxConcurrency);
+
+                // 3. Gap Analysis Phase (The "Deep" Part)
+                setSessionStatus(SessionStatus.RECONCILING);
+                const gapAnalysis = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_GAP_ANALYSIS)} Persona: ${speaker.persona}`, "GAP ANALYSIS");
+                sessionHistory.push({ id: 'gap-analysis', author: speaker.name, authorType: speaker.authorType, content: gapAnalysis });
+
+                // 4. Depth Phase (Round 2) - Targeted Search
+                setSessionStatus(SessionStatus.DEBATING);
+                await runBatchWithConcurrency(initialCouncilors.slice(0,3), async (bot: BotConfig) => {
+                    const depthPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_2).replace('{{GAP_CONTEXT}}', gapAnalysis)} Persona: ${bot.persona}`;
+                    return await processBotTurn(bot, sessionHistory, depthPrompt, "RESEARCH AGENT (PHASE 2)");
+                }, maxConcurrency);
+                
+                // 5. Final Report
                 setSessionStatus(SessionStatus.RESOLVING);
-                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.SPEAKER_SUMMARY)} Persona: ${speaker.persona}`;
-                const res = await processBotTurn(speaker, sessionHistory, prompt, "SENSE OF COUNCIL");
-                sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: res });
-            }
+                await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_REPORT)} Persona: ${speaker.persona}`, "FINAL DOSSIER");
+             }
+        }
+        else if (mode === SessionMode.INQUIRY || mode === SessionMode.DELIBERATION) {
+             let openingPrompt = "";
+             let councilorPrompt = "";
+             let closingPrompt = "";
+             let closingRole = "FINAL";
+ 
+             if (mode === SessionMode.INQUIRY) {
+                 openingPrompt = COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.SPEAKER_OPENING;
+                 councilorPrompt = COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.COUNCILOR;
+                 closingPrompt = COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.SPEAKER_ANSWER;
+                 closingRole = "ANSWER";
+             } else { // DELIBERATION
+                 openingPrompt = COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.SPEAKER_OPENING;
+                 councilorPrompt = COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.COUNCILOR;
+                 closingPrompt = COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.SPEAKER_SUMMARY;
+                 closingRole = "SUMMARY";
+             }
+ 
+             if (speaker) await processBotTurn(speaker, sessionHistory, `${injectTopic(openingPrompt)} Persona: ${speaker.persona}`, "SPEAKER");
+             
+             setSessionStatus(SessionStatus.DEBATING);
+             await runBatchWithConcurrency(initialCouncilors.slice(0,3), async (bot: BotConfig) => {
+                 return await processBotTurn(bot, sessionHistory, `${injectTopic(councilorPrompt)} Persona: ${bot.persona}`, bot.role);
+             }, maxConcurrency);
+             
+             setSessionStatus(SessionStatus.RESOLVING);
+             if (speaker) {
+                await processBotTurn(speaker, sessionHistory, `${injectTopic(closingPrompt)} Persona: ${speaker.persona}`, closingRole);
+             }
         }
         else {
-            // ... (Existing Proposal Logic) ...
+            // --- LEGISLATIVE PROPOSAL MODE ---
              if (speaker) {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
                 const res = await processBotTurn(speaker, sessionHistory, prompt, "OPENING BRIEF");
@@ -359,10 +379,32 @@ const App: React.FC = () => {
             setSessionStatus(SessionStatus.DEBATING);
             
             if (settings.cost.economyMode && speaker) {
+                 // ECONOMY DEBATE: Speaker simulates all
                  const debatePrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.ECONOMY_DEBATE).replace('{{COUNCILORS_LIST}}', initialCouncilors.map(b => `- ${b.name}: ${b.persona}`).join('\n'))} Persona: ${speaker.persona}`;
-                 const res = await processBotTurn(speaker, sessionHistory, debatePrompt, "COUNCIL SIMULATION");
-                 sessionHistory.push({ id: 'eco-deb', author: speaker.name, authorType: speaker.authorType, content: res });
+                 const rawTranscript = await processBotTurn(speaker, sessionHistory, debatePrompt, "COUNCIL SIMULATION");
+                 
+                 sessionHistory.push({ id: 'eco-deb', author: speaker.name, authorType: speaker.authorType, content: rawTranscript });
+                 
+                 // Regex to match **Name**: Content
+                 const turnRegex = /\*\*([^*]+)\*\*:\s*([\s\S]*?)(?=\*\*|$)/g;
+                 const turns = [...rawTranscript.matchAll(turnRegex)];
+                 
+                 turns.forEach((match, idx) => {
+                     const name = match[1].trim();
+                     const content = match[2].trim();
+                     const bot = initialCouncilors.find(b => b.name === name) || { color: 'from-gray-500 to-gray-600', role: 'councilor' } as BotConfig;
+                     // Inject distinct messages for visual fidelity
+                     addMessage({ 
+                         author: name, 
+                         authorType: AuthorType.GEMINI, // Simulated
+                         content: content, 
+                         color: bot.color, 
+                         roleLabel: "Councilor (Simulated)" 
+                     });
+                 });
+
             } else {
+                // STANDARD DEBATE
                 let debateQueue = [...initialCouncilors];
                 let rounds = 0;
                 while (debateQueue.length > 0 && rounds < 4 * initialCouncilors.length) {
@@ -380,17 +422,26 @@ const App: React.FC = () => {
                     }
                 }
             }
+
             setSessionStatus(SessionStatus.VOTING);
             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "DEBATE CLOSED. PROCEEDING TO ROLL CALL VOTE." });
             
             if (speaker) {
                  const votePrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.ECONOMY_VOTE_BATCH).replace('{{COUNCILORS_LIST}}', initialCouncilors.map(b => `- ${b.name}: ${b.persona}`).join('\n'))} Persona: ${speaker.persona}`;
-                 const res = await processBotTurn(speaker, sessionHistory, votePrompt, "VOTE AGGREGATOR");
-                 // In a real app we'd parse this, here we rely on the component to display it
+                 const voteRes = await processBotTurn(speaker, sessionHistory, votePrompt, "VOTE TALLY");
+                 
+                 // PARSE VOTES
+                 const voteData = parseVotesFromResponse(voteRes, topic, initialCouncilors);
+                 const voteMsg: Message = { id: `vote-dashboard-${Date.now()}`, author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Voting Results tallied.", voteData: voteData };
+                 setMessages(prev => [...prev, voteMsg]);
+                 sessionHistory.push(voteMsg);
+
                  setSessionStatus(SessionStatus.RESOLVING);
-                 const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_POST_VOTE)} Persona: ${speaker.persona}`;
+                 const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_POST_VOTE)} VOTE OUTCOME: ${voteData.result} (${voteData.yeas} YEA, ${voteData.nays} NAY). Persona: ${speaker.persona}`;
                  const finalRes = await processBotTurn(speaker, sessionHistory, finalPrompt, "FINAL DECREE");
-                 if (finalRes.includes('PASSED')) saveMemory({ id: `mem-${Date.now()}`, topic, content: finalRes, date: new Date().toISOString(), tags: [mode] });
+                 if (finalRes.includes('PASSED') || voteData.result === 'PASSED') {
+                     saveMemory({ id: `mem-${Date.now()}`, topic, content: finalRes, date: new Date().toISOString(), tags: [mode] });
+                 }
             }
         }
     } catch (e: any) {
@@ -457,7 +508,7 @@ const App: React.FC = () => {
   const showCodingUI = isCodingMode && settings.ui.proCodingUI;
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 flex flex-col font-sans text-slate-200 overflow-hidden relative pt-[env(safe-area-inset-top)]">
+    <div className="fixed inset-0 h-[100dvh] w-full bg-slate-950 flex flex-col font-sans text-slate-200 overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       
       {showCodingUI ? (
           <CodingInterface 

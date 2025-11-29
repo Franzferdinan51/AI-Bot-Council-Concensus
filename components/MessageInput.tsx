@@ -10,6 +10,7 @@ interface MessageInputProps {
   enableCodingMode?: boolean;
   currentMode: SessionMode;
   onModeChange: (mode: SessionMode) => void;
+  compact?: boolean; // New prop for IDE/Terminal style
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({ 
@@ -18,7 +19,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
     statusText, 
     enableCodingMode = false,
     currentMode,
-    onModeChange
+    onModeChange,
+    compact = false
 }) => {
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -151,27 +153,39 @@ const MessageInput: React.FC<MessageInputProps> = ({
       availableModes.push({ m: SessionMode.SWARM_CODING, label: 'Swarm Coding', color: 'pink' });
   }
 
+  // --- STYLES ---
+  // Compact Mode (IDE Style) vs Standard (Floating Capsule)
+  const containerClasses = compact 
+      ? `w-full bg-[#1e1e1e] border-t border-[#333] px-2 py-2`
+      : `w-full bg-slate-950 pb-[env(safe-area-inset-bottom)] pt-2 px-2 md:px-4 relative z-10 transition-all duration-300 border-t border-transparent shrink-0`;
+      
+  const inputSurfaceClasses = compact
+      ? `flex flex-col bg-[#252526] border border-[#333] rounded-md`
+      : `bg-slate-900 border border-slate-700 rounded-[20px] shadow-2xl transition-all duration-300 focus-within:border-${activeColor}-500/50 focus-within:ring-1 focus-within:ring-${activeColor}-500/20 flex flex-col relative overflow-visible group`;
+
   return (
-    <div className="w-full bg-slate-950 pb-[env(safe-area-inset-bottom)] pt-2 px-2 md:px-4 relative z-10 transition-all duration-300 border-t border-transparent shrink-0">
-      <div className="max-w-4xl mx-auto relative">
+    <div className={containerClasses}>
+      <div className={compact ? "w-full" : "max-w-4xl mx-auto relative"}>
         
-        {/* Status Indicator (Floating above) */}
-        <div className="absolute -top-6 left-2 flex items-center gap-2 pointer-events-none">
-            {isLoading && (
-                 <div className="flex items-center gap-1.5 bg-slate-800/90 backdrop-blur px-2 py-0.5 rounded-full border border-slate-700 shadow-sm">
-                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
-                    <span className="text-[9px] text-slate-300 font-mono uppercase tracking-wider">{statusText}</span>
-                 </div>
-            )}
-        </div>
+        {/* Status Indicator (Floating above - only in standard) */}
+        {!compact && (
+            <div className="absolute -top-6 left-2 flex items-center gap-2 pointer-events-none">
+                {isLoading && (
+                    <div className="flex items-center gap-1.5 bg-slate-800/90 backdrop-blur px-2 py-0.5 rounded-full border border-slate-700 shadow-sm">
+                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                        <span className="text-[9px] text-slate-300 font-mono uppercase tracking-wider">{statusText}</span>
+                    </div>
+                )}
+            </div>
+        )}
 
         {/* Link Input Popover */}
         {showLinkInput && (
-            <div className="absolute bottom-full left-0 mb-2 w-full max-w-md bg-slate-800 border border-slate-600 p-2 rounded-xl shadow-2xl flex gap-2 z-50 animate-fade-in-up">
+            <div className={`absolute left-0 mb-2 w-full max-w-md bg-slate-800 border border-slate-600 p-2 rounded-xl shadow-2xl flex gap-2 z-50 animate-fade-in-up ${compact ? 'bottom-full' : 'bottom-full'}`}>
                 <input 
                     autoFocus
                     type="text" 
-                    placeholder="Paste URL (Web or YouTube)..." 
+                    placeholder="Paste URL..." 
                     value={linkUrl}
                     onChange={(e) => setLinkUrl(e.target.value)}
                     className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none"
@@ -183,11 +197,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         )}
 
         {/* MAIN INPUT SURFACE */}
-        <div className={`
-            bg-slate-900 border border-slate-700 rounded-[20px] shadow-2xl transition-all duration-300
-            focus-within:border-${activeColor}-500/50 focus-within:ring-1 focus-within:ring-${activeColor}-500/20
-            flex flex-col relative overflow-visible group
-        `}>
+        <div className={inputSurfaceClasses}>
             
             {/* Top Bar: Mode Selector & Attachments */}
             <div className="flex items-center gap-2 px-3 pt-2">
@@ -196,7 +206,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
                 <div className="relative">
                     <button 
                         onClick={() => setIsModeMenuOpen(!isModeMenuOpen)}
-                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all bg-${activeColor}-900/30 text-${activeColor}-400 hover:bg-${activeColor}-900/50 border border-${activeColor}-900/50`}
+                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all 
+                        ${compact 
+                            ? 'bg-[#333] text-slate-300 hover:bg-[#444]' 
+                            : `bg-${activeColor}-900/30 text-${activeColor}-400 hover:bg-${activeColor}-900/50 border border-${activeColor}-900/50`}`}
                     >
                         <span>{currentMode.replace('_', ' ')}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${isModeMenuOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -226,11 +239,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
                 <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide">
                     {attachments.map((att, i) => (
                         <div key={i} className="flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700 max-w-[120px]">
-                            {att.type === 'link' ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400 flex-shrink-0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path></svg>
-                            ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 flex-shrink-0"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                            )}
                             <span className="text-[9px] text-slate-300 truncate flex-1">{att.type === 'link' ? att.data : 'File'}</span>
                             <button onClick={() => removeAttachment(i)} className="text-slate-500 hover:text-red-400">×</button>
                         </div>
@@ -244,10 +252,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isLoading ? "Please wait..." : "Message the Council..."}
+                placeholder={isLoading ? "Processing..." : (compact ? "Enter command..." : "Message the Council...")}
                 disabled={isLoading}
                 rows={1}
-                className="w-full bg-transparent border-none text-slate-200 placeholder-slate-500 text-sm md:text-base px-4 py-3 focus:ring-0 resize-none max-h-48 font-serif leading-relaxed"
+                className={`w-full bg-transparent border-none text-slate-200 placeholder-slate-500 px-4 py-3 focus:ring-0 resize-none max-h-48 leading-relaxed ${compact ? 'text-sm font-mono' : 'text-sm md:text-base font-serif'}`}
             />
 
             {/* Bottom Bar: Tools & Send */}
@@ -263,7 +271,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
                         className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
                         title="Upload File"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </button>
                     
                     <button 
@@ -272,7 +280,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
                         className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
                         title="Add Link"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                     </button>
                 </div>
 
@@ -284,12 +292,12 @@ const MessageInput: React.FC<MessageInputProps> = ({
                         className={`p-2 rounded-full transition-all ${isRecording ? 'bg-red-500/20 text-red-500' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
                     >
                         {isRecording ? (
-                            <span className="flex h-4 w-4 relative">
+                            <span className="flex h-3 w-3 relative">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                             </span>
                         ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                         )}
                     </button>
 
@@ -298,24 +306,26 @@ const MessageInput: React.FC<MessageInputProps> = ({
                         onClick={() => handleSubmit()}
                         disabled={!content.trim() || isLoading}
                         className={`
-                            h-8 w-8 md:h-9 md:w-9 flex items-center justify-center rounded-full transition-all duration-300 shadow-lg
+                            h-7 w-7 md:h-8 md:w-8 flex items-center justify-center rounded-full transition-all duration-300 shadow-lg
                             ${content.trim() && !isLoading 
-                                ? `bg-gradient-to-br from-${activeColor}-500 to-${activeColor}-700 text-white hover:scale-105 active:scale-95` 
+                                ? compact ? 'bg-pink-600 hover:bg-pink-500 text-white' : `bg-gradient-to-br from-${activeColor}-500 to-${activeColor}-700 text-white hover:scale-105`
                                 : 'bg-slate-800 text-slate-600 cursor-not-allowed'}
                         `}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
                 </div>
             </div>
         </div>
         
         {/* Footer Text */}
-        <div className="text-center mt-1">
-             <p className="text-[9px] text-slate-600 font-mono">
-                 AI Council • {currentMode.replace('_', ' ').toUpperCase()} Mode Active
-             </p>
-        </div>
+        {!compact && (
+            <div className="text-center mt-1">
+                <p className="text-[9px] text-slate-600 font-mono">
+                    AI Council • {currentMode.replace('_', ' ').toUpperCase()} Mode Active
+                </p>
+            </div>
+        )}
       </div>
     </div>
   );

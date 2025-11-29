@@ -1,6 +1,18 @@
 
 import React, { useState } from 'react';
 import { Message, AuthorType } from '../types';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  ResponsiveContainer, 
+  RadialBarChart, 
+  RadialBar, 
+  PolarAngleAxis,
+  Cell
+} from 'recharts';
 
 interface ChatMessageProps {
   message: Message;
@@ -99,11 +111,18 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
   if (isSystem) {
       if (message.voteData) {
-          // ... (Existing Vote Rendering Code kept as is) ...
           const { yeas, nays, result, votes, avgConfidence, consensusScore, consensusLabel } = message.voteData;
-          const total = yeas + nays;
-          const yeaPercent = total > 0 ? (yeas / total) * 100 : 0;
           
+          // Recharts Data Construction
+          const radialData = [
+              { name: 'Consensus', value: consensusScore, fill: consensusScore > 75 ? '#10b981' : consensusScore > 40 ? '#f59e0b' : '#ef4444' }
+          ];
+
+          const barData = [
+              { name: 'YEA', value: yeas, color: '#10b981' },
+              { name: 'NAY', value: nays, color: '#ef4444' },
+          ];
+
           return (
             <div className="flex justify-center my-6 animate-fade-in w-full px-2 md:px-0">
                 <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 max-w-2xl w-full shadow-2xl relative overflow-hidden group">
@@ -120,42 +139,76 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                              </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            
+                            {/* Consensus Gauge using Recharts */}
                             <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
-                                <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2 w-full text-center">Consensus Score</h4>
-                                <div className="relative w-24 h-24 flex items-center justify-center">
-                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                        <path className="text-slate-700" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
-                                        <path className={`${consensusScore > 80 ? 'text-emerald-500' : consensusScore > 50 ? 'text-amber-500' : 'text-red-500'} transition-all duration-1000 ease-out`} strokeDasharray={`${consensusScore}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
-                                    </svg>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 w-full text-center">Consensus Score</h4>
+                                <div className="h-32 w-full relative">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <RadialBarChart 
+                                            cx="50%" 
+                                            cy="50%" 
+                                            innerRadius="60%" 
+                                            outerRadius="80%" 
+                                            barSize={10} 
+                                            data={radialData} 
+                                            startAngle={180} 
+                                            endAngle={0}
+                                        >
+                                            <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                                            <RadialBar
+                                                background
+                                                dataKey="value"
+                                                cornerRadius={10}
+                                            />
+                                            <Tooltip 
+                                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff', fontSize: '12px' }}
+                                                itemStyle={{ color: '#fff' }}
+                                            />
+                                        </RadialBarChart>
+                                    </ResponsiveContainer>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center pt-8">
                                         <span className="text-2xl font-black text-white">{consensusScore}</span>
                                         <span className="text-[8px] text-slate-400 uppercase">/100</span>
                                     </div>
                                 </div>
-                                <div className={`text-xs font-bold mt-2 px-2 py-0.5 rounded uppercase ${consensusScore > 80 ? 'bg-emerald-900/30 text-emerald-400' : consensusScore > 50 ? 'bg-amber-900/30 text-amber-400' : 'bg-red-900/30 text-red-400'}`}>
+                                <div className={`text-xs font-bold -mt-4 px-2 py-0.5 rounded uppercase ${consensusScore > 80 ? 'bg-emerald-900/30 text-emerald-400' : consensusScore > 50 ? 'bg-amber-900/30 text-amber-400' : 'bg-red-900/30 text-red-400'}`}>
                                     {consensusLabel || "Divided"}
                                 </div>
                             </div>
+
+                            {/* Vote Tally using Recharts */}
                             <div className="flex flex-col justify-center gap-3">
                                 <div>
-                                    <div className="flex justify-between text-xs font-bold uppercase mb-1 px-1">
-                                        <span className="text-green-400 flex items-center gap-1">Yeas <span className="bg-green-900/50 px-1.5 rounded text-white">{yeas}</span></span>
-                                        <span className="text-red-400 flex items-center gap-1"><span className="bg-red-900/50 px-1.5 rounded text-white">{nays}</span> Nays</span>
-                                    </div>
-                                    <div className="h-4 bg-slate-900 rounded-full overflow-hidden flex border border-slate-600 relative">
-                                        <div style={{ width: `${yeaPercent}%` }} className="bg-gradient-to-r from-green-600 to-green-500 transition-all duration-1000 relative"></div>
-                                        <div style={{ width: `${100 - yeaPercent}%` }} className="bg-gradient-to-l from-red-600 to-red-500 transition-all duration-1000 relative"></div>
-                                        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/20 z-10"></div>
+                                    <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Vote Tally</h4>
+                                    <div className="h-32 w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                                                <XAxis type="number" hide />
+                                                <YAxis dataKey="name" type="category" width={40} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 'bold'}} />
+                                                <Tooltip 
+                                                    cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                                                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff', fontSize: '12px' }}
+                                                />
+                                                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                                                    {barData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
                                     </div>
                                 </div>
+                                
+                                {/* Avg Confidence (Simple Bar) */}
                                 {avgConfidence !== undefined && (
-                                    <div>
-                                         <div className="text-[10px] text-slate-500 uppercase mb-1">Avg. Confidence</div>
-                                         <div className="flex items-center gap-2">
-                                             <div className="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
-                                                 <div className={`h-full ${avgConfidence > 7 ? 'bg-blue-500' : avgConfidence > 4 ? 'bg-yellow-500' : 'bg-orange-500'}`} style={{ width: `${avgConfidence * 10}%` }}></div>
-                                             </div>
-                                             <div className="text-xs font-mono font-bold text-slate-300">{avgConfidence.toFixed(1)}</div>
+                                    <div className="mt-2">
+                                         <div className="text-[10px] text-slate-500 uppercase mb-1 flex justify-between">
+                                            <span>Avg. Confidence</span>
+                                            <span className="text-slate-300 font-bold">{avgConfidence.toFixed(1)}/10</span>
+                                         </div>
+                                         <div className="h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
+                                             <div className={`h-full ${avgConfidence > 7 ? 'bg-blue-500' : avgConfidence > 4 ? 'bg-yellow-500' : 'bg-orange-500'}`} style={{ width: `${avgConfidence * 10}%` }}></div>
                                          </div>
                                     </div>
                                 )}
@@ -163,7 +216,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                         </div>
                         <div className="bg-slate-900/30 rounded border border-slate-700/50 overflow-hidden">
                             <div className="bg-slate-900/50 px-3 py-2 border-b border-slate-700/50 text-xs font-bold text-slate-400 uppercase tracking-wider">Member Breakdown</div>
-                            <div className="divide-y divide-slate-800">
+                            <div className="divide-y divide-slate-800 max-h-60 overflow-y-auto">
                                 {votes.map((v, i) => (
                                     <div key={i} className="p-3 hover:bg-slate-800/50 transition-colors">
                                         <div className="flex justify-between items-start mb-1">

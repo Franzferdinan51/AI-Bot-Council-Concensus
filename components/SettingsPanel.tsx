@@ -648,6 +648,23 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                 <option value="large">Large</option>
                             </select>
                         </div>
+                        <div className="border-t border-slate-700 pt-4">
+                             <label className="text-sm text-slate-300 block mb-2">Default View Mode</label>
+                             <div className="flex bg-slate-800 rounded p-1 border border-slate-700">
+                                 <button 
+                                     onClick={() => updateUI('chatViewMode', 'list')} 
+                                     className={`flex-1 py-1.5 text-xs font-bold rounded ${settings.ui.chatViewMode === 'list' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                                 >
+                                     Standard List
+                                 </button>
+                                 <button 
+                                     onClick={() => updateUI('chatViewMode', 'grid')} 
+                                     className={`flex-1 py-1.5 text-xs font-bold rounded ${settings.ui.chatViewMode === 'grid' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                                 >
+                                     Grid Layout
+                                 </button>
+                             </div>
+                        </div>
                         <div>
                              <label className="text-sm text-slate-300 block mb-1">Custom Prime Directive (Override)</label>
                              <textarea 

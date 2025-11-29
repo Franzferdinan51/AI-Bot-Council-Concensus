@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Message, BotConfig, SessionMode, SessionStatus } from '../types';
+import { Message, BotConfig, SessionMode, SessionStatus, AuthorType } from '../types';
 import ChatMessage from './ChatMessage';
 import MessageInput from './MessageInput';
 import CouncilorDeck from './CouncilorDeck';
@@ -30,6 +30,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,7 +38,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, thinkingBotIds]);
+  }, [messages, thinkingBotIds, viewMode]);
   
   const isSessionActive = thinkingBotIds.length > 0 || sessionStatus !== SessionStatus.IDLE && sessionStatus !== SessionStatus.ADJOURNED;
   const isPaused = sessionStatus === SessionStatus.PAUSED;
@@ -114,6 +115,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     </button>
+                    
+                    {/* View Toggle */}
+                    <div className="flex bg-slate-800 rounded p-0.5 border border-slate-700 ml-2">
+                         <button 
+                            onClick={() => setViewMode('list')}
+                            className={`p-1 rounded ${viewMode === 'list' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`}
+                            title="List View"
+                         >
+                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                         </button>
+                         <button 
+                            onClick={() => setViewMode('grid')}
+                            className={`p-1 rounded ${viewMode === 'grid' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`}
+                            title="Grid View"
+                         >
+                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                         </button>
+                    </div>
                 </div>
     
                 {/* CENTER */}
@@ -165,11 +184,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Visual Deck of Councilors */}
         <CouncilorDeck councilors={activeBots} activeBotIds={thinkingBotIds} onCouncilorClick={onCouncilorClick} />
 
-      <div className="flex-1 overflow-y-auto p-2 md:p-8 relative z-0 min-h-0">
-        <div className="max-w-5xl mx-auto pb-4">
-          {messages.map((msg) => (
-            <ChatMessage key={msg.id} message={msg} />
-          ))}
+      <div className="flex-1 overflow-y-auto p-2 md:p-8 relative z-0 min-h-0 bg-slate-950/50">
+        <div className={`mx-auto pb-4 ${viewMode === 'grid' ? 'max-w-7xl' : 'max-w-5xl'}`}>
+          {viewMode === 'list' ? (
+              // LIST VIEW
+              <>
+                  {messages.map((msg) => (
+                    <ChatMessage key={msg.id} message={msg} />
+                  ))}
+              </>
+          ) : (
+              // GRID VIEW
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-min">
+                  {messages.map((msg) => (
+                      <div key={msg.id} className={`${(msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'col-span-full' : 'col-span-1'}`}>
+                          <ChatMessage message={msg} />
+                      </div>
+                  ))}
+              </div>
+          )}
           
           {thinkingBotIds.length > 0 && (
              <div className="flex flex-col items-center justify-center my-8 animate-pulse">

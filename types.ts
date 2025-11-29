@@ -62,6 +62,7 @@ export interface UISettings {
     customDirective?: string; // Override for Prime Directive
     enableCodingMode?: boolean; // Toggle Swarm Coding Mode availability
     proCodingUI?: boolean; // Toggle IDE-style interface for coding mode
+    chatViewMode?: 'list' | 'grid'; // Toggle between linear chat and grid layout
 }
 
 export interface CostSettings {
