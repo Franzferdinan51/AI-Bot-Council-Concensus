@@ -20,6 +20,8 @@ export enum SessionMode {
     SWARM = 'swarm'               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
 }
 
+export type Atmosphere = 'default' | 'ancient' | 'galactic' | 'corporate' | 'eldritch';
+
 export interface BotConfig {
   id: string;
   name: string;
@@ -58,12 +60,14 @@ export interface UISettings {
     debateDelay: number; // ms delay between turns
     fontSize: 'small' | 'medium' | 'large';
     customDirective?: string; // Override for Prime Directive
+    atmosphere: Atmosphere; // Thematic flavor
 }
 
 export interface CostSettings {
     contextPruning: boolean; // Enable history truncation
     maxContextTurns: number; // Keep last N turns + Topic
     parallelProcessing: boolean; // Batch requests where possible
+    maxConcurrentRequests: number; // Limit parallel requests to prevent 429s
 }
 
 export interface ProviderSettings {

@@ -105,11 +105,11 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
       if (isRecording) return "Recording...";
       if (isLoading) return "The Council is deliberating...";
       switch (mode) {
-          case SessionMode.INQUIRY: return "Ask the Council a question...";
-          case SessionMode.DELIBERATION: return "Enter a topic for roundtable discussion...";
-          case SessionMode.RESEARCH: return "Enter a topic or attach links for deep investigation...";
-          case SessionMode.SWARM: return "Enter a complex task for the Swarm to decompose...";
-          default: return "Enter a motion for legislative debate...";
+          case SessionMode.INQUIRY: return "Ask a question...";
+          case SessionMode.DELIBERATION: return "Enter topic for deliberation...";
+          case SessionMode.RESEARCH: return "Enter topic for deep research...";
+          case SessionMode.SWARM: return "Enter task for Swarm...";
+          default: return "Enter legislative motion...";
       }
   };
 
@@ -126,62 +126,62 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
   const activeColor = getModeColor(mode);
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 md:p-6 bg-slate-900 border-t border-slate-700 shadow-2xl z-10 transition-colors duration-500 relative">
-      <div className="max-w-4xl mx-auto">
+    <form onSubmit={handleSubmit} className="bg-slate-900 border-t border-slate-700 shadow-2xl z-10 transition-colors duration-500 relative">
+      <div className="max-w-4xl mx-auto p-2 md:p-4 lg:p-6">
         
-        {/* Mode Selector */}
-        <div className="flex gap-1 mb-3 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+        {/* Mode Selector - Horizontally Scrollable on Mobile */}
+        <div className="flex gap-1.5 mb-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide -mx-2 px-2 md:mx-0 md:px-0">
              {[
-                 { m: SessionMode.PROPOSAL, label: 'Legislative Proposal', bg: 'bg-amber-600' },
-                 { m: SessionMode.DELIBERATION, label: 'Deliberation', bg: 'bg-purple-600' },
+                 { m: SessionMode.PROPOSAL, label: 'Legislate', bg: 'bg-amber-600' },
+                 { m: SessionMode.DELIBERATION, label: 'Deliberate', bg: 'bg-purple-600' },
                  { m: SessionMode.INQUIRY, label: 'Inquiry', bg: 'bg-cyan-600' },
-                 { m: SessionMode.RESEARCH, label: 'Deep Research', bg: 'bg-emerald-600' },
-                 { m: SessionMode.SWARM, label: 'Swarm Intelligence', bg: 'bg-orange-600' },
+                 { m: SessionMode.RESEARCH, label: 'Research', bg: 'bg-emerald-600' },
+                 { m: SessionMode.SWARM, label: 'Swarm', bg: 'bg-orange-600' },
              ].map((btn) => (
                 <button
                     key={btn.m}
                     type="button"
                     onClick={() => setMode(btn.m)}
-                    className={`px-3 py-1 rounded text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${mode === btn.m ? `${btn.bg} text-white shadow-lg scale-105` : 'bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300'}`}
+                    className={`flex-shrink-0 px-3 py-1.5 md:px-3 md:py-1 rounded text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${mode === btn.m ? `${btn.bg} text-white shadow-lg` : 'bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300'}`}
                 >
                     {btn.label}
                 </button>
              ))}
         </div>
 
-        <div className="mb-2 flex justify-between items-end">
-            <label className={`text-xs uppercase tracking-widest font-bold text-${activeColor}-500 transition-colors`}>
-                {isLoading ? "Council Session in Progress..." : (mode === SessionMode.RESEARCH ? "Deep Agentic Investigation" : mode === SessionMode.SWARM ? "Deploy Swarm Agents" : "Submit Agenda Item")}
+        <div className="mb-1.5 flex justify-between items-end">
+            <label className={`text-[10px] md:text-xs uppercase tracking-widest font-bold text-${activeColor}-500 transition-colors`}>
+                {isLoading ? "Session Active..." : (mode === SessionMode.RESEARCH ? "Deep Investigation" : mode === SessionMode.SWARM ? "Deploy Agents" : "Agenda Item")}
             </label>
-            <span className="text-xs text-slate-500 font-mono hidden md:inline">{statusText}</span>
+            <span className="text-[10px] text-slate-500 font-mono hidden md:inline">{statusText}</span>
         </div>
         
         {/* Attachment Previews */}
         {attachments.length > 0 && (
-            <div className="flex gap-2 mb-2 overflow-x-auto">
+            <div className="flex gap-2 mb-2 overflow-x-auto pb-1">
                 {attachments.map((att, i) => (
-                    <div key={i} className="relative bg-slate-800 p-2 rounded border border-slate-600 flex items-center gap-2">
-                        <button type="button" onClick={() => removeAttachment(i)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">×</button>
+                    <div key={i} className="relative flex-shrink-0 bg-slate-800 p-1.5 md:p-2 rounded border border-slate-600 flex items-center gap-2 max-w-[150px] md:max-w-xs">
+                        <button type="button" onClick={() => removeAttachment(i)} className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center shadow">×</button>
                         {att.type === 'link' ? (
-                            <div className="flex items-center gap-1 text-xs text-blue-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                                <span className="truncate w-24">{att.data}</span>
+                            <div className="flex items-center gap-1 text-[10px] md:text-xs text-blue-400 min-w-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                <span className="truncate">{att.data}</span>
                             </div>
                         ) : (
-                            <div className="text-[10px] text-slate-300 truncate w-16">{att.mimeType}</div>
+                            <div className="text-[10px] text-slate-300 truncate">{att.mimeType}</div>
                         )}
                     </div>
                 ))}
             </div>
         )}
 
-        <div className={`flex items-center gap-0 bg-slate-800 rounded-lg border focus-within:ring-1 transition-all shadow-inner relative border-slate-600 focus-within:border-${activeColor}-500 focus-within:ring-${activeColor}-500`}>
+        <div className={`flex items-center gap-1 md:gap-2 bg-slate-800 rounded-lg border focus-within:ring-1 transition-all shadow-inner relative border-slate-600 focus-within:border-${activeColor}-500 focus-within:ring-${activeColor}-500 p-1 md:p-0`}>
             
             {/* File Upload Button */}
             <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-3 text-slate-400 hover:text-white transition-colors"
+                className="p-2 md:p-3 text-slate-400 hover:text-white transition-colors flex-shrink-0"
                 title="Attach Image or Video"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
@@ -192,7 +192,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
             <button
                 type="button"
                 onClick={() => setShowLinkInput(!showLinkInput)}
-                className="p-3 text-slate-400 hover:text-white transition-colors"
+                className="p-2 md:p-3 text-slate-400 hover:text-white transition-colors flex-shrink-0"
                 title="Attach URL / YouTube"
             >
                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -200,17 +200,17 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
 
             {/* Link Popover */}
             {showLinkInput && (
-                <div className="absolute bottom-16 left-0 bg-slate-800 border border-slate-600 p-2 rounded shadow-xl flex gap-2 z-50 w-64 md:w-80">
+                <div className="absolute bottom-full left-0 mb-2 bg-slate-800 border border-slate-600 p-2 rounded shadow-xl flex gap-2 z-50 w-full md:w-80">
                     <input 
                         autoFocus
                         type="text" 
                         placeholder="Paste URL (Web or YouTube)..." 
                         value={linkUrl}
                         onChange={(e) => setLinkUrl(e.target.value)}
-                        className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"
+                        className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-xs text-white"
                         onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddLink(); } }}
                     />
-                    <button onClick={handleAddLink} className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-2 rounded">Add</button>
+                    <button onClick={handleAddLink} className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 rounded font-bold">Add</button>
                 </div>
             )}
 
@@ -219,7 +219,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={getPlaceholder()}
-                className="w-full bg-transparent px-2 md:px-4 py-4 text-white placeholder-slate-500 focus:outline-none font-serif text-base md:text-lg"
+                // text-base prevents auto-zoom on iOS
+                className="w-full bg-transparent px-2 md:px-4 py-2 md:py-4 text-white placeholder-slate-500 focus:outline-none font-serif text-base md:text-lg min-w-0"
                 disabled={isLoading}
             />
             
@@ -228,7 +229,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
                 type="button"
                 onClick={toggleRecording}
                 disabled={isLoading}
-                className={`p-3 mr-2 rounded-full transition-all ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                className={`p-2 md:p-3 rounded-full transition-all flex-shrink-0 ${isRecording ? 'bg-red-600 text-white animate-pulse' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
                 title="Record Audio"
             >
                 {isRecording ? (
@@ -241,9 +242,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
             <button
                 type="submit"
                 disabled={isLoading || !content.trim()}
-                className={`m-2 px-4 md:px-6 py-2 bg-gradient-to-r text-white font-bold uppercase tracking-wider text-xs md:text-sm rounded transition-all duration-300 focus:outline-none disabled:opacity-50 disabled:grayscale from-${activeColor}-600 to-${activeColor}-700 hover:from-${activeColor}-500 hover:to-${activeColor}-600`}
+                className={`m-1 md:m-2 px-3 md:px-6 py-2 bg-gradient-to-r text-white font-bold uppercase tracking-wider text-xs md:text-sm rounded transition-all duration-300 focus:outline-none disabled:opacity-50 disabled:grayscale from-${activeColor}-600 to-${activeColor}-700 hover:from-${activeColor}-500 hover:to-${activeColor}-600 flex-shrink-0`}
             >
-             SEND
+             <span className="hidden md:inline">SEND</span>
+             <span className="md:hidden">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+             </span>
             </button>
         </div>
       </div>

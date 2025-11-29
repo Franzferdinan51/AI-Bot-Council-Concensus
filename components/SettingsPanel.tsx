@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument } from '../types';
+import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument, Atmosphere } from '../types';
 import { MCP_PRESETS } from '../constants';
 import { getMemories } from '../services/knowledgeService';
 
@@ -168,15 +168,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
     <>
       <button 
         onClick={onToggle}
-        className="fixed top-4 right-4 z-40 p-2 bg-slate-700 rounded-full text-white hover:bg-slate-600 shadow-xl transition-transform duration-300"
+        className="fixed top-4 right-4 z-40 p-2 bg-slate-700 rounded-full text-white hover:bg-slate-600 shadow-xl transition-transform duration-300 mt-[env(safe-area-inset-top)]"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`}><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.78a2 2 0 0 1-.59 1.4l-4.12 4.12a2 2 0 0 0 0 2.82l4.12 4.12a2 2 0 0 1 .59 1.4v.78a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.78a2 2 0 0 1 .59-1.4l4.12-4.12a2 2 0 0 0 0-2.82l-4.12-4.12a2 2 0 0 1-.59-1.4V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
 
-      <div className={`fixed top-0 right-0 h-full bg-slate-900/95 backdrop-blur-md shadow-2xl z-30 transition-transform duration-300 w-full max-w-lg flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full bg-slate-900/95 backdrop-blur-md shadow-2xl z-30 transition-transform duration-300 w-full max-w-lg flex flex-col pt-[env(safe-area-inset-top)] ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         
         {/* Header Tabs */}
-        <div className="flex border-b border-slate-700 pt-16 px-4 md:px-6 bg-slate-900 overflow-x-auto scrollbar-hide">
+        <div className="flex border-b border-slate-700 pt-16 px-4 md:px-6 bg-slate-900 overflow-x-auto scrollbar-hide mt-[env(safe-area-inset-top)]">
             {[
                 { id: 'council', label: 'Council' },
                 { id: 'knowledge', label: 'Knowledge' },
@@ -531,6 +531,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                 <div className="space-y-6">
                     <h3 className="text-white font-serif text-lg mb-4">General Preferences</h3>
                     <div className="space-y-4">
+                        <div className="bg-slate-800 p-4 rounded border border-slate-700">
+                             <label className="text-sm font-bold text-amber-500 block mb-2">Council Atmosphere / Era</label>
+                             <select 
+                                value={settings.ui.atmosphere} 
+                                onChange={e => updateUI('atmosphere', e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-2 text-white"
+                             >
+                                 <option value="default">Default (Modern Sci-Fi)</option>
+                                 <option value="ancient">Ancient Forum (Rome/Greece)</option>
+                                 <option value="galactic">Galactic Senate (Star Wars)</option>
+                                 <option value="corporate">Corporate Boardroom</option>
+                                 <option value="eldritch">Eldritch / Lovecraftian</option>
+                             </select>
+                             <p className="text-[10px] text-slate-400 mt-2">Changes the system prompt flavor text for all agents.</p>
+                        </div>
+                        
                         <div>
                             <label className="text-sm text-slate-300 block mb-1">Debate Speed (Delay)</label>
                             <select 

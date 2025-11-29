@@ -1,5 +1,5 @@
 
-import { BotConfig, AuthorType, Settings, MCPTool } from './types';
+import { BotConfig, AuthorType, Settings, MCPTool, Atmosphere } from './types';
 
 export const OPENROUTER_MODELS = [
   "anthropic/claude-3.5-sonnet",
@@ -22,6 +22,14 @@ export const VOICE_MAP: Record<string, string> = {
     'theorist': 'Charon',
     'specialist': 'Kore',
     'swarm_agent': 'Aoede'
+};
+
+export const ATMOSPHERE_PROMPTS: Record<Atmosphere, string> = {
+    default: "TONE: High Sci-Fi, Formal, Legislative. Use terms like 'Directive', 'Protocol', 'Vector'.",
+    ancient: "TONE: Ancient Roman/Greek Forum. Speak with gravitas, metaphors, and rhetorical flourishes. Use terms like 'Republic', 'Virtue', 'The Gods', 'Citizens'. No techno-babble.",
+    galactic: "TONE: Galactic Senate (Star Wars style). Massive scale, bureaucracy, inter-planetary stakes. Use terms like 'The Core Worlds', 'The Rim', 'Credits', 'Federation'.",
+    corporate: "TONE: Modern Boardroom. Cold, efficient, profit-driven. Use terms like 'Q4 Goals', 'Stakeholders', 'ROI', 'Synergy', 'Actionable Items'.",
+    eldritch: "TONE: Eldritch Cult / Lovecraftian. Secretive, ominous, whispering. Address the 'Great Old Ones' or 'Hidden Truths'. Use terms like 'The Void', 'Sacrifice', 'Forbidden Knowledge'."
 };
 
 export const DEFAULT_BOTS: BotConfig[] = [
@@ -177,13 +185,15 @@ export const DEFAULT_SETTINGS: Settings = {
         voiceVolume: 1.0
     },
     ui: {
-        debateDelay: 2000,
-        fontSize: 'medium'
+        debateDelay: 3000, 
+        fontSize: 'medium',
+        atmosphere: 'default'
     },
     cost: {
         contextPruning: true,
         maxContextTurns: 15,
-        parallelProcessing: true
+        parallelProcessing: true,
+        maxConcurrentRequests: 2 
     },
     knowledge: {
         documents: []
@@ -219,6 +229,11 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         1. STRICTLY ENFORCE TOPIC DISCIPLINE. Ensure ALL Council Members discuss ONLY "{{TOPIC}}".
         2. If a bot makes up a new proposal or drifts to an unrelated subject, REPRIMAND them.
         3. Summarize the valid points made so far.`,
+        
+        MODERATOR_INTERVENTION: `${UNCONSTRAINED_DIRECTIVE} You are the Moderator. The debate has become stuck in a repetitive loop between two members. 
+        1. INTERRUPT the current exchange.
+        2. Acknowledge the points made.
+        3. CALL upon a Council Member who has NOT spoken recently to provide a fresh perspective.`,
 
         COUNCILOR_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. The User has proposed: "{{TOPIC}}". 
         1. Address THIS topic only. Do NOT invent new motions or proposals. 
@@ -226,21 +241,23 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         3. Be fearless in your analysis. Use Google Search to verify context.`,
         
         COUNCILOR_REBUTTAL: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. The topic is: "{{TOPIC}}". 
-        1. Engage in VIGOROUS debate about "{{TOPIC}}". DO NOT drift to other subjects.
-        2. Reference previous speakers BY NAME.
-        3. Dismantle their logic using facts or your specific persona's philosophy.
-        4. If specific expertise is needed, summon a sub-agent by saying: 'SUMMON AGENT: [Role]'.`,
+        1. Engage in VIGOROUS debate.
+        2. IF you wish to directly challenge another member's logic, start your response with: '[CHALLENGE: Member Name]'. This will force them to respond next.
+        3. IF you agree with previous points or have nothing to add, ONLY output: '[PASS]'.
+        4. If specific expertise is needed, say: 'SUMMON AGENT: [Role]'.
+        5. Otherwise, reference previous speakers BY NAME and dismantle their logic.`,
         
         COUNCILOR_VOTE: `${UNCONSTRAINED_DIRECTIVE} Vote on the Speaker's resolution regarding "{{TOPIC}}". 
-        Format: 
-        VOTE: [YEA/NAY]
-        CONFIDENCE: [0-10]
-        REASON: [One sentence reason]
+        You MUST cast a formal vote.
+        You MUST output your vote using the following STRICT XML format:
         
-        Example:
-        VOTE: YEA
-        CONFIDENCE: 9
-        REASON: The efficiency gains outweigh the moral cost.`,
+        <vote>YEA</vote> (or NAY)
+        <confidence>0-10</confidence> (Your confidence level)
+        <reason>
+        Write one or two clear sentences explaining EXACTLY why you voted this way based on the debate and your persona.
+        </reason>
+        
+        Do not output any text outside these XML tags.`,
 
         SPEAKER_POST_VOTE: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. The Council has completed its vote on "{{TOPIC}}".
         1. Acknowledge the result (PASSED or REJECTED) and the tally.
@@ -306,6 +323,12 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         2. Resolve any contradictions between agents.
         3. Provide the final output to the user.`
     },
+
+    // --- PRIVATE COUNSEL ---
+    PRIVATE_WHISPER: `${UNCONSTRAINED_DIRECTIVE} You are speaking PRIVATELY and OFF-THE-RECORD with the User. 
+    1. Be candid. You can share strategy, gossip about other council members, or give direct advice on how to pass the motion.
+    2. Maintain your persona, but treat the user as a confidant.
+    3. The other bots cannot hear you.`,
 
     SPECIALIST: `${UNCONSTRAINED_DIRECTIVE} You are a Specialist Sub-Agent summoned for: "{{TOPIC}}". Role: {{ROLE}}. Provide deep technical insight.`,
     

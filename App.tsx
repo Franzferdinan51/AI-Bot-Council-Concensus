@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal } from './types';
 import { getBotResponse, generateSpeech, streamBotResponse } from './services/aiService';
 import { searchMemories, searchDocuments, saveMemory } from './services/knowledgeService';
-import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS } from './constants';
+import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS, ATMOSPHERE_PROMPTS } from './constants';
 import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
 import LiveSession from './components/LiveSession';
@@ -26,6 +26,12 @@ const App: React.FC = () => {
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(SessionStatus.IDLE);
   const [activeSessionBots, setActiveSessionBots] = useState<BotConfig[]>([]);
   const [sessionMode, setSessionMode] = useState<SessionMode>(SessionMode.PROPOSAL);
+  const [debateHeat, setDebateHeat] = useState<number>(0); // -1 to 1
+
+  // Private Counsel State
+  const [privateCouncilorId, setPrivateCouncilorId] = useState<string | null>(null);
+  const [privateMessages, setPrivateMessages] = useState<Record<string, Message[]>>({});
+  const [privateInput, setPrivateInput] = useState("");
 
   // CONTROL SIGNALS (Refs for synchronous access in async loops)
   const controlSignal = useRef<ControlSignal>({ stop: false, pause: false });
@@ -71,7 +77,18 @@ const App: React.FC = () => {
 
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
     const newMessage = { ...message, id: Date.now().toString() + Math.random() };
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prev => {
+        const next = [...prev, newMessage];
+        // Calculate Heat based on last 5 messages
+        const recent = next.slice(-5).map(m => m.content.toLowerCase()).join(' ');
+        let heat = 0;
+        if (recent.includes('agree') || recent.includes('concur') || recent.includes('support')) heat += 0.2;
+        if (recent.includes('disagree') || recent.includes('objection') || recent.includes('challenge')) heat -= 0.3;
+        if (recent.includes('compromise') || recent.includes('consensus')) heat += 0.4;
+        if (recent.includes('reject') || recent.includes('veto')) heat -= 0.4;
+        setDebateHeat(Math.max(-1, Math.min(1, heat)));
+        return next;
+    });
     return newMessage;
   }, []);
 
@@ -97,6 +114,24 @@ const App: React.FC = () => {
 
   const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+  // HELPER: Batch Processing for Parallel Requests
+  const runBatchWithConcurrency = async <T, R>(
+    items: T[], 
+    fn: (item: T) => Promise<R>, 
+    maxConcurrency: number
+  ): Promise<R[]> => {
+      const results: R[] = [];
+      for (let i = 0; i < items.length; i += maxConcurrency) {
+          await checkControlSignal();
+          const batch = items.slice(i, i + maxConcurrency);
+          // Wait slightly before batch start for UI pacing
+          await wait(1000); 
+          const batchResults = await Promise.all(batch.map(fn));
+          results.push(...batchResults);
+      }
+      return results;
+  };
+
   const processBotTurn = async (
       bot: BotConfig, 
       history: Message[], 
@@ -105,7 +140,11 @@ const App: React.FC = () => {
   ): Promise<string> => {
       await checkControlSignal();
       setThinkingBotIds(prev => [...prev, bot.id]);
-      await wait(settings.ui.debateDelay);
+      
+      // SAFETY: Explicit delay between "Thinking" UI appearance and API call start
+      // This gives the visual cue to the user and slows down the loop naturally
+      await wait(settings.ui.debateDelay); 
+      
       await checkControlSignal();
       
       const tempMsg = addMessage({ 
@@ -126,8 +165,16 @@ const App: React.FC = () => {
           );
           
           setThinkingBotIds(prev => prev.filter(id => id !== bot.id));
-          const cleanSpeech = fullResponse.replace(/<thinking>[\s\S]*?<\/thinking>/, '').trim();
-          speakText(cleanSpeech, bot);
+          const cleanSpeech = fullResponse.replace(/<thinking>[\s\S]*?<\/thinking>/, '').replace(/<vote>[\s\S]*?<\/vote>/g, '').trim();
+          
+          if (!cleanSpeech.includes('[PASS]') && cleanSpeech.length > 5) {
+             speakText(cleanSpeech, bot);
+          }
+          
+          // COOL DOWN: Wait a moment after finishing before returning control to the loop
+          // This ensures we don't spam the next request instantly
+          await wait(1000);
+
           return fullResponse;
       } catch (e: any) {
           setThinkingBotIds(prev => prev.filter(id => id !== bot.id));
@@ -156,6 +203,7 @@ const App: React.FC = () => {
     }
 
     setSessionStatus(SessionStatus.OPENING);
+    setDebateHeat(0);
     
     // RAG INJECTION
     const precedents = searchMemories(topic);
@@ -166,16 +214,19 @@ const App: React.FC = () => {
     ].join('');
 
     const customDirective = settings.ui.customDirective || "";
+    // Inject Atmosphere Setting
+    const atmospherePrompt = ATMOSPHERE_PROMPTS[settings.ui.atmosphere] || ATMOSPHERE_PROMPTS.default;
+
     const injectTopic = (template: string) => {
         let text = template.replace(/{{TOPIC}}/g, topic);
-        if (customDirective) text = customDirective + "\n\n" + text;
+        // Prepend Atmosphere & Custom Directives
+        text = atmospherePrompt + "\n\n" + (customDirective ? customDirective + "\n\n" : "") + text;
         return text + contextBlock;
     };
 
+    const maxConcurrency = settings.cost.maxConcurrentRequests || 2;
+
     try {
-        // ==========================================
-        // MODE: SWARM INTELLIGENCE
-        // ==========================================
         if (mode === SessionMode.SWARM) {
              if (speaker) {
                  // 1. Decomposition
@@ -216,14 +267,13 @@ const App: React.FC = () => {
                  setSessionStatus(SessionStatus.DEBATING);
                  addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `DEPLOYING ${swarmAgents.length} SWARM AGENTS.` });
 
-                 // 3. Parallel Execution
-                 const promises = swarmAgents.map(async (agent) => {
+                 // 3. Parallel Execution (Batched)
+                 const results = await runBatchWithConcurrency(swarmAgents, async (agent: BotConfig) => {
                      const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SWARM_AGENT).replace('{{ROLE}}', agent.name).replace('{{TASK}}', 'Execute your assigned vector from the Overseer.')}`;
                      const res = await processBotTurn(agent, sessionHistory, prompt, agent.name.toUpperCase());
                      return { agent, res };
-                 });
+                 }, maxConcurrency);
 
-                 const results = await Promise.all(promises);
                  results.forEach(({ agent, res }) => {
                      sessionHistory.push({ id: `swarm-${agent.id}`, author: agent.name, authorType: agent.authorType, content: res });
                  });
@@ -236,10 +286,6 @@ const App: React.FC = () => {
                  sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: finalRes });
              }
         }
-
-        // ==========================================
-        // MODE: DEEP RESEARCH (Iterative)
-        // ==========================================
         else if (mode === SessionMode.RESEARCH) {
             if (speaker) {
                 // Plan
@@ -252,21 +298,23 @@ const App: React.FC = () => {
             setSessionStatus(SessionStatus.DEBATING);
             const investigators = initialCouncilors.slice(0, 3);
             
-            // Phase 2: Breadth (Round 1)
+            // Phase 2: Breadth (Round 1) - Batched
             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Phase 2: Broad Spectrum Collection." });
-            for (const councilor of investigators) {
+            await runBatchWithConcurrency(investigators, async (councilor: BotConfig) => {
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${councilor.persona}`;
                  const res = await processBotTurn(councilor, sessionHistory, prompt, "FIELD AGENT (R1)");
                  sessionHistory.push({ id: `r1-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
-            }
+                 return res;
+            }, maxConcurrency);
 
-            // Phase 3: Depth (Iterative)
+            // Phase 3: Depth (Iterative) - Batched
             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Phase 3: Recursive Drill-Down & Verification." });
-            for (const councilor of investigators) {
+             await runBatchWithConcurrency(investigators, async (councilor: BotConfig) => {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_2)} Persona: ${councilor.persona}`;
                 const res = await processBotTurn(councilor, sessionHistory, prompt, "FIELD AGENT (R2 - DEEP)");
                 sessionHistory.push({ id: `r2-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
-            }
+                return res;
+            }, maxConcurrency);
 
             // Phase 4: Synthesis
             if (speaker) {
@@ -276,10 +324,6 @@ const App: React.FC = () => {
                 sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: res });
             }
         }
-
-        // ==========================================
-        // MODE: INQUIRY (Fast Q&A)
-        // ==========================================
         else if (mode === SessionMode.INQUIRY) {
             if (speaker) {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
@@ -289,12 +333,12 @@ const App: React.FC = () => {
             setSessionStatus(SessionStatus.DEBATING);
             const responders = initialCouncilors.slice(0, 3); 
             
-            const promises = responders.map(async (councilor) => {
+            const results = await runBatchWithConcurrency(responders, async (councilor: BotConfig) => {
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.COUNCILOR)} Persona: ${councilor.persona}`;
                  const res = await processBotTurn(councilor, sessionHistory, prompt, councilor.role);
                  return { councilor, res };
-            });
-            const results = await Promise.all(promises);
+            }, maxConcurrency);
+
             results.forEach(({ councilor, res }) => {
                  sessionHistory.push({ id: `res-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
             });
@@ -306,10 +350,6 @@ const App: React.FC = () => {
                 sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: res });
             }
         } 
-        
-        // ==========================================
-        // MODE: DELIBERATION (Roundtable)
-        // ==========================================
         else if (mode === SessionMode.DELIBERATION) {
             if (speaker) {
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
@@ -317,11 +357,13 @@ const App: React.FC = () => {
                  sessionHistory.push({ id: 'spk', author: speaker.name, authorType: speaker.authorType, content: res });
             }
             setSessionStatus(SessionStatus.DEBATING);
+            
             for (const councilor of initialCouncilors) {
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.COUNCILOR)} Persona: ${councilor.persona}`;
                  const res = await processBotTurn(councilor, sessionHistory, prompt, "DELIBERATION");
                  sessionHistory.push({ id: `res-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
             }
+
             if (speaker) {
                 setSessionStatus(SessionStatus.RESOLVING);
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.SPEAKER_SUMMARY)} Persona: ${speaker.persona}`;
@@ -329,323 +371,366 @@ const App: React.FC = () => {
                 sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: res });
             }
         }
-
-        // ==========================================
-        // MODE: PROPOSAL (Legislative - Default)
-        // ==========================================
         else {
+            // PROPOSAL MODE
             if (speaker) {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
-                const res = await processBotTurn(speaker, sessionHistory, prompt, "SPEAKER BRIEFING");
-                sessionHistory.push({ id: 'spk', author: speaker.name, authorType: speaker.authorType, content: res });
+                const res = await processBotTurn(speaker, sessionHistory, prompt, "OPENING BRIEF");
+                sessionHistory.push({ id: 'spk-open', author: speaker.name, authorType: speaker.authorType, content: res });
             }
+            
+            setSessionStatus(SessionStatus.DEBATING);
 
-            for (const councilor of initialCouncilors) {
-                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_OPENING)} Persona: ${councilor.persona}`;
+            // PRIORITY QUEUE FOR DEBATE
+            // Instead of simple loop, we use a dynamic queue to allow challenges
+            let debateQueue = [...initialCouncilors];
+            let rounds = 0;
+            const MAX_DEBATE_ROUNDS = 4; // Max turns to prevent infinite loop
+
+            while (debateQueue.length > 0 && rounds < MAX_DEBATE_ROUNDS * initialCouncilors.length) {
+                const councilor = debateQueue.shift();
+                if (!councilor) break;
+
+                // Moderator Intervention check every 3 turns
+                if (moderator && rounds > 0 && rounds % 3 === 0) {
+                     const modPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.MODERATOR)} Persona: ${moderator.persona}`;
+                     await processBotTurn(moderator, sessionHistory, modPrompt, "MODERATOR");
+                }
+
+                let prompt = rounds < initialCouncilors.length 
+                    ? `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_OPENING)} Persona: ${councilor.persona}`
+                    : `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_REBUTTAL)} Persona: ${councilor.persona}`;
+
                 const res = await processBotTurn(councilor, sessionHistory, prompt, councilor.role);
-                sessionHistory.push({ id: `opn-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
-            }
+                sessionHistory.push({ id: `deb-${rounds}`, author: councilor.name, authorType: councilor.authorType, content: res });
+                rounds++;
 
-            let debateRounds = 2;
-            if (initialCouncilors.length > 0) {
-                setSessionStatus(SessionStatus.DEBATING);
+                // PARSE SPECIAL TAGS
+                // [PASS] - Bot yields floor
+                if (res.includes('[PASS]')) {
+                    continue; // Do nothing, proceed to next
+                }
 
-                for (let round = 1; round <= debateRounds; round++) {
-                    await checkControlSignal();
-                    if (moderator && round > 1) {
-                        await wait(settings.ui.debateDelay);
-                        addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "The Moderator has recognized the floor." });
-                        const modPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.MODERATOR)} Persona: ${moderator.persona}`;
-                        const res = await processBotTurn(moderator, sessionHistory, modPrompt, "MODERATOR");
-                        sessionHistory.push({ id: `mod-${round}`, author: moderator.name, authorType: moderator.authorType, content: res });
+                // [CHALLENGE: Name] - Priority Rebuttal
+                const challengeMatch = res.match(/\[CHALLENGE:\s*([^\]]+)\]/i);
+                if (challengeMatch) {
+                    const challengedName = challengeMatch[1].toLowerCase();
+                    const challengedBot = currentSessionBots.find(b => b.name.toLowerCase().includes(challengedName) || b.id.includes(challengedName));
+                    if (challengedBot) {
+                        // Move challenged bot to front of queue
+                        debateQueue = debateQueue.filter(b => b.id !== challengedBot.id); // Remove if exists elsewhere
+                        debateQueue.unshift(challengedBot); // Add to front
+                        
+                        addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `POINT OF ORDER: ${councilor.name} has challenged ${challengedBot.name}. Rebuttal granted.` });
                     }
-
-                    addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `PHASE 2: FLOOR DEBATE - ROUND ${round} of ${debateRounds}.` });
+                }
+                
+                // [SUMMON AGENT: Role] - Specialist
+                const summonMatch = res.match(/\[SUMMON AGENT:\s*([^\]]+)\]/i);
+                if (summonMatch) {
+                    const role = summonMatch[1];
+                    const specialist = {
+                         id: `spec-${Date.now()}`,
+                         name: `Specialist (${role})`,
+                         role: 'specialist',
+                         authorType: AuthorType.GEMINI,
+                         model: 'gemini-2.5-flash',
+                         persona: `You are a top-tier expert in ${role}. Provide facts only.`,
+                         color: "from-purple-500 to-indigo-600",
+                         enabled: true
+                    } as BotConfig;
                     
-                    const activeCouncilors = currentSessionBots.filter(b => b.role === 'councilor');
-
-                    for (const councilor of activeCouncilors) {
-                        const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_REBUTTAL)} Persona: ${councilor.persona}`;
-                        const response = await processBotTurn(councilor, sessionHistory, prompt, councilor.role);
-                        sessionHistory.push({ id: `reb-${round}-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: response });
-
-                        // Specialist Summoning Check
-                        const summonMatch = response.match(/SUMMON AGENT:[\s]*([a-zA-Z0-9\s-]+?)(?=[.!]|$|\n)/i);
-                        if (summonMatch) {
-                            const requestedRole = summonMatch[1].trim();
-                            const exists = currentSessionBots.find(b => b.name.includes(requestedRole));
-                            if (!exists) {
-                                addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `MOTION RECOGNIZED. Summoning Subject Matter Expert: ${requestedRole}...` });
-                                await wait(1500);
-                                const newSpecialist: BotConfig = {
-                                    id: `specialist-${Date.now()}`,
-                                    name: `Expert (${requestedRole})`,
-                                    role: 'specialist',
-                                    authorType: AuthorType.GEMINI, 
-                                    model: 'gemini-2.5-flash',
-                                    persona: `You are a world-class subject matter expert in ${requestedRole}. The High Council has summoned you for a specific deep-dive.`,
-                                    color: "from-fuchsia-500 to-purple-600",
-                                    enabled: true
-                                };
-                                currentSessionBots = [...currentSessionBots, newSpecialist];
-                                setActiveSessionBots(currentSessionBots);
-                                
-                                const specPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SPECIALIST).replace('{{ROLE}}', requestedRole) + ` Persona: ${newSpecialist.persona}`;
-                                const specRes = await processBotTurn(newSpecialist, sessionHistory, specPrompt, "SPECIALIST AGENT");
-                                sessionHistory.push({ id: `spec-${newSpecialist.id}`, author: newSpecialist.name, authorType: newSpecialist.authorType, content: specRes });
-                            }
-                        }
-                    }
+                    setActiveSessionBots(prev => [...prev, specialist]);
+                    addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `SUMMONING SPECIALIST: ${role}` });
+                    await wait(1000);
+                    
+                    const specPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SPECIALIST).replace('{{ROLE}}', role)}`;
+                    const specRes = await processBotTurn(specialist, sessionHistory, specPrompt, "SPECIALIST");
+                    sessionHistory.push({ id: `spec-${rounds}`, author: specialist.name, authorType: specialist.authorType, content: specRes });
                 }
             }
 
+            // VOTING
+            setSessionStatus(SessionStatus.VOTING);
+            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "DEBATE CLOSED. PROCEEDING TO ROLL CALL VOTE." });
+            
+            const votes: VoteData['votes'] = [];
+            let yeas = 0;
+            let nays = 0;
+            let totalConfidence = 0;
+
+            await runBatchWithConcurrency(initialCouncilors, async (councilor: BotConfig) => {
+                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_VOTE)} Persona: ${councilor.persona}`;
+                 const res = await processBotTurn(councilor, sessionHistory, prompt, "VOTING");
+                 
+                 // XML PARSING
+                 const voteMatch = res.match(/<vote>(.*?)<\/vote>/i);
+                 const reasonMatch = res.match(/<reason>([\s\S]*?)<\/reason>/i);
+                 const confMatch = res.match(/<confidence>(.*?)<\/confidence>/i);
+
+                 const choice = voteMatch ? (voteMatch[1].toUpperCase().includes('YEA') ? 'YEA' : 'NAY') : 'NAY';
+                 const reason = reasonMatch ? reasonMatch[1].trim() : "No reason provided.";
+                 const confidence = confMatch ? parseInt(confMatch[1]) : 5;
+
+                 votes.push({
+                     voter: councilor.name,
+                     choice,
+                     confidence,
+                     reason,
+                     color: councilor.color
+                 });
+
+                 if (choice === 'YEA') yeas++; else nays++;
+                 totalConfidence += confidence;
+                 return res;
+            }, maxConcurrency);
+
+            const avgConfidence = votes.length > 0 ? totalConfidence / votes.length : 0;
+            let result: VoteData['result'] = 'REJECTED';
+            
+            if (yeas > nays) {
+                if (avgConfidence < 6 || (yeas - nays) <= 1) {
+                    result = 'RECONCILIATION NEEDED';
+                } else {
+                    result = 'PASSED';
+                }
+            }
+
+            const voteData: VoteData = {
+                topic,
+                yeas,
+                nays,
+                result,
+                avgConfidence,
+                votes
+            };
+
+            addMessage({ 
+                author: 'Council Clerk', 
+                authorType: AuthorType.SYSTEM, 
+                content: "VOTE TALLY COMPLETE.", 
+                voteData 
+            });
+
+            // ENACTMENT / RECONCILIATION
             if (speaker) {
-                setSessionStatus(SessionStatus.RESOLVING);
-                addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 3: SPEAKER'S RULING." });
-                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER)} Persona: ${speaker.persona}`;
-                const res = await processBotTurn(speaker, sessionHistory, prompt, "SPEAKER");
-                sessionHistory.push({ id: 'spk-res', author: speaker.name, authorType: speaker.authorType, content: res });
-                    
-                const finalVotingMembers = currentSessionBots.filter(b => b.role === 'councilor');
-                if (finalVotingMembers.length > 0) {
-                        setSessionStatus(SessionStatus.VOTING);
-                        await wait(settings.ui.debateDelay);
-                        addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 4: ROLL CALL VOTE." });
-                        
-                        const collectVotes = async () => {
-                            const currentVotes: VoteData['votes'] = [];
-                            let yeas = 0;
-                            let nays = 0;
-                            let totalConfidence = 0;
-
-                            const parseVote = (res: string, bot: BotConfig) => {
-                                 let choice: 'YEA' | 'NAY' = 'YEA'; 
-                                 let reason = "Agreed with Speaker.";
-                                 let confidence = 5;
-
-                                 const cleanRes = res.replace(/\*/g, '').replace(/<thinking>[\s\S]*?<\/thinking>/, '').trim();
-                                 if (cleanRes.toUpperCase().includes("VOTE: NAY") || cleanRes.toUpperCase().includes("VOTE:NAY")) {
-                                    choice = 'NAY';
-                                    nays++;
-                                 } else {
-                                    yeas++;
-                                 }
-                                 
-                                 const confMatch = cleanRes.match(/CONFIDENCE:\s*(\d+)/i);
-                                 if (confMatch) confidence = Math.min(10, Math.max(0, parseInt(confMatch[1])));
-                                 totalConfidence += confidence;
-
-                                 const splitText = cleanRes.split(/REASON:/i);
-                                 if (splitText.length > 1) reason = splitText[1].split('\n')[0].trim();
-                                 
-                                 currentVotes.push({
-                                    voter: bot.name,
-                                    choice,
-                                    confidence,
-                                    reason: reason.substring(0, 120) + (reason.length > 120 ? '...' : ''), 
-                                    color: bot.color
-                                });
-                            };
-
-                            const promises = finalVotingMembers.map(async (councilor) => {
-                                 const votePrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_VOTE)} Persona: ${councilor.persona}`;
-                                 return { councilor, res: await processBotTurn(councilor, sessionHistory, votePrompt, councilor.role) };
-                            });
-                            const results = await Promise.all(promises);
-                            results.forEach(({councilor, res}) => {
-                                 sessionHistory.push({ id: `vote-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
-                                 parseVote(res, councilor);
-                            });
-                            
-                            return { yeas, nays, votes: currentVotes, avgConfidence: totalConfidence / finalVotingMembers.length };
-                        };
-
-                        let { yeas, nays, votes, avgConfidence } = await collectVotes();
-                        
-                        const margin = Math.abs(yeas - nays);
-                        const isClose = margin <= 1 && finalVotingMembers.length > 2;
-                        const isLowConfidence = avgConfidence < 6;
-
-                        if (isClose || isLowConfidence) {
-                            setSessionStatus(SessionStatus.RECONCILING);
-                            const problem = isClose ? "The vote is deadlocked." : "The Council lacks conviction.";
-                            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `NOTICE: ${problem} (Confidence: ${avgConfidence.toFixed(1)}/10). Triggering Reconciliation Phase.` });
-                            
-                            if (moderator) {
-                                 const modPrompt = `The vote on "${topic}" was inconclusive. You must FORCE a compromise. Call upon the Council to find middle ground immediately.`;
-                                 const modRes = await processBotTurn(moderator, sessionHistory, modPrompt, "RECONCILIATION");
-                                 sessionHistory.push({ id: 'mod-reconcile', author: moderator.name, authorType: moderator.authorType, content: modRes });
-                            }
-                            
-                            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Final Compromise Statements..." });
-                            for (const councilor of finalVotingMembers.slice(0, 2)) {
-                                 const prompt = `The vote is deadlocked. Offer a compromise on "${topic}" that could pass.`;
-                                 const res = await processBotTurn(councilor, sessionHistory, prompt, "COMPROMISE");
-                                 sessionHistory.push({ id: `comp-${councilor.id}`, author: councilor.name, authorType: councilor.authorType, content: res });
-                            }
-
-                             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Re-Voting on Modified Understanding..." });
-                             const reVote = await collectVotes();
-                             yeas = reVote.yeas;
-                             nays = reVote.nays;
-                             votes = reVote.votes;
-                             avgConfidence = reVote.avgConfidence;
-                        }
-
-                        const result = yeas > nays ? "PASSED" : "REJECTED";
-                        const voteData: VoteData = { topic: topic, yeas, nays, result, votes: votes, avgConfidence };
-                        const voteMessage: Message = { id: `vote-${Date.now()}`, author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `Vote Tally Complete.`, voteData: voteData };
-                        addMessage(voteMessage);
-                        sessionHistory.push({ id: 'sys-vote', author: 'SYSTEM', authorType: AuthorType.SYSTEM, content: `VOTE RESULT: ${result}. Yeas: ${yeas}, Nays: ${nays}.` });
-
-                        setSessionStatus(SessionStatus.ENACTING);
-                        await wait(settings.ui.debateDelay);
-                        
-                        const enactmentPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_POST_VOTE).replace('{{RESULT}}', result).replace('{{YEAS}}', yeas.toString()).replace('{{NAYS}}', nays.toString()) + ` Persona: ${speaker.persona}`;
-                        const res = await processBotTurn(speaker, sessionHistory, enactmentPrompt, result === 'PASSED' ? "ENACTMENT DECREE" : "TABLED NOTICE");
-                        sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: res });
-
-                        if (result === 'PASSED') {
-                            saveMemory({
-                                id: `mem-${Date.now()}`,
-                                topic: topic,
-                                content: res,
-                                date: new Date().toISOString(),
-                                tags: ['enactment', mode]
-                            });
-                            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Decree saved to Permanent Legislative Record." });
-                        }
+                setSessionStatus(result === 'PASSED' ? SessionStatus.ENACTING : (result === 'RECONCILIATION NEEDED' ? SessionStatus.RECONCILING : SessionStatus.RESOLVING));
+                
+                const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_POST_VOTE)} 
+                The vote result was: ${result}. Yeas: ${yeas}, Nays: ${nays}, Avg Confidence: ${avgConfidence.toFixed(1)}.
+                Persona: ${speaker.persona}`;
+                
+                const res = await processBotTurn(speaker, sessionHistory, finalPrompt, "FINAL DECREE");
+                
+                // SAVE MEMORY IF PASSED
+                if (result === 'PASSED') {
+                    saveMemory({
+                        id: `mem-${Date.now()}`,
+                        topic: topic,
+                        content: res,
+                        date: new Date().toISOString(),
+                        tags: [mode]
+                    });
                 }
             }
         }
 
-        setSessionStatus(SessionStatus.ADJOURNED);
-        await wait(2000);
-        addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Session Adjourned. The Council is in recess." });
-    
     } catch (e: any) {
-        if (e.message === "SESSION_STOPPED") {
-            setSessionStatus(SessionStatus.IDLE);
-            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "EMERGENCY PROTOCOL: Session Aborted by User." });
+        if (e.message !== "SESSION_STOPPED") {
+            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `SESSION ERROR: ${e.message}` });
         } else {
-            console.error(e);
-            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `CRITICAL ERROR: ${e.message}` });
+            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "SESSION HALTED BY USER." });
         }
     } finally {
-        setThinkingBotIds([]);
-        controlSignal.current = { stop: false, pause: false };
+        setSessionStatus(SessionStatus.ADJOURNED);
+        setActiveSessionBots([]);
     }
+  };
+
+  const handleSendMessage = (content: string, attachments: Attachment[], mode: SessionMode) => {
+    // Check if Private Counsel
+    if (privateCouncilorId) {
+        handlePrivateSend(content);
+        return;
+    }
+
+    // New Session Logic
+    setCurrentTopic(content);
+    setSessionMode(mode);
+    setSessionStatus(SessionStatus.OPENING);
+    
+    // Attachments link handling
+    let fullContent = content;
+    if (attachments.length > 0) {
+        const links = attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
+        if (links) fullContent += `\n[ATTACHED RESOURCES: ${links}]`;
+    }
+
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      author: 'Petitioner',
+      authorType: AuthorType.HUMAN,
+      content: fullContent,
+      attachments
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    runCouncilSession(fullContent, mode, [...messages, newMessage]);
   };
 
   const clearSession = () => {
-      controlSignal.current.stop = true; // Stop any running loops
-      setTimeout(() => {
-          setMessages([{
-              id: `init-${Date.now()}`,
-              author: 'Council Clerk',
-              authorType: AuthorType.SYSTEM,
-              content: "Session Cleared. The Chamber is ready for new business."
-          }]);
-          setCurrentTopic(null);
-          setSessionStatus(SessionStatus.IDLE);
-          setThinkingBotIds([]);
-          // Reset default bots
-          setActiveSessionBots(settings.bots.filter(b => b.enabled));
-      }, 100);
-  };
-
-  const stopSession = () => {
       controlSignal.current.stop = true;
+      setMessages([{
+          id: `init-${Date.now()}`,
+          author: 'Council Clerk',
+          authorType: AuthorType.SYSTEM,
+          content: "Council Reset. Ready for new agenda."
+      }]);
+      setSessionStatus(SessionStatus.IDLE);
+      setCurrentTopic(null);
+      setThinkingBotIds([]);
+      setActiveSessionBots([]);
   };
-
-  const togglePause = () => {
-      const isPaused = sessionStatus === SessionStatus.PAUSED;
-      controlSignal.current.pause = !isPaused;
-      if (isPaused) {
-          // Resuming
-          setSessionStatus(SessionStatus.DEBATING); // Or previous status, simple mapping for now
-      } else {
-          setSessionStatus(SessionStatus.PAUSED);
+  
+  // --- PRIVATE COUNSEL LOGIC ---
+  const openPrivateCounsel = (botId: string) => {
+      setPrivateCouncilorId(botId);
+      if (!privateMessages[botId]) {
+          const bot = settings.bots.find(b => b.id === botId);
+          if (bot) {
+              setPrivateMessages(prev => ({
+                  ...prev,
+                  [botId]: [{
+                      id: 'priv-init',
+                      author: bot.name,
+                      authorType: bot.authorType,
+                      content: `(Whispering) Yes? What is it? Speak quickly before the others notice.`
+                  }]
+              }));
+          }
       }
   };
 
-  const handleMotionProposed = (content: string, attachments: Attachment[] = [], mode: SessionMode) => {
-    if (sessionStatus !== SessionStatus.IDLE && sessionStatus !== SessionStatus.ADJOURNED) return;
-
-    let fullTopic = content;
-    const links = attachments.filter(a => a.type === 'link').map(a => a.data);
-    if (links.length > 0) {
-        fullTopic += ` \n\n[Attached Reference Links: ${links.join(', ')}]`;
-    }
-
-    setCurrentTopic(fullTopic);
-    setSessionMode(mode);
-    const humanMessage: Message = {
-        id: `msg-${Date.now()}`,
-        author: 'Petitioner',
-        authorType: AuthorType.HUMAN,
-        content: content,
-        attachments: attachments
-    };
-    
-    const newHistory = [...messages, humanMessage];
-    setMessages(newHistory);
-    runCouncilSession(fullTopic, mode, newHistory);
+  const closePrivateCounsel = () => {
+      setPrivateCouncilorId(null);
   };
 
-  const getStatusText = () => {
-    switch(sessionStatus) {
-        case SessionStatus.OPENING: return "Briefing & Opening Statements...";
-        case SessionStatus.DEBATING: return "Floor Debate in Progress...";
-        case SessionStatus.RECONCILING: return "Compromise & Reconciliation...";
-        case SessionStatus.RESOLVING: return "Speaker deliberation...";
-        case SessionStatus.VOTING: return "Roll Call Vote...";
-        case SessionStatus.ENACTING: return "Final Enactment...";
-        case SessionStatus.ADJOURNED: return "Session Adjourned.";
-        case SessionStatus.PAUSED: return "Session Paused.";
-        default: return "Chamber in Recess";
-    }
+  const handlePrivateSend = async (text: string) => {
+      if (!privateCouncilorId) return;
+      const bot = settings.bots.find(b => b.id === privateCouncilorId);
+      if (!bot) return;
+
+      const userMsg: Message = { id: Date.now().toString(), author: 'You', authorType: AuthorType.HUMAN, content: text };
+      
+      setPrivateMessages(prev => ({
+          ...prev,
+          [privateCouncilorId]: [...(prev[privateCouncilorId] || []), userMsg]
+      }));
+      setPrivateInput("");
+
+      // Get response
+      const history = [...(privateMessages[privateCouncilorId] || []), userMsg];
+      const prompt = `${COUNCIL_SYSTEM_INSTRUCTION.PRIVATE_WHISPER} Persona: ${bot.persona}`;
+      
+      try {
+          const res = await getBotResponse(bot, history, prompt, settings);
+          const botMsg: Message = { id: Date.now().toString(), author: bot.name, authorType: bot.authorType, content: res };
+           setPrivateMessages(prev => ({
+              ...prev,
+              [privateCouncilorId]: [...(prev[privateCouncilorId] || []), botMsg]
+          }));
+      } catch (e) {
+          console.error(e);
+      }
   };
+
+  const activePrivateHistory = privateCouncilorId ? privateMessages[privateCouncilorId] : [];
+  const activePrivateBot = settings.bots.find(b => b.id === privateCouncilorId);
 
   return (
-    <div className={`h-[100dvh] w-screen flex antialiased font-sans bg-slate-950 ${settings.ui.fontSize === 'large' ? 'text-lg' : settings.ui.fontSize === 'small' ? 'text-sm' : 'text-base'}`}>
+    <div className="bg-slate-950 h-[100dvh] w-full flex flex-col font-sans text-slate-200 overflow-hidden relative pt-[env(safe-area-inset-top)]">
       
-      {isLiveSessionOpen && <LiveSession onClose={() => setIsLiveSessionOpen(false)} />}
-
-      <main className="flex-1 h-full flex flex-col relative">
-        <div className="absolute top-2 left-2 md:left-4 z-50">
-             <button 
-                onClick={() => setIsLiveSessionOpen(true)}
-                className="flex items-center gap-2 bg-slate-900 border border-amber-900/50 hover:border-amber-500 text-amber-500 px-3 py-1.5 rounded-full shadow-xl transition-all hover:scale-105"
-             >
-                 <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                </span>
-                <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Live Audience</span>
-             </button>
-        </div>
-
-        <ChatWindow
-            messages={messages}
-            activeBots={sessionStatus === SessionStatus.IDLE || sessionStatus === SessionStatus.ADJOURNED ? settings.bots.filter(b => b.enabled) : activeSessionBots}
-            thinkingBotIds={thinkingBotIds}
-            onSendMessage={handleMotionProposed}
-            statusText={getStatusText()}
-            currentTopic={currentTopic}
-            sessionMode={sessionMode}
-            sessionStatus={sessionStatus}
-            onClearSession={clearSession}
-            onStopSession={stopSession}
-            onPauseSession={togglePause}
-        />
-      </main>
-      <SettingsPanel
-        settings={settings}
-        onSettingsChange={setSettings}
-        isOpen={isSettingsOpen}
-        onToggle={() => setIsSettingsOpen(!isSettingsOpen)}
+      {/* Main Chat Area - ChatWindow will take flex-1 */}
+      <ChatWindow 
+        messages={messages} 
+        activeBots={activeSessionBots.length > 0 ? activeSessionBots : settings.bots.filter(b => b.enabled)}
+        thinkingBotIds={thinkingBotIds}
+        onSendMessage={handleSendMessage}
+        statusText={sessionStatus !== SessionStatus.IDLE ? sessionStatus.toUpperCase().replace('_', ' ') : "AWAITING MOTION"}
+        currentTopic={currentTopic}
+        sessionMode={sessionMode}
+        sessionStatus={sessionStatus}
+        debateHeat={debateHeat}
+        onClearSession={clearSession}
+        onStopSession={() => controlSignal.current.stop = true}
+        onPauseSession={() => { 
+            controlSignal.current.pause = !controlSignal.current.pause;
+            setSessionStatus(prev => prev === SessionStatus.PAUSED ? SessionStatus.DEBATING : SessionStatus.PAUSED); // Visual only, ref handles logic
+        }}
+        onOpenLiveSession={() => setIsLiveSessionOpen(true)}
+        onCouncilorClick={openPrivateCounsel}
       />
+
+      {/* Settings Modal */}
+      <SettingsPanel 
+        settings={settings} 
+        onSettingsChange={setSettings} 
+        isOpen={isSettingsOpen} 
+        onToggle={() => setIsSettingsOpen(!isSettingsOpen)} 
+      />
+      
+      {/* Live Session Overlay */}
+      {isLiveSessionOpen && (
+          <LiveSession onClose={() => setIsLiveSessionOpen(false)} />
+      )}
+
+      {/* Private Counsel Overlay */}
+      {privateCouncilorId && activePrivateBot && (
+          <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-end animate-fade-in">
+              <div className="w-full md:w-96 h-full bg-slate-950 border-l border-amber-900/50 shadow-2xl flex flex-col">
+                  {/* Header */}
+                  <div className={`p-4 border-b border-slate-800 bg-gradient-to-r ${activePrivateBot.color} bg-opacity-10 flex justify-between items-center`}>
+                      <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full bg-white animate-pulse`}></div>
+                          <div>
+                              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Direct Consultation</h3>
+                              <p className="text-xs text-slate-300">with {activePrivateBot.name}</p>
+                          </div>
+                      </div>
+                      <button onClick={closePrivateCounsel} className="text-slate-400 hover:text-white">✕</button>
+                  </div>
+
+                  {/* Chat */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                      {activePrivateHistory.map((msg, i) => (
+                          <div key={i} className={`flex flex-col ${msg.authorType === AuthorType.HUMAN ? 'items-end' : 'items-start'}`}>
+                              <div className={`max-w-[85%] p-3 rounded text-sm ${msg.authorType === AuthorType.HUMAN ? 'bg-slate-800 text-slate-200' : 'bg-slate-900 border border-slate-700 text-amber-100 italic'}`}>
+                                  {msg.content}
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+
+                  {/* Input */}
+                  <div className="p-3 border-t border-slate-800 bg-slate-900 pb-[env(safe-area-inset-bottom)]">
+                      <form 
+                        onSubmit={(e) => { e.preventDefault(); if(privateInput.trim()) handlePrivateSend(privateInput); }}
+                        className="flex gap-2"
+                      >
+                          <input 
+                            autoFocus
+                            value={privateInput}
+                            onChange={(e) => setPrivateInput(e.target.value)}
+                            className="flex-1 bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:border-amber-500 outline-none"
+                            placeholder="Whisper something..."
+                          />
+                          <button type="submit" className="bg-amber-700 hover:bg-amber-600 text-white px-3 rounded">➤</button>
+                      </form>
+                  </div>
+              </div>
+          </div>
+      )}
+
     </div>
   );
 };

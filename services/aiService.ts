@@ -3,6 +3,12 @@ import { GoogleGenAI, Modality } from "@google/genai";
 import { Message, AuthorType, BotConfig, Settings, Attachment } from '../types';
 import { VOICE_MAP } from '../constants';
 
+// --- HELPER: RANDOM JITTER DELAY ---
+const waitWithJitter = (minMs: number, maxMs: number) => {
+    const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+    return new Promise(resolve => setTimeout(resolve, delay));
+};
+
 // --- COST SAVING: CONTEXT PRUNING ---
 const pruneHistory = (history: Message[], settings: Settings): Message[] => {
     if (!settings.cost.contextPruning || history.length <= settings.cost.maxContextTurns) {
@@ -19,9 +25,6 @@ const pruneHistory = (history: Message[], settings: Settings): Message[] => {
     if (history.length > 0 && history[0].authorType === AuthorType.SYSTEM) {
         preservedHistory.push(history[0]);
     }
-
-    // Note: We removed the logic that forced keeping the *first* human message forever.
-    // This allows the topic to naturally shift or be cleared without old topics polluting the context.
 
     // Get last N messages
     const lastN = history.slice(-settings.cost.maxContextTurns);
@@ -201,6 +204,9 @@ export const streamBotResponse = async (
 ): Promise<string> => {
     const systemPrompt = injectMCPContext(baseSystemInstruction, settings);
 
+    // SAFETY DELAY: Prevent API rate limits with small jitter
+    await waitWithJitter(200, 800);
+
     // GEMINI STREAMING
     if (bot.authorType === AuthorType.GEMINI) {
         const apiKey = settings.providers.geminiApiKey || process.env.API_KEY;
@@ -218,8 +224,6 @@ export const streamBotResponse = async (
             ]
         };
 
-        // Note: For gemini-3-pro, thinking is handled via config in prompt or separate params. 
-        // If the model supports native thinking parameters, add them here.
         if (bot.model.includes('gemini-3-pro')) {
             config.thinkingConfig = { thinkingBudget: 32768 };
         }
@@ -242,6 +246,10 @@ export const streamBotResponse = async (
             }
             return fullText;
         } catch (e: any) {
+            // Enhanced Error handling for Rate Limits
+            if (e.message?.includes('429') || e.message?.includes('Quota')) {
+                 throw new Error("Rate Limit Exceeded. Slowing down...");
+            }
             throw new Error(`Gemini Stream Error: ${e.message}`);
         }
     }
@@ -259,6 +267,9 @@ export const getBotResponse = async (
     baseSystemInstruction: string,
     settings: Settings
 ): Promise<string> => {
+    
+    // SAFETY DELAY
+    await waitWithJitter(200, 800);
     
     const systemPrompt = injectMCPContext(baseSystemInstruction, settings);
 
