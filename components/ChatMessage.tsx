@@ -236,6 +236,76 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             </div>
           );
       }
+
+      // --- NEW: PREDICTION VISUALIZATION ---
+      if (message.predictionData) {
+          const { outcome, confidence, timeline, reasoning } = message.predictionData;
+          
+          const radialData = [
+              { name: 'Confidence', value: confidence, fill: confidence > 80 ? '#10b981' : confidence > 50 ? '#f59e0b' : '#ef4444' }
+          ];
+
+          return (
+            <div className="flex justify-center my-6 animate-fade-in w-full px-2 md:px-0">
+                <div className="bg-slate-900 border border-indigo-500/50 rounded-xl p-4 md:p-6 max-w-2xl w-full shadow-2xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-indigo-900/10 z-0"></div>
+                    
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-4 border-b border-indigo-500/30 pb-3">
+                             <div className="bg-indigo-900/50 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400"><path d="M2 12h10"/><path d="M9 4v16"/><path d="M3 9l9 6 9-6"/><path d="M12 2v20"/></svg></div>
+                             <div>
+                                 <h3 className="text-indigo-200 font-serif text-lg tracking-widest uppercase font-bold">Council Forecast</h3>
+                                 <p className="text-xs text-indigo-400 uppercase tracking-wider">Predictive Analysis</p>
+                             </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-6 items-center">
+                            {/* Confidence Gauge */}
+                            <div className="flex-shrink-0 w-32 h-32 relative">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RadialBarChart 
+                                        cx="50%" 
+                                        cy="50%" 
+                                        innerRadius="60%" 
+                                        outerRadius="80%" 
+                                        barSize={10} 
+                                        data={radialData} 
+                                        startAngle={90} 
+                                        endAngle={-270}
+                                    >
+                                        <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                                        <RadialBar background dataKey="value" cornerRadius={10} />
+                                    </RadialBarChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-2xl font-black text-white">{confidence}%</span>
+                                    <span className="text-[8px] text-slate-400 uppercase">Probability</span>
+                                </div>
+                            </div>
+
+                            {/* Outcome Details */}
+                            <div className="flex-1 space-y-3">
+                                <div>
+                                    <h4 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Predicted Outcome</h4>
+                                    <p className="text-white font-bold text-sm md:text-base leading-snug">{outcome}</p>
+                                </div>
+                                <div>
+                                    <h4 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Estimated Timeline</h4>
+                                    <span className="bg-indigo-900/50 text-indigo-200 text-xs px-2 py-1 rounded border border-indigo-500/30">{timeline}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 bg-slate-950/50 rounded p-3 border border-indigo-900/30">
+                            <h4 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Council Reasoning</h4>
+                            <p className="text-slate-300 text-xs leading-relaxed italic">"{reasoning}"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          );
+      }
+
       return (
           <div className="flex justify-center my-4 animate-fade-in px-4">
               <div className="bg-slate-800/50 border border-slate-700 rounded-full px-4 py-1 flex items-center gap-2 shadow-sm max-w-full">
@@ -252,7 +322,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const mainContent = parts[0].trim();
   const sourceContent = parts.length > 1 ? parts[1].trim() : null;
 
-  // If content contains code blocks, we strip them from the text view because the CodeArtifact component handles them
   const textWithoutCode = mainContent.replace(/```(\w+)?\n([\s\S]*?)```/g, '');
   const hasCode = /```(\w+)?\n([\s\S]*?)```/g.test(mainContent);
 
@@ -299,15 +368,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                 </div>
             )}
             
-            {/* Text Content (Simplified if code exists) */}
             <div className="text-slate-300 leading-relaxed font-serif text-sm md:text-md whitespace-pre-wrap break-words min-w-0">
                 {hasCode ? textWithoutCode : mainContent}
             </div>
             
-            {/* Render Code Artifacts */}
             {hasCode && <CodeArtifact content={mainContent} />}
 
-            {/* Attachments */}
             {message.attachments && message.attachments.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                     {message.attachments.map((att, idx) => (

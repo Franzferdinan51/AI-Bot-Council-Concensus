@@ -23,6 +23,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
   const [newMemoryContent, setNewMemoryContent] = useState('');
   const [newMemoryType, setNewMemoryType] = useState<'fact'|'directive'|'observation'>('fact');
 
+  // MCP Import State
+  const [toolImportUrl, setToolImportUrl] = useState('');
+  const [importStatus, setImportStatus] = useState('');
+
   useEffect(() => {
       if (isOpen) setMemories(getMemories());
   }, [isOpen]);
@@ -169,6 +173,51 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
       }
   };
 
+  const handleImportToolFromUrl = async () => {
+      if (!toolImportUrl) return;
+      setImportStatus("Fetching...");
+      try {
+          const res = await fetch(toolImportUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          
+          const toolsToAdd: MCPTool[] = [];
+          
+          // Handle Array of tools or Single tool object
+          const items = Array.isArray(data) ? data : [data];
+          
+          items.forEach((item: any) => {
+              if (item.name && item.description) {
+                  // Attempt to normalize schema. 
+                  // Handles standard Gemini functionDeclaration or raw JSON schema in 'parameters' or 'input_schema'
+                  const schemaObj = item.parameters || item.input_schema || item.schema || {};
+                  
+                  toolsToAdd.push({
+                      name: item.name,
+                      description: item.description,
+                      schema: JSON.stringify(schemaObj, null, 2)
+                  });
+              }
+          });
+
+          if (toolsToAdd.length > 0) {
+              onSettingsChange({
+                  ...settings,
+                  mcp: {
+                      ...settings.mcp,
+                      customTools: [...settings.mcp.customTools, ...toolsToAdd]
+                  }
+              });
+              setImportStatus(`Successfully imported ${toolsToAdd.length} tools.`);
+              setToolImportUrl('');
+          } else {
+              setImportStatus("No valid tool definitions found in JSON.");
+          }
+      } catch (e: any) {
+          setImportStatus(`Error: ${e.message}`);
+      }
+  };
+
   const quickSetEndpoint = (url: string) => {
       onSettingsChange({
           ...settings,
@@ -187,6 +236,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
       onSettingsChange({
           ...settings,
           mcp: { ...settings.mcp, publicToolIds: newIds }
+      });
+  };
+
+  const toggleAllPublicTools = (enable: boolean) => {
+      onSettingsChange({
+          ...settings,
+          mcp: { 
+              ...settings.mcp, 
+              publicToolIds: enable ? PUBLIC_MCP_REGISTRY.map(t => t.id) : [] 
+          }
       });
   };
   
@@ -479,6 +538,32 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         />
                     </div>
 
+                    <div className="p-4 bg-slate-800 rounded border border-slate-700 mt-4">
+                        <label className="text-sm font-bold text-violet-400 block mb-2">Generic OpenAI-Compatible API</label>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="text-xs text-slate-400">Base URL (v1/chat/completions)</label>
+                                <input 
+                                    type="text" 
+                                    value={settings.providers.genericOpenAIEndpoint || ''} 
+                                    onChange={e => updateProvider('genericOpenAIEndpoint', e.target.value)} 
+                                    className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600 text-xs"
+                                    placeholder="https://api.groq.com/openai/v1/chat/completions"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400">API Key</label>
+                                <input 
+                                    type="password" 
+                                    value={settings.providers.genericOpenAIKey || ''} 
+                                    onChange={e => updateProvider('genericOpenAIKey', e.target.value)} 
+                                    className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600 text-xs"
+                                    placeholder="sk-..."
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="p-4 bg-slate-800 rounded border border-slate-700 space-y-3">
                         <h4 className="text-sm font-bold text-blue-400 block">Local Providers (URLs)</h4>
                         <div>
@@ -602,15 +687,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
 
                     {/* PUBLIC TOOLS TOGGLES */}
                     <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
-                        <label className="text-xs text-cyan-400 font-bold uppercase block mb-3">Public / Built-in Tools</label>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs text-cyan-400 font-bold uppercase">Public / Built-in Tools</label>
+                            <div className="flex gap-2">
+                                <button onClick={() => toggleAllPublicTools(true)} className="text-[10px] text-emerald-400 hover:underline">Select All</button>
+                                <span className="text-[10px] text-slate-600">|</span>
+                                <button onClick={() => toggleAllPublicTools(false)} className="text-[10px] text-slate-400 hover:text-white hover:underline">None</button>
+                            </div>
+                        </div>
                         <div className="space-y-2">
                              {PUBLIC_MCP_REGISTRY.map(tool => (
                                  <div key={tool.id} className="flex items-center justify-between">
-                                     <div>
+                                     <div className="mr-4">
                                          <div className="text-sm font-bold text-slate-200">{tool.name}</div>
                                          <div className="text-[10px] text-slate-500">{tool.description}</div>
                                      </div>
-                                     <label className="relative inline-flex items-center cursor-pointer">
+                                     <label className="relative inline-flex items-center cursor-pointer shrink-0">
                                         <input 
                                             type="checkbox" 
                                             className="sr-only peer"
@@ -622,6 +714,27 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                  </div>
                              ))}
                         </div>
+                    </div>
+
+                    {/* DYNAMIC IMPORT SECTION */}
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
+                        <label className="text-xs text-cyan-400 font-bold uppercase block mb-2">Import Tool Definition from URL</label>
+                        <p className="text-[10px] text-slate-400 mb-2">Paste a URL pointing to a raw JSON file containing a tool definition (or array of definitions).</p>
+                        <div className="flex gap-2">
+                             <input 
+                                type="text" 
+                                value={toolImportUrl} 
+                                onChange={e => setToolImportUrl(e.target.value)}
+                                placeholder="https://example.com/tools.json"
+                                className="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm"
+                            />
+                            <button onClick={handleImportToolFromUrl} className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded uppercase">
+                                Fetch
+                            </button>
+                        </div>
+                        {importStatus && (
+                            <p className={`text-[10px] mt-2 ${importStatus.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>{importStatus}</p>
+                        )}
                     </div>
 
                     <div className="p-4 bg-slate-800 rounded border border-slate-700 mb-4">

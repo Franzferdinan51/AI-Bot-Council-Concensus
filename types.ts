@@ -18,7 +18,8 @@ export enum SessionMode {
     INQUIRY = 'inquiry',          // Q&A: Direct answers -> Synthesis
     RESEARCH = 'research',         // Agentic: Deep Dive -> Plan -> Investigate -> Report
     SWARM = 'swarm',               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
-    SWARM_CODING = 'swarm_coding'  // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
+    SWARM_CODING = 'swarm_coding',  // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
+    PREDICTION = 'prediction'      // Superforecasting: Probability & Outcome Analysis
 }
 
 export interface BotConfig {
@@ -79,6 +80,8 @@ export interface ProviderSettings {
     ollamaEndpoint: string;
     lmStudioEndpoint: string;
     janAiEndpoint: string;
+    genericOpenAIEndpoint?: string; 
+    genericOpenAIKey?: string;
 }
 
 // --- GLOBAL MEMORY (Laws/Precedents) ---
@@ -135,6 +138,13 @@ export interface VoteData {
     }[];
 }
 
+export interface PredictionData {
+    outcome: string;
+    confidence: number; // 0-100
+    timeline: string;
+    reasoning: string;
+}
+
 export interface Attachment {
     type: 'file' | 'link';
     mimeType?: string; // for files
@@ -158,6 +168,7 @@ export interface Message {
   color?: string; 
   roleLabel?: string;
   voteData?: VoteData;
+  predictionData?: PredictionData; // New field for prediction results
   attachments?: Attachment[];
   thinking?: string; // Chain of Thought content
   codeFiles?: CodeFile[]; // New field for code artifacts

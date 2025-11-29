@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal } from './types';
+import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal, PredictionData } from './types';
 import { getBotResponse, generateSpeech, streamBotResponse } from './services/aiService';
 import { searchMemories, searchDocuments, saveMemory } from './services/knowledgeService';
 import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS } from './constants';
@@ -166,7 +166,6 @@ const App: React.FC = () => {
       let voteCount = 0;
       const votes: any[] = [];
       
-      // More robust regex to handle case insensitivity and markdown (e.g. MEMBER: **Name**)
       const voteBlocks = [...response.matchAll(/MEMBER:\s*(?:\*\*)?(.*?)(?:\*\*)?\s*<vote>(.*?)<\/vote>\s*<confidence>(.*?)<\/confidence>\s*<reason>([\s\S]*?)<\/reason>/gi)];
       
       if (voteBlocks.length > 0) {
@@ -176,7 +175,6 @@ const App: React.FC = () => {
                const conf = parseInt(match[3]) || 5;
                const reason = match[4].trim();
                
-               // Try to find the bot, stripping markdown if present in config name
                const bot = councilors.find(b => b.name === name || b.name === name.replace(/\*\*/g, '')) || { color: 'from-gray-500 to-gray-600' };
                
                if (choice === 'YEA') yeas++; else nays++;
@@ -185,7 +183,6 @@ const App: React.FC = () => {
                votes.push({ voter: name, choice, confidence: conf, reason, color: bot.color });
            });
       } else {
-          // Fallback for single vote or if batch parsing fails but single format exists
           const choiceMatch = response.match(/<vote>(.*?)<\/vote>/i);
           const confMatch = response.match(/<confidence>(.*?)<\/confidence>/i);
           const reasonMatch = response.match(/<reason>([\s\S]*?)<\/reason>/i);
@@ -229,6 +226,24 @@ const App: React.FC = () => {
       };
   };
 
+  // Helper to parse Prediction XML
+  const parsePredictionFromResponse = (response: string): PredictionData | undefined => {
+      const outcomeMatch = response.match(/<outcome>([\s\S]*?)<\/outcome>/i);
+      const confMatch = response.match(/<confidence>([\s\S]*?)<\/confidence>/i);
+      const timeMatch = response.match(/<timeline>([\s\S]*?)<\/timeline>/i);
+      const reasonMatch = response.match(/<reasoning>([\s\S]*?)<\/reasoning>/i);
+
+      if (outcomeMatch && confMatch) {
+          return {
+              outcome: outcomeMatch[1].trim(),
+              confidence: parseInt(confMatch[1]) || 50,
+              timeline: timeMatch ? timeMatch[1].trim() : "Unknown",
+              reasoning: reasonMatch ? reasonMatch[1].trim() : "No reasoning provided."
+          };
+      }
+      return undefined;
+  };
+
   const runCouncilSession = async (topic: string, mode: SessionMode, initialHistory: Message[]) => {
     controlSignal.current = { stop: false, pause: false };
     let sessionHistory = [...initialHistory];
@@ -262,8 +277,46 @@ const App: React.FC = () => {
     const maxConcurrency = settings.cost.maxConcurrentRequests || 2;
 
     try {
-        if (mode === SessionMode.SWARM_CODING) {
-             // ... Code Mode Logic ...
+        if (mode === SessionMode.PREDICTION) {
+             // 1. Speaker Opening
+             if (speaker) {
+                const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PREDICTION.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
+                const res = await processBotTurn(speaker, sessionHistory, prompt, "CHIEF FORECASTER");
+                sessionHistory.push({ id: 'pred-open', author: speaker.name, authorType: speaker.authorType, content: res });
+             }
+             
+             setSessionStatus(SessionStatus.DEBATING);
+             
+             // 2. Councilors: Superforecasting Analysis
+             await runBatchWithConcurrency(initialCouncilors.slice(0, 3), async (bot: BotConfig) => {
+                 return await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PREDICTION.COUNCILOR)} Persona: ${bot.persona}`, "SUPERFORECASTER");
+             }, maxConcurrency);
+
+             // 3. Speaker: Final Synthesis & Prediction XML
+             setSessionStatus(SessionStatus.RESOLVING);
+             if (speaker) {
+                 const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PREDICTION.SPEAKER_PREDICTION)} Persona: ${speaker.persona}`;
+                 const finalRes = await processBotTurn(speaker, sessionHistory, finalPrompt, "FINAL PREDICTION");
+                 
+                 // Parse and add visual card
+                 const predictionData = parsePredictionFromResponse(finalRes);
+                 if (predictionData) {
+                     const predMsg: Message = { 
+                         id: `pred-dashboard-${Date.now()}`, 
+                         author: 'Council Clerk', 
+                         authorType: AuthorType.SYSTEM, 
+                         content: "Prediction Model Generated.", 
+                         predictionData: predictionData 
+                     };
+                     setMessages(prev => [...prev, predMsg]);
+                     sessionHistory.push(predMsg);
+                 }
+                 
+                 // Add the text response as well if it has extra commentary (and to show full thinking)
+                 sessionHistory.push({ id: 'final-pred-text', author: speaker.name, authorType: speaker.authorType, content: finalRes });
+             }
+        }
+        else if (mode === SessionMode.SWARM_CODING) {
              if (speaker) {
                  addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "INITIALIZING DEV SWARM. CHIEF ARCHITECT IS PLANNING..." });
                  const planPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.ARCHITECT_PLAN)} Persona: ${speaker.persona}`;
@@ -293,7 +346,6 @@ const App: React.FC = () => {
              }
         }
         else if (mode === SessionMode.SWARM) {
-             // ... Swarm Logic ...
              if (speaker) {
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SPEAKER_DECOMPOSITION)} Persona: ${speaker.persona}`;
                  const res = await processBotTurn(speaker, sessionHistory, prompt, "HIVE OVERSEER");
@@ -316,7 +368,6 @@ const App: React.FC = () => {
              }
         }
         else if (mode === SessionMode.RESEARCH) {
-             // ... Research Logic ...
              if (speaker) {
                 await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_PLANNING)} Persona: ${speaker.persona}`, "LEAD INVESTIGATOR");
                 
@@ -340,7 +391,6 @@ const App: React.FC = () => {
              }
         }
         else if (mode === SessionMode.INQUIRY || mode === SessionMode.DELIBERATION) {
-             // ... Inquiry/Deliberation Logic ...
              let openingPrompt = "";
              let councilorPrompt = "";
              let closingPrompt = "";
@@ -351,7 +401,7 @@ const App: React.FC = () => {
                  councilorPrompt = COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.COUNCILOR;
                  closingPrompt = COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.SPEAKER_ANSWER;
                  closingRole = "ANSWER";
-             } else { // DELIBERATION
+             } else { 
                  openingPrompt = COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.SPEAKER_OPENING;
                  councilorPrompt = COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.COUNCILOR;
                  closingPrompt = COUNCIL_SYSTEM_INSTRUCTION.DELIBERATION.SPEAKER_SUMMARY;
@@ -371,7 +421,6 @@ const App: React.FC = () => {
              }
         }
         else {
-            // --- LEGISLATIVE PROPOSAL MODE (DEBATE) ---
              if (speaker) {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
                 const res = await processBotTurn(speaker, sessionHistory, prompt, "OPENING BRIEF");
@@ -380,7 +429,6 @@ const App: React.FC = () => {
             setSessionStatus(SessionStatus.DEBATING);
             
             if (settings.cost.economyMode && speaker) {
-                 // ... Economy Logic (Batch) ...
                  const debatePrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.ECONOMY_DEBATE).replace('{{COUNCILORS_LIST}}', initialCouncilors.map(b => `- ${b.name}: ${b.persona}`).join('\n'))} Persona: ${speaker.persona}`;
                  const rawTranscript = await processBotTurn(speaker, sessionHistory, debatePrompt, "COUNCIL SIMULATION");
                  
@@ -403,67 +451,51 @@ const App: React.FC = () => {
                  });
 
             } else {
-                // --- DYNAMIC TURN-TAKING DEBATE LOGIC ---
-                // We use a mutable queue instead of a rigid loop to allow for CHALLENGES and REBUTTALS
                 let debateQueue = [...initialCouncilors];
                 let turnsProcessed = 0;
-                let maxTurns = initialCouncilors.length * 2 + 1; // Cap to prevent infinite debating
-                let rebuttalChainLength = 0; // Track back-and-forth challenges
+                let maxTurns = initialCouncilors.length * 2 + 1; 
+                let rebuttalChainLength = 0; 
                 let lastSpeakerId = "";
 
                 while (debateQueue.length > 0 && turnsProcessed < maxTurns) {
                     await checkControlSignal();
-
-                    // If queue is empty but we haven't hit max turns, maybe add a random member for a fresh take?
-                    // For now, let's strictly follow the queue.
                     
                     const councilor = debateQueue.shift();
                     if (!councilor) break;
 
-                    // If same speaker is somehow queued twice in a row, skip or swap (unless challenged)
                     if (councilor.id === lastSpeakerId && debateQueue.length > 0) {
                         debateQueue.push(councilor);
                         continue;
                     }
 
-                    // DETERMINE PROMPT TYPE
                     let prompt = turnsProcessed < initialCouncilors.length 
                         ? `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_OPENING)} Persona: ${councilor.persona}` 
                         : `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_REBUTTAL)} Persona: ${councilor.persona}`;
 
-                    // MODERATOR INTERVENTION CHECK
                     if (rebuttalChainLength >= 3 && moderator) {
                         addMessage({ author: 'Moderator', authorType: AuthorType.SYSTEM, content: "*Interjecting to break repetitive argument loop...*" });
                         const modRes = await processBotTurn(moderator, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.MODERATOR_INTERVENTION)} Persona: ${moderator.persona}`, "MODERATOR");
                         sessionHistory.push({ id: `mod-interjection-${Date.now()}`, author: moderator.name, authorType: moderator.authorType, content: modRes });
                         rebuttalChainLength = 0;
-                        // Reshuffle remaining queue to reset dynamics
                         debateQueue = debateQueue.sort(() => Math.random() - 0.5);
                     }
 
-                    // EXECUTE TURN
                     const res = await processBotTurn(councilor, sessionHistory, prompt, councilor.role);
                     lastSpeakerId = councilor.id;
 
-                    // CHECK FOR [PASS]
                     if (res.includes('[PASS]')) {
-                        // Don't add to history or increment substantive turn count heavily
-                        // But we assume the bot generated output, so it counts towards execution
                         continue; 
                     }
 
                     sessionHistory.push({ id: `deb-${turnsProcessed}`, author: councilor.name, authorType: councilor.authorType, content: res });
                     turnsProcessed++;
 
-                    // CHECK FOR [CHALLENGE: Name]
                     const challengeMatch = res.match(/\[CHALLENGE:\s*([^\]]+)\]/i);
                     if (challengeMatch) {
                         const challengedName = challengeMatch[1].toLowerCase();
                         const challengedBot = currentSessionBots.find(b => b.name.toLowerCase().includes(challengedName));
                         
                         if (challengedBot && challengedBot.id !== councilor.id) {
-                            // Prioritize the challenged bot!
-                            // Remove them from current position in queue (if present) and unshift to front
                             debateQueue = debateQueue.filter(b => b.id !== challengedBot.id);
                             debateQueue.unshift(challengedBot);
                             rebuttalChainLength++;
@@ -555,7 +587,6 @@ const App: React.FC = () => {
   const activePrivateHistory = privateCouncilorId ? privateMessages[privateCouncilorId] : [];
   const activePrivateBot = settings.bots.find(b => b.id === privateCouncilorId);
 
-  // --- CONDITIONAL RENDERING ---
   const isCodingMode = sessionMode === SessionMode.SWARM_CODING;
   const showCodingUI = isCodingMode && settings.ui.proCodingUI;
 
@@ -592,6 +623,8 @@ const App: React.FC = () => {
             onOpenLiveSession={() => setIsLiveSessionOpen(true)}
             onCouncilorClick={openPrivateCounsel}
             enableCodingMode={settings.ui.enableCodingMode}
+            settings={settings}
+            onSettingsChange={setSettings}
           />
       )}
 

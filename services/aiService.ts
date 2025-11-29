@@ -15,6 +15,22 @@ const executePublicTool = async (name: string, args: any): Promise<any> => {
     console.log(`Executing Public Tool: ${name}`, args);
     try {
         switch (name) {
+            case 'fetch_website':
+                 try {
+                     const res = await fetch(args.url);
+                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                     const text = await res.text();
+                     // Basic HTML to text (naïve)
+                     const doc = new DOMParser().parseFromString(text, 'text/html');
+                     return { content: doc.body.innerText.substring(0, 5000) }; // Limit context
+                 } catch (e) {
+                     return { error: `Failed to fetch URL (CORS or Network error): ${e}` };
+                 }
+
+            case 'web_search':
+                // Simulation / Fallback for Local Models that can't use GoogleSearch
+                return { result: `[Web Search Simulation]: Searched for "${args.query}". Please use Gemini models for live Google Search access.` };
+
             case 'get_weather':
                 const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${args.latitude}&longitude=${args.longitude}&current=temperature_2m,wind_speed_10m`);
                 return await weatherRes.json();
@@ -46,21 +62,14 @@ const pruneHistory = (history: Message[], settings: Settings): Message[] => {
         return history;
     }
 
-    // Always keep:
-    // 1. System/Clerk Init Message (Index 0 usually)
-    // 2. The last N messages
-    
     const preservedHistory: Message[] = [];
     
-    // Add first system message if exists
     if (history.length > 0 && history[0].authorType === AuthorType.SYSTEM) {
         preservedHistory.push(history[0]);
     }
 
-    // Get last N messages
     const lastN = history.slice(-settings.cost.maxContextTurns);
     
-    // Merge without duplicates
     lastN.forEach(msg => {
         if (!preservedHistory.find(m => m.id === msg.id)) {
             preservedHistory.push(msg);
@@ -78,12 +87,9 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
   const contents = prunedHistory.map(msg => {
     const role: 'user' | 'model' = (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'model';
     
-    // Construct Text Part
-    // COST SAVING: Strip previous "Thinking" blocks to save tokens
     const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
     let text = `${msg.author} (${msg.roleLabel || 'Member'}): ${cleanContent}`;
     
-    // Inject link data into text with STRICT instructions
     if (msg.attachments && msg.attachments.length > 0) {
         const links = msg.attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
         if (links) {
@@ -92,7 +98,6 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
             text += `\n2. First, FETCH and SUMMARIZE the content of the link in your <thinking> block before answering.`;
             text += `\n3. Do NOT hallucinate the content. If you cannot access the specific URL directly, search for the page title or video ID to find a summary/transcript.`;
             
-            // Specific YouTube Handling
             if (links.includes('youtube.com') || links.includes('youtu.be')) {
                  text += `\n4. FOR YOUTUBE VIDEOS: You CANNOT watch the video directly. You MUST perform a Google Search for "transcript of youtube video ${links}" or "summary of youtube video ${links}" or the video title to understand its actual content. Extract the title and key arguments.`;
             }
@@ -102,7 +107,6 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
     
     const parts: any[] = [{ text }];
     
-    // Handle File Attachments (Images/Video)
     if (msg.attachments && msg.attachments.length > 0) {
         msg.attachments.forEach(att => {
             if (att.type === 'file' && att.mimeType && att.data) {
@@ -119,13 +123,11 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
     return { role, parts };
   });
 
-  // Consolidate consecutive roles
   const mergedContents: { role: string; parts: any[] }[] = [];
   if (contents.length > 0) {
       let lastMessage = { ...contents[0] };
       for (let i = 1; i < contents.length; i++) {
         if (lastMessage.role === contents[i].role) {
-            // Merge parts
             lastMessage.parts = [...lastMessage.parts, ...contents[i].parts];
         } else {
             mergedContents.push(lastMessage);
@@ -135,7 +137,6 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
       mergedContents.push(lastMessage);
   }
 
-  // Ensure conversation ends with user (Gemini requirement if we want a model response)
   if (mergedContents.length > 0 && mergedContents[mergedContents.length - 1].role === 'model') {
     mergedContents.push({ role: 'user', parts: [{ text: "The floor is yours. Please proceed." }] });
   }
@@ -147,7 +148,6 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
 const formatHistoryForOpenAI = (history: Message[], settings: Settings) => {
     const prunedHistory = pruneHistory(history, settings);
     return prunedHistory.map(msg => {
-        // COST SAVING: Strip previous "Thinking" blocks
         const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
         let content = `${msg.author}: ${cleanContent}`;
         
@@ -164,22 +164,17 @@ const formatHistoryForOpenAI = (history: Message[], settings: Settings) => {
 const injectMCPContext = (systemPrompt: string, settings: Settings, bot: BotConfig, lastUserMessage: string): string => {
     let finalPrompt = systemPrompt;
 
-    // 1. Inject Agent Memory (Contextual)
     const memoryContext = searchBotContext(bot.id, lastUserMessage);
     if (memoryContext) {
         finalPrompt += memoryContext;
     }
 
-    // 2. We handle Function Declarations via the API config, but we can also prompt the model about available tools
     if (!settings.mcp.enabled) return finalPrompt;
     return finalPrompt;
 };
 
-// --- AUDIO TRANSCRIPTION ---
 export const transcribeAudio = async (audioBlob: Blob, apiKey: string): Promise<string> => {
     const ai = new GoogleGenAI({ apiKey });
-    
-    // Convert Blob to Base64
     const buffer = await audioBlob.arrayBuffer();
     const base64Audio = btoa(
         new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
@@ -198,12 +193,10 @@ export const transcribeAudio = async (audioBlob: Blob, apiKey: string): Promise<
     return response.text || "";
 };
 
-// --- SPEECH GENERATION (TTS) ---
 export const generateSpeech = async (text: string, botRole: string, apiKey: string): Promise<string | null> => {
     try {
         const ai = new GoogleGenAI({ apiKey });
         
-        // Map Role to Voice
         let voiceName = 'Zephyr';
         const roleKey = Object.keys(VOICE_MAP).find(k => botRole.toLowerCase().includes(k));
         if (roleKey) voiceName = VOICE_MAP[roleKey];
@@ -228,7 +221,6 @@ export const generateSpeech = async (text: string, botRole: string, apiKey: stri
     }
 };
 
-// --- STREAMING RESPONSE ---
 export const streamBotResponse = async (
     bot: BotConfig,
     history: Message[],
@@ -237,7 +229,6 @@ export const streamBotResponse = async (
     onChunk: (text: string) => void
 ): Promise<string> => {
     
-    // ECONOMY MODE LOGIC: Force lighter model if active and not Speaker
     let effectiveModel = bot.model;
     let effectiveSystemPrompt = baseSystemInstruction;
     
@@ -246,14 +237,11 @@ export const streamBotResponse = async (
         effectiveSystemPrompt += "\n\n[ECONOMY MODE ACTIVE: Be concise. Skip pleasantries. Use standard logic, no advanced reasoning required.]";
     }
 
-    // Determine relevant context for Memory Injection
     const lastUserMsg = history.filter(m => m.authorType === AuthorType.HUMAN || m.authorType === AuthorType.SYSTEM).pop()?.content || "";
     const systemPrompt = injectMCPContext(effectiveSystemPrompt, settings, bot, lastUserMsg);
 
-    // SAFETY DELAY: Prevent API rate limits with small jitter
     await waitWithJitter(200, 800);
 
-    // GEMINI STREAMING
     if (bot.authorType === AuthorType.GEMINI) {
         const apiKey = settings.providers.geminiApiKey || process.env.API_KEY;
         if (!apiKey) throw new Error("Gemini API Key missing.");
@@ -270,18 +258,15 @@ export const streamBotResponse = async (
             ]
         };
 
-        // Only use thinking for Pro models, unless Economy mode downgraded it
         if (effectiveModel.includes('gemini-3-pro')) {
             config.thinkingConfig = { thinkingBudget: 32768 };
         }
 
-        // --- CONSTRUCT TOOLS ---
         const tools: any[] = [{ googleSearch: {} }];
         
         if (settings.mcp.enabled) {
             const functionDeclarations: any[] = [];
             
-            // 1. Add Public Tools from Registry if Enabled
             if (settings.mcp.publicToolIds && settings.mcp.publicToolIds.length > 0) {
                 const publicTools = PUBLIC_MCP_REGISTRY.filter(t => settings.mcp.publicToolIds?.includes(t.id));
                 publicTools.forEach(t => {
@@ -289,7 +274,6 @@ export const streamBotResponse = async (
                 });
             }
 
-            // 2. Add Custom Tools
             if (settings.mcp.customTools && settings.mcp.customTools.length > 0) {
                  settings.mcp.customTools.forEach(t => {
                      try {
@@ -312,9 +296,8 @@ export const streamBotResponse = async (
 
         config.tools = tools;
 
-        // --- EXECUTION LOOP (For Function Calling) ---
         let currentHistory: { role: string; parts: any[] }[] = formatHistoryForGemini(history, settings);
-        let maxTurns = 5; // Prevent infinite loops
+        let maxTurns = 5; 
         let finalFullText = "";
         let finalSources: string[] = [];
 
@@ -338,20 +321,16 @@ export const streamBotResponse = async (
                         onChunk(finalFullText);
                     }
                     
-                    // Collect Grounding Metadata
                     const chunkSources = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks
                         ?.map((c: any) => c.web ? `• ${c.web.title}: ${c.web.uri}` : null)
                         .filter(Boolean);
                     if (chunkSources) finalSources.push(...chunkSources);
 
-                    // Collect Function Calls
                     const calls = chunk.functionCalls;
                     if (calls) functionCalls.push(...calls);
                 }
                 
-                // If no function calls, we are done
                 if (functionCalls.length === 0) {
-                    // Append Unique Sources
                     const uniqueSources = Array.from(new Set(finalSources));
                     if (uniqueSources.length > 0) {
                         const sourceText = `\n\n**Verified Sources:**\n${uniqueSources.join('\n')}`;
@@ -361,16 +340,13 @@ export const streamBotResponse = async (
                     return finalFullText;
                 }
 
-                // --- EXECUTE TOOLS ---
                 onChunk(finalFullText + "\n\n[Using Tools...]");
                 
-                // 1. Add model's turn (with function call) to history
                 currentHistory.push({
                     role: 'model',
                     parts: [{ functionCalls: functionCalls }]
                 });
 
-                // 2. Execute and create Function Responses
                 const functionResponses: any[] = [];
                 for (const call of functionCalls) {
                     const result = await executePublicTool(call.name, call.args);
@@ -380,8 +356,6 @@ export const streamBotResponse = async (
                     });
                 }
 
-                // 3. Add function responses to history
-                // Re-mapping properly:
                 const responseParts = functionResponses.map(fr => ({
                     functionResponse: {
                         name: fr.name,
@@ -394,7 +368,6 @@ export const streamBotResponse = async (
                     parts: responseParts
                 });
 
-                // Loop continues to generate subsequent text based on tool output
             } catch (e: any) {
                  if (e.message?.includes('429') || e.message?.includes('Quota')) {
                      throw new Error("Rate Limit Exceeded. Slowing down...");
@@ -406,7 +379,6 @@ export const streamBotResponse = async (
         return finalFullText;
     }
 
-    // Fallback to non-streaming for other providers
     const text = await getBotResponse(bot, history, baseSystemInstruction, settings);
     onChunk(text);
     return text;
@@ -420,27 +392,20 @@ export const getBotResponse = async (
     settings: Settings
 ): Promise<string> => {
     
-    // SAFETY DELAY
     await waitWithJitter(200, 800);
     
     const lastUserMsg = history.filter(m => m.authorType === AuthorType.HUMAN || m.authorType === AuthorType.SYSTEM).pop()?.content || "";
     const systemPrompt = injectMCPContext(baseSystemInstruction, settings, bot, lastUserMsg);
 
-    // --- GEMINI ---
     if (bot.authorType === AuthorType.GEMINI) {
-        // Reuse the streaming logic but collect full text, or just use generateContent
-        // For consistency with tools, we'll just use the streaming function as the "Source of Truth"
-        // for tool execution logic, but wait for it.
         let text = "";
         await streamBotResponse(bot, history, baseSystemInstruction, settings, (t) => text = t);
         return text;
     }
 
-    // --- OPENROUTER / LM STUDIO / GENERIC ---
     let url = "https://openrouter.ai/api/v1/chat/completions";
     let apiKey = bot.apiKey || "";
 
-    // Determine URL and Key based on Provider Type
     switch(bot.authorType) {
         case AuthorType.OPENROUTER:
             url = "https://openrouter.ai/api/v1/chat/completions";
@@ -460,8 +425,8 @@ export const getBotResponse = async (
             apiKey = "jan";
             break;
         case AuthorType.OPENAI_COMPATIBLE:
-            url = bot.endpoint || "http://localhost:1234/v1/chat/completions";
-            apiKey = apiKey || "dummy";
+            url = bot.endpoint || settings.providers.genericOpenAIEndpoint || "http://localhost:1234/v1/chat/completions";
+            apiKey = apiKey || settings.providers.genericOpenAIKey || "dummy";
             break;
     }
 
