@@ -1,12 +1,41 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 import { Message, AuthorType, BotConfig, Settings, Attachment } from '../types';
-import { VOICE_MAP } from '../constants';
+import { VOICE_MAP, PUBLIC_MCP_REGISTRY } from '../constants';
 
 // --- HELPER: RANDOM JITTER DELAY ---
 const waitWithJitter = (minMs: number, maxMs: number) => {
     const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
     return new Promise(resolve => setTimeout(resolve, delay));
+};
+
+// --- TOOL EXECUTION LOGIC (CLIENT SIDE) ---
+const executePublicTool = async (name: string, args: any): Promise<any> => {
+    console.log(`Executing Public Tool: ${name}`, args);
+    try {
+        switch (name) {
+            case 'get_weather':
+                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${args.latitude}&longitude=${args.longitude}&current=temperature_2m,wind_speed_10m`);
+                return await weatherRes.json();
+            
+            case 'get_crypto_price':
+                const coin = args.coinId.toLowerCase();
+                const cryptoRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`);
+                return await cryptoRes.json();
+            
+            case 'search_wikipedia':
+                const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(args.query)}`);
+                const wikiData = await wikiRes.json();
+                return { title: wikiData.title, extract: wikiData.extract, url: wikiData.content_urls?.desktop?.page };
+                
+            case 'get_current_time':
+                return { time: new Date().toLocaleString('en-US', { timeZone: args.timezone }) };
+                
+            default:
+                return { error: `Tool ${name} not found locally.` };
+        }
+    } catch (e: any) {
+        return { error: `Tool execution failed: ${e.message}` };
+    }
 };
 
 // --- COST SAVING: CONTEXT PRUNING ---
@@ -89,7 +118,7 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
   });
 
   // Consolidate consecutive roles
-  const mergedContents: { role: 'user' | 'model'; parts: any[] }[] = [];
+  const mergedContents: { role: string; parts: any[] }[] = [];
   if (contents.length > 0) {
       let lastMessage = { ...contents[0] };
       for (let i = 1; i < contents.length; i++) {
@@ -131,20 +160,9 @@ const formatHistoryForOpenAI = (history: Message[], settings: Settings) => {
 };
 
 const injectMCPContext = (systemPrompt: string, settings: Settings): string => {
+    // We handle Function Declarations via the API config, but we can also prompt the model about available tools
     if (!settings.mcp.enabled) return systemPrompt;
-
-    let toolContext = "\n\n[AVAILABLE MCP TOOLS & RESOURCES]:\n";
-    
-    if (settings.mcp.dockerEndpoint) {
-        toolContext += `- Docker Connection Active: ${settings.mcp.dockerEndpoint} (Container Control Available)\n`;
-    }
-    
-    if (settings.mcp.customTools.length > 0) {
-        toolContext += "JSON Tool Definitions:\n" + settings.mcp.customTools.map(t => `- ${t.name}: ${t.description}`).join('\n') + "\n";
-        toolContext += "You may act as if you can invoke these tools. Format: [TOOL_CALL: name args]\n";
-    }
-
-    return systemPrompt + toolContext;
+    return systemPrompt;
 };
 
 // --- AUDIO TRANSCRIPTION ---
@@ -244,51 +262,136 @@ export const streamBotResponse = async (
         if (effectiveModel.includes('gemini-3-pro')) {
             config.thinkingConfig = { thinkingBudget: 32768 };
         }
-        config.tools = [{ googleSearch: {} }];
 
-        try {
-            const result = await ai.models.generateContentStream({
-                model: effectiveModel,
-                contents: formatHistoryForGemini(history, settings),
-                config
-            });
-
-            let fullText = "";
-            let collectedSources: string[] = [];
-
-            for await (const chunk of result) {
-                const text = chunk.text; 
-                if (text) {
-                    fullText += text;
-                    onChunk(fullText);
-                }
-                
-                // Collect Grounding Metadata from stream chunks
-                const chunkSources = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks
-                    ?.map((c: any) => c.web ? `• ${c.web.title}: ${c.web.uri}` : null)
-                    .filter(Boolean);
-                
-                if (chunkSources) {
-                    collectedSources = [...collectedSources, ...chunkSources];
-                }
-            }
+        // --- CONSTRUCT TOOLS ---
+        const tools: any[] = [{ googleSearch: {} }];
+        
+        if (settings.mcp.enabled) {
+            const functionDeclarations: any[] = [];
             
-            // Append Unique Sources to the final text if found
-            const uniqueSources = Array.from(new Set(collectedSources));
-            if (uniqueSources.length > 0) {
-                const sourceText = `\n\n**Verified Sources:**\n${uniqueSources.join('\n')}`;
-                fullText += sourceText;
-                onChunk(fullText);
+            // 1. Add Public Tools from Registry if Enabled
+            if (settings.mcp.publicToolIds && settings.mcp.publicToolIds.length > 0) {
+                const publicTools = PUBLIC_MCP_REGISTRY.filter(t => settings.mcp.publicToolIds?.includes(t.id));
+                publicTools.forEach(t => {
+                    if (t.functionDeclaration) functionDeclarations.push(t.functionDeclaration);
+                });
             }
 
-            return fullText;
-        } catch (e: any) {
-            // Enhanced Error handling for Rate Limits
-            if (e.message?.includes('429') || e.message?.includes('Quota')) {
-                 throw new Error("Rate Limit Exceeded. Slowing down...");
+            // 2. Add Custom Tools
+            if (settings.mcp.customTools && settings.mcp.customTools.length > 0) {
+                 settings.mcp.customTools.forEach(t => {
+                     try {
+                        const schema = JSON.parse(t.schema);
+                        functionDeclarations.push({
+                            name: t.name,
+                            description: t.description,
+                            parameters: schema
+                        });
+                     } catch (e) {
+                         console.error("Invalid JSON Schema for tool:", t.name);
+                     }
+                 });
             }
-            throw new Error(`Gemini Stream Error: ${e.message}`);
+
+            if (functionDeclarations.length > 0) {
+                tools.push({ functionDeclarations });
+            }
         }
+
+        config.tools = tools;
+
+        // --- EXECUTION LOOP (For Function Calling) ---
+        let currentHistory: { role: string; parts: any[] }[] = formatHistoryForGemini(history, settings);
+        let maxTurns = 5; // Prevent infinite loops
+        let finalFullText = "";
+        let finalSources: string[] = [];
+
+        while (maxTurns > 0) {
+            maxTurns--;
+            try {
+                const result = await ai.models.generateContentStream({
+                    model: effectiveModel,
+                    contents: currentHistory,
+                    config
+                });
+
+                let chunkText = "";
+                let functionCalls: any[] = [];
+                
+                for await (const chunk of result) {
+                    const text = chunk.text; 
+                    if (text) {
+                        chunkText += text;
+                        finalFullText += text;
+                        onChunk(finalFullText);
+                    }
+                    
+                    // Collect Grounding Metadata
+                    const chunkSources = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks
+                        ?.map((c: any) => c.web ? `• ${c.web.title}: ${c.web.uri}` : null)
+                        .filter(Boolean);
+                    if (chunkSources) finalSources.push(...chunkSources);
+
+                    // Collect Function Calls
+                    const calls = chunk.functionCalls;
+                    if (calls) functionCalls.push(...calls);
+                }
+                
+                // If no function calls, we are done
+                if (functionCalls.length === 0) {
+                    // Append Unique Sources
+                    const uniqueSources = Array.from(new Set(finalSources));
+                    if (uniqueSources.length > 0) {
+                        const sourceText = `\n\n**Verified Sources:**\n${uniqueSources.join('\n')}`;
+                        finalFullText += sourceText;
+                        onChunk(finalFullText);
+                    }
+                    return finalFullText;
+                }
+
+                // --- EXECUTE TOOLS ---
+                onChunk(finalFullText + "\n\n[Using Tools...]");
+                
+                // 1. Add model's turn (with function call) to history
+                currentHistory.push({
+                    role: 'model',
+                    parts: [{ functionCalls: functionCalls }]
+                });
+
+                // 2. Execute and create Function Responses
+                const functionResponses: any[] = [];
+                for (const call of functionCalls) {
+                    const result = await executePublicTool(call.name, call.args);
+                    functionResponses.push({
+                        name: call.name,
+                        response: { result: result } 
+                    });
+                }
+
+                // 3. Add function responses to history
+                // Re-mapping properly:
+                const responseParts = functionResponses.map(fr => ({
+                    functionResponse: {
+                        name: fr.name,
+                        response: fr.response
+                    }
+                }));
+                
+                currentHistory.push({
+                    role: 'function',
+                    parts: responseParts
+                });
+
+                // Loop continues to generate subsequent text based on tool output
+            } catch (e: any) {
+                 if (e.message?.includes('429') || e.message?.includes('Quota')) {
+                     throw new Error("Rate Limit Exceeded. Slowing down...");
+                }
+                throw new Error(`Gemini Stream Error: ${e.message}`);
+            }
+        }
+
+        return finalFullText;
     }
 
     // Fallback to non-streaming for other providers
@@ -312,48 +415,11 @@ export const getBotResponse = async (
 
     // --- GEMINI ---
     if (bot.authorType === AuthorType.GEMINI) {
-        const apiKey = settings.providers.geminiApiKey || process.env.API_KEY;
-        if (!apiKey) throw new Error("Gemini API Key missing. Please check Settings.");
-        
-        const ai = new GoogleGenAI({ apiKey });
-        
-        const config: any = { 
-            systemInstruction: systemPrompt,
-            safetySettings: [
-                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-                { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' }
-            ]
-        };
-
-        if (bot.model.includes('gemini-3-pro')) {
-            config.thinkingConfig = { thinkingBudget: 32768 };
-        }
-
-        config.tools = [{ googleSearch: {} }];
-
-        const response = await ai.models.generateContent({
-            model: bot.model,
-            contents: formatHistoryForGemini(history, settings),
-            config
-        });
-
-        let text = response.text || "I have nothing to add.";
-        
-        // Extract and append Grounding Metadata (Sources)
-        const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-        if (groundingChunks) {
-            const sources = groundingChunks
-                .map((chunk: any) => chunk.web ? `• ${chunk.web.title}: ${chunk.web.uri}` : null)
-                .filter(Boolean);
-            
-            if (sources.length > 0) {
-                text += `\n\n**Verified Sources:**\n${sources.join('\n')}`;
-            }
-        }
-
+        // Reuse the streaming logic but collect full text, or just use generateContent
+        // For consistency with tools, we'll just use the streaming function as the "Source of Truth"
+        // for tool execution logic, but wait for it.
+        let text = "";
+        await streamBotResponse(bot, history, baseSystemInstruction, settings, (t) => text = t);
         return text;
     }
 

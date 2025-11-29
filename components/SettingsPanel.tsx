@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument } from '../types';
-import { MCP_PRESETS, PERSONA_PRESETS } from '../constants';
+import { MCP_PRESETS, PERSONA_PRESETS, PUBLIC_MCP_REGISTRY } from '../constants';
 import { getMemories } from '../services/knowledgeService';
 
 interface SettingsPanelProps {
@@ -148,6 +148,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
       onSettingsChange({
           ...settings,
           mcp: { ...settings.mcp, dockerEndpoint: url }
+      });
+  };
+
+  const togglePublicTool = (toolId: string) => {
+      const currentIds = settings.mcp.publicToolIds || [];
+      let newIds;
+      if (currentIds.includes(toolId)) {
+          newIds = currentIds.filter(id => id !== toolId);
+      } else {
+          newIds = [...currentIds, toolId];
+      }
+      onSettingsChange({
+          ...settings,
+          mcp: { ...settings.mcp, publicToolIds: newIds }
       });
   };
   
@@ -515,7 +529,31 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         </p>
                     </div>
 
-                    <div className="p-4 bg-slate-800 rounded border border-slate-700">
+                    {/* PUBLIC TOOLS TOGGLES */}
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
+                        <label className="text-xs text-cyan-400 font-bold uppercase block mb-3">Public / Built-in Tools</label>
+                        <div className="space-y-2">
+                             {PUBLIC_MCP_REGISTRY.map(tool => (
+                                 <div key={tool.id} className="flex items-center justify-between">
+                                     <div>
+                                         <div className="text-sm font-bold text-slate-200">{tool.name}</div>
+                                         <div className="text-[10px] text-slate-500">{tool.description}</div>
+                                     </div>
+                                     <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            className="sr-only peer"
+                                            checked={settings.mcp.publicToolIds?.includes(tool.id)}
+                                            onChange={() => togglePublicTool(tool.id)}
+                                        />
+                                        <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                    </label>
+                                 </div>
+                             ))}
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-800 rounded border border-slate-700 mb-4">
                         <label className="text-xs text-cyan-400 font-bold uppercase block mb-2">Docker / Remote MCP Endpoint</label>
                         <div className="flex gap-2 mb-2">
                              <input 
@@ -534,7 +572,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
 
                     <div>
                          <div className="flex justify-between items-center mb-2">
-                             <label className="text-xs text-emerald-400 font-bold uppercase">JSON Tool Definitions</label>
+                             <label className="text-xs text-emerald-400 font-bold uppercase">Custom JSON Tool Definitions</label>
                              <div className="flex gap-2">
                                  <select 
                                     onChange={(e) => { loadPreset(e.target.value); e.target.value = ''; }}

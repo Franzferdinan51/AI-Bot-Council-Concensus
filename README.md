@@ -1,3 +1,4 @@
+
 # 🏛️ AI Council Chamber
 
 > A multi-agent legislative system where AI personas debate, deliberate, and govern.
@@ -67,12 +68,6 @@ The **AI Council Chamber** is a sophisticated React application that simulates a
     npm run dev
     ```
 
-### 🔧 Troubleshooting
-
-*   **API Key Errors**: Ensure your API key is correctly set in the `.env` file or the Settings panel. If using Google Gemini, make sure the key has access to the required models (e.g., `gemini-2.0-flash-exp`).
-*   **Vite Build Issues**: If you encounter errors during build, try deleting the `node_modules` folder and `package-lock.json`, then run `npm install` again.
-*   **Audio Issues**: For Live Audio Audience, ensure your browser has permission to access the microphone.
-
 ## 📖 Usage Guide
 
 ### The Interface
@@ -82,14 +77,6 @@ The **AI Council Chamber** is a sophisticated React application that simulates a
     *   **Tabs**: Switch between Proposal, Deliberation, Inquiry, Research, and Swarm modes.
     *   **Microphone**: Dictate your proposal.
     *   **Attachment**: Upload images/videos or paste URLs for analysis.
-
-### Usage Examples
-
-*   **Legislative Proposal**: "Propose a motion to implement a 4-day work week for all government employees."
-*   **Deliberation**: "Discuss the ethical implications of using AI in judicial sentencing."
-*   **Inquiry**: "What are the economic impacts of universal basic income?"
-*   **Deep Research**: "Compile a comprehensive report on the history of renewable energy adoption in Scandinavia."
-*   **Swarm Hive**: "Plan a marketing campaign for a new eco-friendly product."
 
 ### Settings Panel
 Access the settings via the gear icon to:
@@ -105,35 +92,9 @@ Access the settings via the gear icon to:
 *   **State Management**: React Hooks (local state) with complex asynchronous flows for debate orchestration.
 *   **Streaming**: Token-by-token streaming for responsive UI.
 
-### 📂 Project Structure
-
-```
-ai-council-chamber/
-├── src/
-│   ├── components/       # UI Components
-│   │   ├── CouncilorDeck.tsx  # Top bar with agent avatars
-│   │   ├── ChatWindow.tsx     # Main debate display
-│   │   ├── SettingsPanel.tsx  # Configuration interface
-│   │   └── ...
-│   ├── services/         # Logic Layers
-│   │   ├── aiService.ts       # LLM provider integration
-│   │   └── knowledgeService.ts # RAG and memory management
-│   ├── App.tsx           # Main entry point and state orchestration
-│   └── ...
-├── public/               # Static assets
-└── ...
-```
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please submit a Pull Request or open an Issue to discuss new features (e.g., new Session Modes, MCP Tool integrations).
-
-## 🔮 Future Roadmap
-
-*   **More LLM Providers**: Integration with Anthropic Claude and OpenAI GPT models.
-*   **Persistent Storage**: Database integration (PostgreSQL/Supabase) for saving session history and councilor memory across reloads.
-*   **Custom Personas**: A UI builder for creating and saving custom councilor personas with unique system prompts.
-*   **Multi-User Mode**: Allow multiple human users to participate in the council sessions.
 
 ## 📄 License
 

@@ -17,7 +17,8 @@ export enum SessionMode {
     DELIBERATION = 'deliberation', // Roundtable: Deep discussion -> Summary (No Vote)
     INQUIRY = 'inquiry',          // Q&A: Direct answers -> Synthesis
     RESEARCH = 'research',         // Agentic: Deep Dive -> Plan -> Investigate -> Report
-    SWARM = 'swarm'               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
+    SWARM = 'swarm',               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
+    SWARM_CODING = 'swarm_coding'  // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
 }
 
 export interface BotConfig {
@@ -44,6 +45,7 @@ export interface MCPSettings {
   enabled: boolean;
   dockerEndpoint: string; 
   customTools: MCPTool[]; 
+  publicToolIds?: string[];
 }
 
 export interface AudioSettings {
@@ -127,6 +129,14 @@ export interface Attachment {
     title?: string; // for links
 }
 
+// --- NEW: CODE ARTIFACTS ---
+export interface CodeFile {
+    filename: string;
+    language: string;
+    content: string;
+    description?: string;
+}
+
 export interface Message {
   id: string;
   author: string;
@@ -137,6 +147,7 @@ export interface Message {
   voteData?: VoteData;
   attachments?: Attachment[];
   thinking?: string; // Chain of Thought content
+  codeFiles?: CodeFile[]; // New field for code artifacts
 }
 
 export enum SessionStatus {
