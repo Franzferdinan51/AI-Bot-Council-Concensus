@@ -373,9 +373,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                             <select value={editingBot.authorType} onChange={e => setEditingBot({...editingBot, authorType: e.target.value as any})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
                                 <option value={AuthorType.GEMINI}>Gemini</option>
                                 <option value={AuthorType.OPENROUTER}>OpenRouter</option>
-                                <option value={AuthorType.LM_STUDIO}>LM Studio</option>
+                                <option value={AuthorType.LM_STUDIO}>LM Studio / Local</option>
                                 <option value={AuthorType.OLLAMA}>Ollama</option>
                                 <option value={AuthorType.JAN_AI}>Jan AI</option>
+                                <option value={AuthorType.ZAI}>Z.ai</option>
+                                <option value={AuthorType.MOONSHOT}>Moonshot (Kimi)</option>
+                                <option value={AuthorType.MINIMAX}>Minimax (M2)</option>
                                 <option value={AuthorType.OPENAI_COMPATIBLE}>Generic OpenAI</option>
                             </select>
                         </div>
@@ -538,6 +541,35 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         />
                     </div>
 
+                    {/* NEW: SPECIALIZED PROVIDERS */}
+                    <div className="p-4 bg-slate-800 rounded border border-slate-700 mt-4 space-y-4">
+                        <label className="text-sm font-bold text-pink-400 block border-b border-slate-700 pb-2">Specialized / International Providers</label>
+                        
+                        {/* Moonshot */}
+                        <div className="space-y-1">
+                            <label className="text-xs text-slate-400">Moonshot (Kimi) API Key</label>
+                            <input type="password" value={settings.providers.moonshotApiKey || ''} onChange={e => updateProvider('moonshotApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                            <label className="text-[10px] text-slate-500">Endpoint</label>
+                            <input type="text" value={settings.providers.moonshotEndpoint || ''} onChange={e => updateProvider('moonshotEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-400 text-[10px]" />
+                        </div>
+
+                        {/* Minimax */}
+                        <div className="space-y-1">
+                            <label className="text-xs text-slate-400">Minimax (M2) API Key</label>
+                            <input type="password" value={settings.providers.minimaxApiKey || ''} onChange={e => updateProvider('minimaxApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                            <label className="text-[10px] text-slate-500">Endpoint</label>
+                            <input type="text" value={settings.providers.minimaxEndpoint || ''} onChange={e => updateProvider('minimaxEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-400 text-[10px]" />
+                        </div>
+
+                        {/* Z.ai */}
+                        <div className="space-y-1">
+                            <label className="text-xs text-slate-400">Z.ai API Key</label>
+                            <input type="password" value={settings.providers.zaiApiKey || ''} onChange={e => updateProvider('zaiApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                            <label className="text-[10px] text-slate-500">Endpoint</label>
+                            <input type="text" value={settings.providers.zaiEndpoint || ''} onChange={e => updateProvider('zaiEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-400 text-[10px]" />
+                        </div>
+                    </div>
+
                     <div className="p-4 bg-slate-800 rounded border border-slate-700 mt-4">
                         <label className="text-sm font-bold text-violet-400 block mb-2">Generic OpenAI-Compatible API</label>
                         <div className="space-y-3">
@@ -565,7 +597,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     </div>
 
                     <div className="p-4 bg-slate-800 rounded border border-slate-700 space-y-3">
-                        <h4 className="text-sm font-bold text-blue-400 block">Local Providers (URLs)</h4>
+                        <h4 className="text-sm font-bold text-blue-400 block">Local Providers (Network / Tailscale)</h4>
+                        <p className="text-[10px] text-slate-400 mb-2">Enter full URLs including http/https. Use Tailscale IP for remote access.</p>
                         <div>
                             <label className="text-xs text-slate-400">LM Studio Endpoint</label>
                             <input type="text" value={settings.providers.lmStudioEndpoint} onChange={e => updateProvider('lmStudioEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
@@ -581,6 +614,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     </div>
                 </div>
             )}
+            
+            {/* ... other tabs ... */}
             
             {/* --- COST & PERFORMANCE TAB --- */}
             {activeTab === 'cost' && (

@@ -113,7 +113,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       if (message.voteData) {
           const { yeas, nays, result, votes, avgConfidence, consensusScore, consensusLabel } = message.voteData;
           
-          // Recharts Data Construction
           const radialData = [
               { name: 'Consensus', value: consensusScore, fill: consensusScore > 75 ? '#10b981' : consensusScore > 40 ? '#f59e0b' : '#ef4444' }
           ];
@@ -140,7 +139,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             
-                            {/* Consensus Gauge using Recharts */}
+                            {/* Consensus Gauge */}
                             <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
                                 <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 w-full text-center">Consensus Score</h4>
                                 <div className="h-32 w-full relative">
@@ -156,15 +155,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                             endAngle={0}
                                         >
                                             <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                                            <RadialBar
-                                                background
-                                                dataKey="value"
-                                                cornerRadius={10}
-                                            />
-                                            <Tooltip 
-                                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff', fontSize: '12px' }}
-                                                itemStyle={{ color: '#fff' }}
-                                            />
+                                            <RadialBar background dataKey="value" cornerRadius={10} />
+                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} />
                                         </RadialBarChart>
                                     </ResponsiveContainer>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center pt-8">
@@ -177,7 +169,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                 </div>
                             </div>
 
-                            {/* Vote Tally using Recharts */}
+                            {/* Vote Tally */}
                             <div className="flex flex-col justify-center gap-3">
                                 <div>
                                     <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Vote Tally</h4>
@@ -186,21 +178,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                             <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                                                 <XAxis type="number" hide />
                                                 <YAxis dataKey="name" type="category" width={40} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 'bold'}} />
-                                                <Tooltip 
-                                                    cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                                                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff', fontSize: '12px' }}
-                                                />
+                                                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff', fontSize: '12px' }} />
                                                 <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
-                                                    {barData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                                    ))}
+                                                    {barData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                                                 </Bar>
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
-                                
-                                {/* Avg Confidence (Simple Bar) */}
                                 {avgConfidence !== undefined && (
                                     <div className="mt-2">
                                          <div className="text-[10px] text-slate-500 uppercase mb-1 flex justify-between">
@@ -237,19 +222,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           );
       }
 
-      // --- NEW: PREDICTION VISUALIZATION ---
       if (message.predictionData) {
           const { outcome, confidence, timeline, reasoning } = message.predictionData;
-          
-          const radialData = [
-              { name: 'Confidence', value: confidence, fill: confidence > 80 ? '#10b981' : confidence > 50 ? '#f59e0b' : '#ef4444' }
-          ];
+          const radialData = [{ name: 'Confidence', value: confidence, fill: confidence > 80 ? '#10b981' : confidence > 50 ? '#f59e0b' : '#ef4444' }];
 
           return (
             <div className="flex justify-center my-6 animate-fade-in w-full px-2 md:px-0">
                 <div className="bg-slate-900 border border-indigo-500/50 rounded-xl p-4 md:p-6 max-w-2xl w-full shadow-2xl relative overflow-hidden">
                     <div className="absolute inset-0 bg-indigo-900/10 z-0"></div>
-                    
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-4 border-b border-indigo-500/30 pb-3">
                              <div className="bg-indigo-900/50 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400"><path d="M2 12h10"/><path d="M9 4v16"/><path d="M3 9l9 6 9-6"/><path d="M12 2v20"/></svg></div>
@@ -258,21 +238,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                  <p className="text-xs text-indigo-400 uppercase tracking-wider">Predictive Analysis</p>
                              </div>
                         </div>
-
                         <div className="flex flex-col md:flex-row gap-6 items-center">
-                            {/* Confidence Gauge */}
                             <div className="flex-shrink-0 w-32 h-32 relative">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <RadialBarChart 
-                                        cx="50%" 
-                                        cy="50%" 
-                                        innerRadius="60%" 
-                                        outerRadius="80%" 
-                                        barSize={10} 
-                                        data={radialData} 
-                                        startAngle={90} 
-                                        endAngle={-270}
-                                    >
+                                    <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="80%" barSize={10} data={radialData} startAngle={90} endAngle={-270}>
                                         <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
                                         <RadialBar background dataKey="value" cornerRadius={10} />
                                     </RadialBarChart>
@@ -282,8 +251,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                     <span className="text-[8px] text-slate-400 uppercase">Probability</span>
                                 </div>
                             </div>
-
-                            {/* Outcome Details */}
                             <div className="flex-1 space-y-3">
                                 <div>
                                     <h4 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Predicted Outcome</h4>
@@ -295,7 +262,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="mt-4 bg-slate-950/50 rounded p-3 border border-indigo-900/30">
                             <h4 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Council Reasoning</h4>
                             <p className="text-slate-300 text-xs leading-relaxed italic">"{reasoning}"</p>
@@ -319,9 +285,21 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const roleLabel = message.roleLabel || "Member";
   const borderColor = message.color ? message.color : "from-slate-500 to-slate-700";
   const parts = message.content.split('**Verified Sources:**');
-  const mainContent = parts[0].trim();
-  const sourceContent = parts.length > 1 ? parts[1].trim() : null;
+  
+  // --- DYNAMIC THINKING EXTRACTION ---
+  let mainContent = parts[0].trim();
+  let thinkingContent = message.thinking;
 
+  // Attempt to find thinking block if not already extracted
+  const thinkingRegex = /<thinking>([\s\S]*?)<\/thinking>/;
+  const thinkMatch = mainContent.match(thinkingRegex);
+  
+  if (thinkMatch) {
+      thinkingContent = thinkMatch[1].trim();
+      mainContent = mainContent.replace(thinkingRegex, '').trim();
+  }
+
+  const sourceContent = parts.length > 1 ? parts[1].trim() : null;
   const textWithoutCode = mainContent.replace(/```(\w+)?\n([\s\S]*?)```/g, '');
   const hasCode = /```(\w+)?\n([\s\S]*?)```/g.test(mainContent);
 
@@ -341,28 +319,28 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             <span className="text-sm md:text-lg font-serif font-medium text-slate-200 truncate">{message.author}</span>
             </div>
 
-            {message.thinking && (
+            {thinkingContent && (
                 <div className="mb-3">
                     <button 
                         onClick={() => setShowThinking(!showThinking)} 
                         className={`
-                            flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200
+                            flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border border-slate-700
                             ${showThinking 
                                 ? 'bg-slate-800 text-slate-300' 
                                 : 'bg-slate-900 text-slate-500 hover:bg-slate-800 hover:text-slate-400'}
                         `}
                     >
                         {showThinking ? (
-                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
                         ) : (
-                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         )}
                         <span>Thinking Process</span>
                     </button>
                     
                     {showThinking && (
                         <div className="mt-2 ml-2 pl-4 border-l-2 border-slate-800 text-xs text-slate-400 font-mono italic whitespace-pre-wrap animate-fade-in">
-                            {message.thinking}
+                            {thinkingContent}
                         </div>
                     )}
                 </div>

@@ -439,12 +439,22 @@ const App: React.FC = () => {
                  
                  turns.forEach((match, idx) => {
                      const name = match[1].trim();
-                     const content = match[2].trim();
+                     let content = match[2].trim();
+                     let thinking = undefined;
+                     
+                     // Parse thinking from simulated turn to ensure UI collapses it
+                     const tMatch = content.match(/<thinking>([\s\S]*?)<\/thinking>/);
+                     if (tMatch) {
+                         thinking = tMatch[1].trim();
+                         content = content.replace(/<thinking>[\s\S]*?<\/thinking>/, '').trim();
+                     }
+
                      const bot = initialCouncilors.find(b => b.name === name) || { color: 'from-gray-500 to-gray-600', role: 'councilor' } as BotConfig;
                      addMessage({ 
                          author: name, 
                          authorType: AuthorType.GEMINI,
                          content: content, 
+                         thinking: thinking, 
                          color: bot.color, 
                          roleLabel: "Councilor (Simulated)" 
                      });
@@ -533,7 +543,7 @@ const App: React.FC = () => {
         else addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: "HALTED." });
     } finally {
         setSessionStatus(SessionStatus.ADJOURNED);
-        setActiveSessionBots([]);
+        setActiveSessionBots([]); // Clear session bots to revert to settings deck
     }
   };
 

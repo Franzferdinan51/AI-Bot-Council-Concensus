@@ -424,6 +424,24 @@ export const getBotResponse = async (
             url = settings.providers.janAiEndpoint;
             apiKey = "jan";
             break;
+        
+        // --- NEW PROVIDERS ---
+        case AuthorType.MOONSHOT:
+            url = settings.providers.moonshotEndpoint || "https://api.moonshot.cn/v1/chat/completions";
+            apiKey = settings.providers.moonshotApiKey || "";
+            if (!apiKey) throw new Error("Moonshot API Key is missing.");
+            break;
+        case AuthorType.MINIMAX:
+            url = settings.providers.minimaxEndpoint || "https://api.minimax.chat/v1/text/chatcompletion_v2";
+            apiKey = settings.providers.minimaxApiKey || "";
+            if (!apiKey) throw new Error("Minimax API Key is missing.");
+            break;
+        case AuthorType.ZAI:
+            url = settings.providers.zaiEndpoint || "https://api.zai.com/v1/chat/completions";
+            apiKey = settings.providers.zaiApiKey || "";
+            if (!apiKey) throw new Error("Z.ai API Key is missing.");
+            break;
+
         case AuthorType.OPENAI_COMPATIBLE:
             url = bot.endpoint || settings.providers.genericOpenAIEndpoint || "http://localhost:1234/v1/chat/completions";
             apiKey = apiKey || settings.providers.genericOpenAIKey || "dummy";
@@ -465,7 +483,21 @@ export const getBotResponse = async (
         }
 
         const data = await response.json();
-        return data.choices?.[0]?.message?.content || "(No response generated)";
+        
+        // Some APIs (like Minimax V2) might have different response structures. 
+        // We try standard OpenAI first, then fallback or check specific fields.
+        let content = data.choices?.[0]?.message?.content;
+        
+        // Minimax legacy/v2 structure check if standard fails
+        if (!content && data.reply) {
+            content = data.reply; 
+        }
+        // General fallback
+        if (!content && data.base_resp?.status_msg) {
+             throw new Error(`Provider Error: ${data.base_resp.status_msg}`);
+        }
+
+        return content || "(No response generated)";
 
     } catch (error: any) {
         console.error(`Error fetching response for ${bot.name} at ${url}:`, error);

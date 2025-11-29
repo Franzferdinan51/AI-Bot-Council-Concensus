@@ -7,6 +7,9 @@ export enum AuthorType {
   OLLAMA = 'ollama',
   JAN_AI = 'jan_ai',
   OPENAI_COMPATIBLE = 'openai_compatible',
+  ZAI = 'zai',
+  MOONSHOT = 'moonshot',
+  MINIMAX = 'minimax',
   SYSTEM = 'system',
 }
 
@@ -18,7 +21,7 @@ export enum SessionMode {
     INQUIRY = 'inquiry',          // Q&A: Direct answers -> Synthesis
     RESEARCH = 'research',         // Agentic: Deep Dive -> Plan -> Investigate -> Report
     SWARM = 'swarm',               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
-    SWARM_CODING = 'swarm_coding',  // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
+    SWARM_CODING = 'swarm_coding', // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
     PREDICTION = 'prediction'      // Superforecasting: Probability & Outcome Analysis
 }
 
@@ -82,6 +85,14 @@ export interface ProviderSettings {
     janAiEndpoint: string;
     genericOpenAIEndpoint?: string; 
     genericOpenAIKey?: string;
+    
+    // New Providers
+    zaiApiKey?: string;
+    zaiEndpoint?: string;
+    moonshotApiKey?: string;
+    moonshotEndpoint?: string;
+    minimaxApiKey?: string;
+    minimaxEndpoint?: string;
 }
 
 // --- GLOBAL MEMORY (Laws/Precedents) ---

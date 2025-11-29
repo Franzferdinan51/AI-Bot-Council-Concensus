@@ -429,7 +429,15 @@ export const DEFAULT_SETTINGS: Settings = {
         lmStudioEndpoint: "http://localhost:1234/v1/chat/completions",
         janAiEndpoint: "http://localhost:1337/v1/chat/completions",
         genericOpenAIEndpoint: "",
-        genericOpenAIKey: ""
+        genericOpenAIKey: "",
+        
+        // New Provider Defaults
+        zaiApiKey: "",
+        zaiEndpoint: "https://api.zai.com/v1/chat/completions", 
+        moonshotApiKey: "",
+        moonshotEndpoint: "https://api.moonshot.cn/v1/chat/completions",
+        minimaxApiKey: "",
+        minimaxEndpoint: "https://api.minimax.chat/v1/text/chatcompletion_v2" 
     },
     audio: {
         enabled: false,
