@@ -11,6 +11,8 @@ interface CodingInterfaceProps {
     thinkingBotIds: string[];
     onStopSession: () => void;
     currentTopic: string | null;
+    currentMode: SessionMode;
+    onModeChange: (mode: SessionMode) => void;
 }
 
 interface VirtualFile {
@@ -20,7 +22,7 @@ interface VirtualFile {
 }
 
 const CodingInterface: React.FC<CodingInterfaceProps> = ({
-    messages, onSendMessage, isLoading, statusText, thinkingBotIds, onStopSession, currentTopic
+    messages, onSendMessage, isLoading, statusText, thinkingBotIds, onStopSession, currentTopic, currentMode, onModeChange
 }) => {
     const [files, setFiles] = useState<VirtualFile[]>([]);
     const [activeFile, setActiveFile] = useState<VirtualFile | null>(null);
@@ -45,17 +47,9 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
             const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
             const matches = [...msg.content.matchAll(codeBlockRegex)];
             
-            // Heuristic: If message is from a "Dev Agent" for a specific file, update that file
-            // The system prompt injects "Task: Write the file 'filename'"
-            // We can look for that in the prompt context but here we only have the message content.
-            // Simplified: If the message mentions a filename and has a code block, assign it.
-            
             if (matches.length > 0) {
-                 // Try to find filename in the text preceding the block
-                 // This is a loose heuristic, but works for the Swarm prompt structure
                  let bestFileMatch: string | null = null;
                  
-                 // Look for filenames in map that appear in message
                  for (const fname of fileMap.keys()) {
                      if (msg.content.includes(fname) || (msg.roleLabel && msg.roleLabel.includes(fname))) {
                          bestFileMatch = fname;
@@ -70,7 +64,6 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
                      if (bestFileMatch) {
                          fileMap.set(bestFileMatch, { name: bestFileMatch, content, language: lang });
                      } else {
-                         // Create a new "Artifact" file if unmatched
                          const artifactName = `artifact_${msg.id.substring(0,4)}_${idx}.${lang === 'javascript' ? 'js' : lang}`;
                          if (!fileMap.has(artifactName)) {
                              fileMap.set(artifactName, { name: artifactName, content, language: lang });
@@ -183,6 +176,8 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
                             isLoading={isLoading} 
                             statusText="" 
                             enableCodingMode={true} 
+                            currentMode={currentMode}
+                            onModeChange={onModeChange}
                          />
                     </div>
                 </div>

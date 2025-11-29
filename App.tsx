@@ -468,6 +468,8 @@ const App: React.FC = () => {
               thinkingBotIds={thinkingBotIds}
               onStopSession={() => controlSignal.current.stop = true}
               currentTopic={currentTopic}
+              currentMode={sessionMode}
+              onModeChange={setSessionMode}
           />
       ) : (
           <ChatWindow 
@@ -478,6 +480,7 @@ const App: React.FC = () => {
             statusText={sessionStatus !== SessionStatus.IDLE ? sessionStatus.toUpperCase().replace('_', ' ') : "AWAITING MOTION"}
             currentTopic={currentTopic}
             sessionMode={sessionMode}
+            onModeChange={setSessionMode}
             sessionStatus={sessionStatus}
             debateHeat={debateHeat}
             onClearSession={clearSession}

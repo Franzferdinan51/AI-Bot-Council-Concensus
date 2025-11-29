@@ -1,3 +1,4 @@
+
 # 🏛️ AI Council Chamber
 
 **The Definitive Multi-Agent Governance & Deliberation Engine**
@@ -27,7 +28,7 @@ The Council operates in distinct modes tailored to your specific needs:
 *   **⚖️ Legislative Proposal (Default)**: The standard parliamentary flow. You propose a motion, the Council debates it in rounds, challenges each other, votes, and the Speaker enacts a binding decree. Best for decision-making.
 *   **🧠 Deep Research (Agentic)**: A recursive investigation mode. The Speaker breaks a topic into vectors, assigns agents to perform breadth and depth searches using Google Search, identifies gaps, and compiles a comprehensive dossier. Best for learning.
 *   **🐝 Swarm Hive**: Inspired by OpenAI's *Swarm*. A dynamic task-decomposition engine. The Speaker spawns ephemeral "Drone Agents" to execute massive parallel tasks.
-*   **💻 Swarm Coding**: A dedicated software engineering workflow where the Council transforms into a Dev Team (Architect, Backend, Frontend, SecOps) to write production-ready code with live artifact previews.
+*   **💻 Swarm Coding**: A dedicated software engineering workflow where the Council transforms into a Dev Team (Architect, Backend, Frontend, SecOps) to write production-ready code with live artifact previews. Includes a dedicated **IDE-Style UI**.
 *   **🗣️ Inquiry**: A rapid-fire Q&A mode where the user asks questions and the Council provides specific answers synthesized by the Speaker.
 *   **🛡️ Deliberation**: A roundtable discussion focused on exploring nuances rather than binary voting.
 
@@ -86,7 +87,7 @@ You can save costs or ensure privacy by running Councilors on local hardware.
 
 ### For Developers
 *   **Architecture Review**: Use *Swarm Coding* mode. Ask the Council to "Critique this system design." The Sentinel will find security flaws, The Technocrat will find bottlenecks, and The Pragmatist will complain about maintenance costs.
-*   **Code Generation**: Generate full-stack applications with separated concerns.
+*   **Code Generation**: Enable **Pro Coding UI** in settings. Ask the Council to build a full-stack app. Watch as the Architect assigns files to the swarm and they are generated in real-time.
 
 ### For Writers & Worldbuilders
 *   **Scenario Simulation**: "What happens if humanity discovers FTL travel tomorrow?" Watch the Historian, Diplomat, and Sentinel debate the geopolitical fallout.

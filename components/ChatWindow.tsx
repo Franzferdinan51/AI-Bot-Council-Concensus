@@ -13,6 +13,7 @@ interface ChatWindowProps {
   statusText: string;
   currentTopic: string | null;
   sessionMode: SessionMode;
+  onModeChange: (mode: SessionMode) => void;
   sessionStatus: SessionStatus;
   debateHeat: number; // -1 (Hostile) to 1 (Peaceful)
   onClearSession: () => void;
@@ -24,7 +25,7 @@ interface ChatWindowProps {
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ 
-    messages, activeBots, thinkingBotIds, onSendMessage, statusText, currentTopic, sessionMode, sessionStatus, 
+    messages, activeBots, thinkingBotIds, onSendMessage, statusText, currentTopic, sessionMode, onModeChange, sessionStatus, 
     debateHeat, onClearSession, onStopSession, onPauseSession, onOpenLiveSession, onCouncilorClick, enableCodingMode
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -84,7 +85,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full bg-slate-950 relative overflow-hidden">
+    <div className="flex flex-col flex-1 h-full bg-slate-950 relative overflow-hidden min-h-0">
         {/* Background Overlay */}
         <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
         
@@ -230,6 +231,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         isLoading={isSessionActive && !isPaused} 
         statusText={statusText}
         enableCodingMode={enableCodingMode}
+        currentMode={sessionMode}
+        onModeChange={onModeChange}
       />
     </div>
   );

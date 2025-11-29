@@ -8,12 +8,20 @@ interface MessageInputProps {
   isLoading: boolean;
   statusText: string;
   enableCodingMode?: boolean;
+  currentMode: SessionMode;
+  onModeChange: (mode: SessionMode) => void;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, statusText, enableCodingMode = true }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ 
+    onSendMessage, 
+    isLoading, 
+    statusText, 
+    enableCodingMode = false,
+    currentMode,
+    onModeChange
+}) => {
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [mode, setMode] = useState<SessionMode>(SessionMode.PROPOSAL);
   const [isRecording, setIsRecording] = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
@@ -104,7 +112,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (content.trim() && !isLoading) {
-      onSendMessage(content.trim(), attachments, mode);
+      onSendMessage(content.trim(), attachments, currentMode);
       setContent('');
       setAttachments([]);
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
@@ -129,7 +137,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
           default: return 'slate';
       }
   };
-  const activeColor = getModeColor(mode);
+  const activeColor = getModeColor(currentMode);
 
   const availableModes = [
       { m: SessionMode.PROPOSAL, label: 'Legislate', color: 'amber' },
@@ -144,7 +152,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
   }
 
   return (
-    <div className="w-full bg-slate-950 pb-[env(safe-area-inset-bottom)] pt-2 px-2 md:px-4 md:pb-4 relative z-10 transition-all duration-300 border-t border-transparent shrink-0">
+    <div className="w-full bg-slate-950 pb-[env(safe-area-inset-bottom)] pt-2 px-2 md:px-4 relative z-10 transition-all duration-300 border-t border-transparent shrink-0">
       <div className="max-w-4xl mx-auto relative">
         
         {/* Status Indicator (Floating above) */}
@@ -190,7 +198,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
                         onClick={() => setIsModeMenuOpen(!isModeMenuOpen)}
                         className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all bg-${activeColor}-900/30 text-${activeColor}-400 hover:bg-${activeColor}-900/50 border border-${activeColor}-900/50`}
                     >
-                        <span>{mode.replace('_', ' ')}</span>
+                        <span>{currentMode.replace('_', ' ')}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${isModeMenuOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     
@@ -202,8 +210,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
                                 {availableModes.map((opt) => (
                                     <button
                                         key={opt.m}
-                                        onClick={() => { setMode(opt.m); setIsModeMenuOpen(false); }}
-                                        className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors flex items-center gap-3 ${mode === opt.m ? `text-${opt.color}-400 bg-slate-700/50` : 'text-slate-400'}`}
+                                        onClick={() => { onModeChange(opt.m); setIsModeMenuOpen(false); }}
+                                        className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors flex items-center gap-3 ${currentMode === opt.m ? `text-${opt.color}-400 bg-slate-700/50` : 'text-slate-400'}`}
                                     >
                                         <div className={`w-2 h-2 rounded-full bg-${opt.color}-500 shrink-0`}></div>
                                         {opt.label}
@@ -305,7 +313,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
         {/* Footer Text */}
         <div className="text-center mt-1">
              <p className="text-[9px] text-slate-600 font-mono">
-                 AI Council • {mode.replace('_', ' ').toUpperCase()} Mode Active
+                 AI Council • {currentMode.replace('_', ' ').toUpperCase()} Mode Active
              </p>
         </div>
       </div>
