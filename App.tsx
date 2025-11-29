@@ -1,9 +1,8 @@
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import type { Message, Settings } from './types';
-import { AuthorType } from './types';
-import { getGeminiResponse, getOpenRouterResponse, getLmStudioResponse } from './services/aiService';
-import { BOT_CONFIG } from './constants';
+import React, { useState, useCallback } from 'react';
+import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData } from './types';
+import { getBotResponse } from './services/aiService';
+import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_BOTS } from './constants';
 import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
 
@@ -11,265 +10,325 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
       {
           id: 'init-1',
-          author: 'System',
+          author: 'Council Clerk',
           authorType: AuthorType.SYSTEM,
-          content: "Welcome to the AI Bot Chat Room! Click the gear icon to configure your bots, then send a message or press the 'play' button to start a bot-to-bot conversation."
+          content: "All rise. The High AI Council is now in session. Configure your Council in settings or propose a motion."
       }
   ]);
+  
   const [settings, setSettings] = useState<Settings>({
-    openRouterApiKey: '',
-    lmStudioUrl: 'http://localhost:1234/v1/chat/completions',
-    activeBots: {
-      gemini: true,
-      lmStudio: false,
-      openRouterModels: [],
+    bots: DEFAULT_BOTS,
+    mcp: {
+        enabled: false,
+        dockerEndpoint: "",
+        customTools: []
     },
+    globalOpenRouterKey: ""
   });
-  const [loadingBots, setLoadingBots] = useState<Set<string>>(new Set());
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isBotConversationRunning, setIsBotConversationRunning] = useState(false);
-  const conversationTimeoutRef = useRef<number | null>(null);
 
+  const [thinkingBotId, setThinkingBotId] = useState<string | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [currentTopic, setCurrentTopic] = useState<string | null>(null);
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus>(SessionStatus.IDLE);
+  
+  // Track bots involved in the current active session (including dynamically summoned ones)
+  const [activeSessionBots, setActiveSessionBots] = useState<BotConfig[]>([]);
 
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
     setMessages(prev => [...prev, { ...message, id: Date.now().toString() + Math.random() }]);
   }, []);
 
-  const stopConversation = useCallback(() => {
-    setIsBotConversationRunning(false);
-    if (conversationTimeoutRef.current) {
-        clearTimeout(conversationTimeoutRef.current);
-        conversationTimeoutRef.current = null;
-    }
-    setLoadingBots(new Set());
-  }, []);
-
-  const triggerBotResponses = useCallback(async (currentHistory: Message[]) => {
-    const systemInstruction = 'You are a helpful AI assistant in a chat room with other AIs and a human. The human has just sent a message. Please provide a direct, helpful, and concise response to the human user.';
+  const runCouncilSession = async (topic: string, initialHistory: Message[]) => {
+    let sessionHistory = [...initialHistory];
     
-    const parallelTasks: {name: string, type: AuthorType, promise: Promise<string>}[] = [];
-    const openRouterModelsToQuery: string[] = [];
+    // Initialize session bots from settings
+    const enabledBots = settings.bots.filter(b => b.enabled);
+    let currentSessionBots = [...enabledBots];
+    setActiveSessionBots(currentSessionBots);
 
-    if (settings.activeBots.gemini) {
-        parallelTasks.push({ 
-            name: BOT_CONFIG.gemini.name, 
-            type: AuthorType.GEMINI, 
-            promise: getGeminiResponse(currentHistory, systemInstruction) 
-        });
-    }
+    const speaker = enabledBots.find(b => b.role === 'speaker');
+    const moderator = enabledBots.find(b => b.role === 'moderator');
+    const initialCouncilors = enabledBots.filter(b => b.role === 'councilor');
 
-    if (settings.activeBots.lmStudio) {
-         parallelTasks.push({ 
-            name: BOT_CONFIG.lmstudio.name, 
-            type: AuthorType.LM_STUDIO, 
-            promise: getLmStudioResponse(currentHistory, settings.lmStudioUrl, systemInstruction) 
-        });
-    }
-
-    if (settings.activeBots.openRouterModels.length > 0) {
-        if (!settings.openRouterApiKey) {
-            addMessage({
-                author: 'System',
-                authorType: AuthorType.SYSTEM,
-                content: `OpenRouter Error: API key is missing. Please add it in settings.`,
-            });
-        } else {
-            openRouterModelsToQuery.push(...settings.activeBots.openRouterModels);
-        }
-    }
-    
-    if (parallelTasks.length === 0 && openRouterModelsToQuery.length === 0) {
-        addMessage({ author: 'System', authorType: AuthorType.SYSTEM, content: "No active bots to respond. Please enable a bot in settings." });
+    if (!speaker && initialCouncilors.length === 0) {
+        addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "No Councilors or Speaker present. Please enable bots in Settings." });
+        setSessionStatus(SessionStatus.IDLE);
         return;
     }
 
-    const openRouterBotNames = openRouterModelsToQuery.map(model => `OR / ${model.split('/').pop()}`);
-    setLoadingBots(new Set([...parallelTasks.map(task => task.name), ...openRouterBotNames]));
+    // --- PHASE 1: OPENING ---
+    setSessionStatus(SessionStatus.OPENING);
+    addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 1: COMMITTEE STATEMENTS." });
 
-    // --- Handle parallel tasks (Gemini, LM Studio) ---
-    parallelTasks.forEach(task => {
-        task.promise
-            .then(content => {
-                addMessage({ author: task.name, authorType: AuthorType.GEMINI, content });
-            })
-            .catch(error => {
-                addMessage({
-                    author: 'System', authorType: AuthorType.SYSTEM,
-                    content: `Error from ${task.name}: ${error.message || ''}`,
-                });
-            })
-            .finally(() => {
-                setLoadingBots(prev => {
-                    const newLoadingBots = new Set(prev);
-                    newLoadingBots.delete(task.name);
-                    return newLoadingBots;
-                });
-            });
-    });
-
-    // --- Handle sequential tasks (OpenRouter) with delay ---
-    let openRouterAuthErrorShown = false;
-    for (let i = 0; i < openRouterModelsToQuery.length; i++) {
-        const model = openRouterModelsToQuery[i];
-        const taskName = `OR / ${model.split('/').pop()}`;
+    for (const councilor of initialCouncilors) {
+        setThinkingBotId(councilor.id);
         try {
-            const content = await getOpenRouterResponse(model, currentHistory, settings.openRouterApiKey, systemInstruction);
-            addMessage({ author: model, authorType: AuthorType.OPENROUTER, content });
-        } catch (error) {
-            const errorMessage = error.message || '';
-            const isAuthError = errorMessage.includes('Authentication Error');
+            const systemPrompt = `${COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_OPENING} Persona: ${councilor.persona}`;
+            const response = await getBotResponse(councilor, sessionHistory, systemPrompt, settings.globalOpenRouterKey, settings.mcp);
             
-            if (isAuthError && openRouterAuthErrorShown) continue; // Show only one auth error
-            if (isAuthError) openRouterAuthErrorShown = true;
-
-            addMessage({
-                author: 'System', authorType: AuthorType.SYSTEM,
-                content: `Error from ${taskName}: ${errorMessage}`,
-            });
-        } finally {
-            setLoadingBots(prev => {
-                const newLoadingBots = new Set(prev);
-                newLoadingBots.delete(taskName);
-                return newLoadingBots;
-            });
-        }
-
-        // Wait 3 seconds before the next OpenRouter request
-        if (i < openRouterModelsToQuery.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            const msg: Message = { 
+                id: 'temp', author: councilor.name, authorType: councilor.authorType, 
+                content: response, color: councilor.color, roleLabel: councilor.role 
+            };
+            addMessage(msg);
+            sessionHistory.push(msg);
+        } catch (e: any) {
+             console.error(e);
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `${councilor.name} is absent. (${e.message})` });
         }
     }
-  }, [settings, addMessage]);
 
-  const handleHumanSendMessage = (content: string) => {
-    if (isBotConversationRunning) {
-        stopConversation();
+    // --- PHASE 2: DEBATE & DYNAMIC SPECIALISTS ---
+    if (initialCouncilors.length > 0) {
+        setSessionStatus(SessionStatus.DEBATING);
+        const DEBATE_ROUNDS = 2; // Increased to 2 rounds for back-and-forth
+
+        for (let round = 1; round <= DEBATE_ROUNDS; round++) {
+            
+            // --- MODERATOR INTERJECTION ---
+            // The moderator speaks before round 2 to guide the debate
+            if (moderator && round > 1) {
+                addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "The Moderator has recognized the floor." });
+                setThinkingBotId(moderator.id);
+                try {
+                     const modPrompt = `${COUNCIL_SYSTEM_INSTRUCTION.MODERATOR} Persona: ${moderator.persona}`;
+                     const response = await getBotResponse(moderator, sessionHistory, modPrompt, settings.globalOpenRouterKey, settings.mcp);
+                     const msg: Message = { 
+                        id: 'temp', author: moderator.name, authorType: moderator.authorType, 
+                        content: response, color: moderator.color, roleLabel: "MODERATOR" 
+                    };
+                    addMessage(msg);
+                    sessionHistory.push(msg);
+                } catch (e: any) {
+                    addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Moderator absent. (${e.message})` });
+                }
+            }
+
+            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `PHASE 2: FLOOR DEBATE - ROUND ${round} of ${DEBATE_ROUNDS}.` });
+            
+            // Re-fetch councilors from the local session list (in case any logic changes, though usually static)
+            const activeCouncilors = currentSessionBots.filter(b => b.role === 'councilor');
+
+            for (const councilor of activeCouncilors) {
+                setThinkingBotId(councilor.id);
+                try {
+                    const systemPrompt = `${COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_REBUTTAL} Persona: ${councilor.persona}`;
+                    const response = await getBotResponse(councilor, sessionHistory, systemPrompt, settings.globalOpenRouterKey, settings.mcp);
+                    
+                    const msg: Message = { 
+                        id: 'temp', author: councilor.name, authorType: councilor.authorType, 
+                        content: response, color: councilor.color, roleLabel: councilor.role 
+                    };
+                    addMessage(msg);
+                    sessionHistory.push(msg);
+
+                    // --- CHECK FOR SUMMONING ---
+                    // Regex to find "SUMMON AGENT: <Role>"
+                    const summonMatch = response.match(/SUMMON AGENT:[\s]*([a-zA-Z0-9\s-]+?)(?=[.!]|$|\n)/i);
+                    
+                    if (summonMatch) {
+                        const requestedRole = summonMatch[1].trim();
+                        // Check if we already have this specialist to avoid duplicates
+                        const exists = currentSessionBots.find(b => b.name.includes(requestedRole));
+                        
+                        if (!exists) {
+                            addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `MOTION RECOGNIZED. Summoning Subject Matter Expert: ${requestedRole}...` });
+                            
+                            // Create Dynamic Bot
+                            const newSpecialist: BotConfig = {
+                                id: `specialist-${Date.now()}`,
+                                name: `Expert (${requestedRole})`,
+                                role: 'specialist',
+                                authorType: AuthorType.GEMINI, // Default to reliable model
+                                model: 'gemini-2.5-flash',
+                                persona: `You are a world-class subject matter expert in ${requestedRole}. The High Council has summoned you for a specific deep-dive.`,
+                                color: "from-fuchsia-500 to-purple-600",
+                                enabled: true
+                            };
+                            
+                            // Update State & Local
+                            currentSessionBots = [...currentSessionBots, newSpecialist];
+                            setActiveSessionBots(currentSessionBots);
+
+                            // Let the specialist speak immediately
+                            setThinkingBotId(newSpecialist.id);
+                            const specSystemPrompt = COUNCIL_SYSTEM_INSTRUCTION.SPECIALIST.replace('{{ROLE}}', requestedRole) + ` Persona: ${newSpecialist.persona}`;
+                            const specResponse = await getBotResponse(newSpecialist, sessionHistory, specSystemPrompt, settings.globalOpenRouterKey, settings.mcp);
+
+                            const specMsg: Message = { 
+                                id: 'temp', author: newSpecialist.name, authorType: newSpecialist.authorType, 
+                                content: specResponse, color: newSpecialist.color, roleLabel: "SPECIALIST AGENT" 
+                            };
+                            addMessage(specMsg);
+                            sessionHistory.push(specMsg);
+                        }
+                    }
+
+                } catch (e: any) { console.error(e); addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `${councilor.name} yielded the floor. (${e.message})` }); }
+            }
+        }
     }
-    const humanMessage = {
-        author: 'You',
+
+    // --- PHASE 3: RESOLUTION ---
+    if (speaker) {
+        setSessionStatus(SessionStatus.RESOLVING);
+        addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 3: SPEAKER'S RULING." });
+        setThinkingBotId(speaker.id);
+        
+        try {
+            const systemPrompt = `${COUNCIL_SYSTEM_INSTRUCTION.SPEAKER} Persona: ${speaker.persona}`;
+            const response = await getBotResponse(speaker, sessionHistory, systemPrompt, settings.globalOpenRouterKey, settings.mcp);
+            
+            const msg: Message = { 
+                id: 'temp', author: speaker.name, authorType: speaker.authorType, 
+                content: response, color: speaker.color, roleLabel: "SPEAKER" 
+            };
+            addMessage(msg);
+            sessionHistory.push(msg);
+            
+            // --- PHASE 4: VOTING ---
+            const finalVotingMembers = currentSessionBots.filter(b => b.role === 'councilor');
+            
+            if (finalVotingMembers.length > 0) {
+                 setSessionStatus(SessionStatus.VOTING);
+                 addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 4: ROLL CALL VOTE." });
+                 
+                 const currentVotes: VoteData['votes'] = [];
+                 let yeas = 0;
+                 let nays = 0;
+
+                 for (const councilor of finalVotingMembers) {
+                     setThinkingBotId(councilor.id);
+                     const votePrompt = `${COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_VOTE} Persona: ${councilor.persona}`;
+                     try {
+                        const voteRes = await getBotResponse(councilor, sessionHistory, votePrompt, settings.globalOpenRouterKey, settings.mcp);
+                        
+                        let choice: 'YEA' | 'NAY' = 'YEA'; // Default fallback
+                        let reason = "Agreed with Speaker.";
+
+                        const cleanRes = voteRes.replace(/\*/g, '').trim();
+                        if (cleanRes.toUpperCase().includes("VOTE: NAY") || cleanRes.toUpperCase().includes("VOTE:NAY")) {
+                            choice = 'NAY';
+                            nays++;
+                        } else {
+                            // Assume YEA unless explicit NAY
+                            yeas++;
+                        }
+                        
+                        // Attempt to extract reasoning text after the vote keyword
+                        const splitText = cleanRes.split(/VOTE: ?(YEA|NAY)/i);
+                        if (splitText.length > 1) reason = splitText[splitText.length - 1].replace(/^[:\s-]+/, '').trim();
+                        
+                        currentVotes.push({
+                            voter: councilor.name,
+                            choice,
+                            reason: reason.substring(0, 120) + (reason.length > 120 ? '...' : ''), // Truncate for UI
+                            color: councilor.color
+                        });
+
+                     } catch (e: any) {
+                         // Abstention or error
+                     }
+                 }
+
+                 const result = yeas > nays ? "PASSED" : "REJECTED";
+                 
+                 const voteData: VoteData = {
+                     topic: topic,
+                     yeas,
+                     nays,
+                     result,
+                     votes: currentVotes
+                 };
+
+                 const voteMessage: Message = { 
+                     id: `vote-${Date.now()}`,
+                     author: 'Council Clerk', 
+                     authorType: AuthorType.SYSTEM, 
+                     content: `Vote Tally Complete.`, 
+                     voteData: voteData 
+                };
+                
+                addMessage(voteMessage);
+                
+                // Add vote tally to history for AI context
+                sessionHistory.push({
+                    id: 'sys-vote',
+                    author: 'SYSTEM',
+                    authorType: AuthorType.SYSTEM,
+                    content: `VOTE RESULT: ${result}. Yeas: ${yeas}, Nays: ${nays}.`
+                });
+
+                 // --- PHASE 5: ENACTMENT / CONCLUSION ---
+                 setSessionStatus(SessionStatus.ENACTING);
+                 setThinkingBotId(speaker.id);
+                 
+                 // Re-prompt Speaker for Final Decree based on Vote
+                 const enactmentPrompt = COUNCIL_SYSTEM_INSTRUCTION.SPEAKER_POST_VOTE
+                    .replace('{{RESULT}}', result)
+                    .replace('{{YEAS}}', yeas.toString())
+                    .replace('{{NAYS}}', nays.toString())
+                    + ` Persona: ${speaker.persona}`;
+                 
+                 const enactmentResponse = await getBotResponse(speaker, sessionHistory, enactmentPrompt, settings.globalOpenRouterKey, settings.mcp);
+
+                 addMessage({ 
+                    author: speaker.name, 
+                    authorType: speaker.authorType, 
+                    content: enactmentResponse, 
+                    color: speaker.color, 
+                    roleLabel: result === 'PASSED' ? "ENACTMENT DECREE" : "TABLED NOTICE"
+                });
+
+            }
+
+        } catch (e: any) {
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Speaker Error: ${e.message}` });
+        }
+    }
+
+    setThinkingBotId(null);
+    setSessionStatus(SessionStatus.IDLE);
+    setCurrentTopic(null);
+  };
+
+  const handleMotionProposed = (content: string) => {
+    if (sessionStatus !== SessionStatus.IDLE) return;
+
+    setCurrentTopic(content);
+    const humanMessage: Message = {
+        id: 'temp',
+        author: 'Petitioner',
         authorType: AuthorType.HUMAN,
         content: content
     };
-    const newHistory = [...messages, { ...humanMessage, id: 'temp-human' }];
+    
+    const newHistory = [...messages, humanMessage];
     setMessages(newHistory);
-    triggerBotResponses(newHistory);
-  };
-  
-  const triggerAutonomousBotResponses = useCallback(async (currentHistory: Message[]) => {
-    const activeBotsList: { name: string; type: AuthorType; model?: string; maker: string; }[] = [];
-    if (settings.activeBots.gemini) { activeBotsList.push({ name: BOT_CONFIG.gemini.name, type: AuthorType.GEMINI, maker: 'Google' }); }
-    if (settings.activeBots.lmStudio) { activeBotsList.push({ name: BOT_CONFIG.lmstudio.name, type: AuthorType.LM_STUDIO, maker: 'the user via LM Studio' }); }
-    
-    if (settings.activeBots.openRouterModels.length > 0) {
-        if (!settings.openRouterApiKey) {
-            addMessage({ author: 'System', authorType: AuthorType.SYSTEM, content: "OpenRouter bots paused: API key missing." });
-        } else {
-             settings.activeBots.openRouterModels.forEach(model => { 
-                activeBotsList.push({ name: `OR / ${model.split('/').pop()}`, type: AuthorType.OPENROUTER, model, maker: model.split('/')[0] || 'OpenRouter' }); 
-            });
-        }
-    }
-
-    if (activeBotsList.length < 1) {
-        addMessage({ author: 'System', authorType: AuthorType.SYSTEM, content: "No active bots to have a conversation. Please enable bots in settings." });
-        stopConversation();
-        return;
-    }
-
-    const parallelBots = activeBotsList.filter(b => b.type !== AuthorType.OPENROUTER);
-    const openRouterBots = activeBotsList.filter(b => b.type === AuthorType.OPENROUTER);
-    
-    setLoadingBots(new Set(activeBotsList.map(b => b.name)));
-
-    // --- Handle parallel bots ---
-    parallelBots.forEach(bot => {
-        const systemInstruction = `You are ${bot.name}, an AI in a chat room. Engage naturally. Your maker is ${bot.maker}.`;
-        const promise = bot.type === AuthorType.GEMINI 
-            ? getGeminiResponse(currentHistory, systemInstruction)
-            : getLmStudioResponse(currentHistory, settings.lmStudioUrl, systemInstruction);
-        
-        promise
-            .then(content => addMessage({ author: bot.name, authorType: bot.type, content }))
-            .catch(error => addMessage({ author: 'System', authorType: AuthorType.SYSTEM, content: `Error from ${bot.name}: ${error.message}`}))
-            .finally(() => setLoadingBots(prev => {
-                const newLoadingBots = new Set(prev);
-                newLoadingBots.delete(bot.name);
-                return newLoadingBots;
-            }));
-    });
-
-    // --- Handle sequential OpenRouter bots with delay ---
-    let openRouterAuthErrorShown = false;
-    for (let i = 0; i < openRouterBots.length; i++) {
-        const bot = openRouterBots[i];
-        const systemInstruction = `You are ${bot.name}, an AI in a chat room. Engage naturally. Your maker is ${bot.maker}.`;
-        try {
-            const content = await getOpenRouterResponse(bot.model!, currentHistory, settings.openRouterApiKey, systemInstruction);
-            addMessage({ author: bot.model!, authorType: bot.type, content });
-        } catch (error) {
-            const errorMessage = error.message || '';
-            const isAuthError = errorMessage.includes('Authentication Error');
-            
-            if (isAuthError && openRouterAuthErrorShown) continue;
-            if (isAuthError) openRouterAuthErrorShown = true;
-
-            addMessage({ author: 'System', authorType: AuthorType.SYSTEM, content: `Error from ${bot.name}: ${errorMessage}` });
-        } finally {
-            setLoadingBots(prev => {
-                const newLoadingBots = new Set(prev);
-                newLoadingBots.delete(bot.name);
-                return newLoadingBots;
-            });
-        }
-
-        if (i < openRouterBots.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 3000));
-        }
-    }
-  }, [settings, addMessage, stopConversation]);
-  
-  useEffect(() => {
-    if (!isBotConversationRunning) {
-        return;
-    }
-
-    const conversationLoop = () => {
-        if (loadingBots.size === 0) {
-            triggerAutonomousBotResponses(messages);
-        }
-    };
-    
-    conversationTimeoutRef.current = window.setTimeout(conversationLoop, 5000);
-
-    return () => {
-        if (conversationTimeoutRef.current) {
-            clearTimeout(conversationTimeoutRef.current);
-        }
-    };
-  }, [isBotConversationRunning, messages, loadingBots.size, triggerAutonomousBotResponses]);
-
-  const handleStartStopConversation = () => {
-    if (isBotConversationRunning) {
-        stopConversation();
-        addMessage({ author: 'System', authorType: AuthorType.SYSTEM, content: "Bot conversation paused." });
-    } else {
-        setIsBotConversationRunning(true);
-        addMessage({ author: 'System', authorType: AuthorType.SYSTEM, content: "Starting bot conversation..." });
-        // Immediately trigger the first round
-        triggerAutonomousBotResponses(messages);
-    }
+    runCouncilSession(content, newHistory);
   };
 
+  const getStatusText = () => {
+    switch(sessionStatus) {
+        case SessionStatus.OPENING: return "Committee Review...";
+        case SessionStatus.DEBATING: return "Floor Debate in Progress...";
+        case SessionStatus.RESOLVING: return "Speaker deliberation...";
+        case SessionStatus.VOTING: return "Roll Call Vote...";
+        case SessionStatus.ENACTING: return "Final Enactment...";
+        default: return "Chamber in Recess";
+    }
+  };
 
   return (
-    <div className="h-screen w-screen flex antialiased">
-      <main className="flex-1 h-full">
+    <div className="h-screen w-screen flex antialiased font-sans bg-slate-950">
+      <main className="flex-1 h-full flex flex-col relative">
         <ChatWindow
             messages={messages}
-            loadingBots={loadingBots}
-            onSendMessage={handleHumanSendMessage}
-            isBotConversationRunning={isBotConversationRunning}
-            onStartStopConversation={handleStartStopConversation}
+            activeBots={sessionStatus === SessionStatus.IDLE ? settings.bots.filter(b => b.enabled) : activeSessionBots}
+            thinkingBotId={thinkingBotId}
+            onSendMessage={handleMotionProposed}
+            statusText={getStatusText()}
+            currentTopic={currentTopic}
         />
       </main>
       <SettingsPanel

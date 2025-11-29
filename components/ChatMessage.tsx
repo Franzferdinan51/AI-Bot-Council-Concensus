@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Message, AuthorType } from '../types';
-import { BOT_CONFIG } from '../constants';
 
 interface ChatMessageProps {
   message: Message;
@@ -9,36 +8,111 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isHuman = message.authorType === AuthorType.HUMAN;
-  const config = BOT_CONFIG[message.authorType] || BOT_CONFIG.openrouter;
+  const isSystem = message.authorType === AuthorType.SYSTEM;
   
   const AuthorIcon: React.FC<{ type: AuthorType }> = ({ type }) => {
     switch (type) {
-      case AuthorType.GEMINI:
-        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-cyan-300"><path d="M12.943 3.637a2 2 0 0 0-1.886 0L3.14 8.845a2 2 0 0 0-1.077 1.758v9.11a2 2 0 0 0 2 2h15.874a2 2 0 0 0 2-2v-9.11a2 2 0 0 0-1.077-1.758L12.943 3.637Z"/></svg>;
+      case AuthorType.GEMINI: // Speaker - Gavel
+        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-amber-400"><path d="M2 21h20v-2H2v2zm12.41-5.17l-2.83-2.83-8.49 8.49-2.83-2.83 8.49-8.49-1.41-1.41-1.42 1.41L3.52 7.76l4.24-4.24 2.42 2.42 1.41-1.41 2.83 2.83 1.41-1.41 2.83 2.83-1.41 1.41 2.83 2.83-1.41 1.41 2.83 2.83-1.41 1.41-5.66 5.66z"/></svg>;
       case AuthorType.LM_STUDIO:
-        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>;
+      case AuthorType.OPENAI_COMPATIBLE:
+        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-300"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
       case AuthorType.OPENROUTER:
-        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-300"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>;
+        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-300"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>;
       case AuthorType.HUMAN:
-        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
-      default:
-        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-300"><path d="m12 14-4-4h8z"/><path d="M12 2a10 10 0 1 0 10 10H12V2z"/></svg>;
+        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+      default: // System
+        return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
     }
   };
 
-  const authorName = message.authorType === AuthorType.OPENROUTER ? `OR / ${message.author.split('/').pop()}` : message.author;
-  const authorType = message.authorType === AuthorType.OPENROUTER ? AuthorType.OPENROUTER : message.authorType;
-  
+  if (isSystem) {
+      // Special rendering for Vote Tally
+      if (message.voteData) {
+          const { yeas, nays, result, votes } = message.voteData;
+          const total = yeas + nays;
+          const yeaPercent = total > 0 ? (yeas / total) * 100 : 0;
+          
+          return (
+            <div className="flex justify-center my-6 animate-fade-in w-full px-2 md:px-0">
+                <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 md:p-6 max-w-2xl w-full shadow-2xl relative overflow-hidden">
+                    {/* Result Stamp */}
+                    <div className={`absolute top-4 right-4 md:right-6 text-2xl md:text-4xl font-black border-4 px-2 py-1 transform rotate-[-15deg] opacity-30 select-none ${result === 'PASSED' ? 'text-green-500 border-green-500' : 'text-red-500 border-red-500'}`}>
+                        {result}
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-4">
+                         <div className="bg-slate-700 p-2 rounded-full"><AuthorIcon type={AuthorType.SYSTEM} /></div>
+                         <h3 className="text-slate-200 font-serif text-base md:text-lg tracking-widest uppercase font-bold">Official Roll Call Vote</h3>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-6">
+                        <div className="flex justify-between text-xs font-bold uppercase mb-1">
+                            <span className="text-green-400">Yeas: {yeas}</span>
+                            <span className="text-red-400">Nays: {nays}</span>
+                        </div>
+                        <div className="h-4 bg-slate-900 rounded-full overflow-hidden flex border border-slate-600">
+                            <div style={{ width: `${yeaPercent}%` }} className="bg-gradient-to-r from-green-600 to-green-500 transition-all duration-1000"></div>
+                            <div style={{ width: `${100 - yeaPercent}%` }} className="bg-gradient-to-l from-red-600 to-red-500 transition-all duration-1000"></div>
+                        </div>
+                    </div>
+
+                    {/* Individual Votes */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {votes.map((v, i) => (
+                            <div key={i} className="bg-slate-900/50 p-3 rounded border border-slate-700/50 flex flex-col gap-1">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${v.color}`}></div>
+                                        <span className="text-xs font-bold text-slate-300">{v.voter}</span>
+                                    </div>
+                                    <span className={`text-xs font-black px-2 py-0.5 rounded ${v.choice === 'YEA' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
+                                        {v.choice}
+                                    </span>
+                                </div>
+                                <p className="text-[10px] text-slate-500 italic leading-tight">"{v.reason}"</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+          );
+      }
+
+      return (
+          <div className="flex justify-center my-4 animate-fade-in px-4">
+              <div className="bg-slate-800/50 border border-slate-700 rounded-full px-4 py-1 flex items-center gap-2 shadow-sm max-w-full">
+                  <span className="text-slate-500 flex-shrink-0"><AuthorIcon type={AuthorType.SYSTEM} /></span>
+                  <span className="text-slate-400 font-mono text-xs uppercase tracking-wider truncate">{message.content}</span>
+              </div>
+          </div>
+      )
+  }
+
+  const roleLabel = message.roleLabel || "Member";
+  const borderColor = message.color ? message.color : "from-slate-500 to-slate-700";
+
   return (
-    <div className={`flex items-start gap-4 my-4 ${isHuman ? 'flex-row-reverse' : 'flex-row'}`}>
-      <div className={`flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center border-2 ${isHuman ? 'border-slate-500' : `border-slate-600`}`}>
-         <AuthorIcon type={authorType} />
+    <div className={`flex items-start gap-3 md:gap-4 my-4 md:my-6 ${isHuman ? 'flex-row-reverse' : 'flex-row animate-fade-in-up'}`}>
+      <div className={`flex-shrink-0 w-8 h-8 md:w-12 md:h-12 rounded-lg bg-slate-800 flex items-center justify-center border ${isHuman ? 'border-slate-500' : `border-slate-700 shadow-lg`}`}>
+         <div className="scale-75 md:scale-100"><AuthorIcon type={message.authorType} /></div>
       </div>
-      <div className={`w-full max-w-xl p-4 rounded-lg shadow-md ${isHuman ? 'bg-slate-700' : 'bg-slate-800'}`}>
-        <div className={`flex items-center mb-2 ${isHuman ? 'justify-end' : ''}`}>
-          <p className={`font-bold text-sm bg-clip-text text-transparent bg-gradient-to-r ${config.color}`}>{authorName}</p>
+      <div className={`w-full max-w-3xl relative rounded-sm border-l-4 shadow-xl ${isHuman ? 'bg-slate-800 border-slate-500' : 'bg-slate-900 border-l-transparent'}`}>
+        {/* Decorative border line for bots */}
+        {!isHuman && <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${borderColor}`}></div>}
+        
+        <div className="p-3 md:p-5">
+            <div className={`flex items-baseline mb-2 pb-2 border-b border-slate-700 ${isHuman ? 'justify-end' : 'justify-start'}`}>
+            <span className={`font-serif font-bold text-[9px] md:text-[10px] tracking-widest uppercase mr-2 bg-clip-text text-transparent bg-gradient-to-r ${borderColor}`}>
+                {roleLabel}
+            </span>
+            <span className="text-sm md:text-lg font-serif font-medium text-slate-200">{message.author}</span>
+            </div>
+            <div className="text-slate-300 leading-relaxed font-serif text-sm md:text-md whitespace-pre-wrap">
+                {message.content}
+            </div>
         </div>
-        <p className="text-slate-200 whitespace-pre-wrap break-words">{message.content}</p>
       </div>
     </div>
   );

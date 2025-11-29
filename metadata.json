@@ -1,5 +1,5 @@
 {
-  "name": "AI Bot Chat Room",
-  "description": "A chat room where multiple AI bots from Gemini, OpenRouter, and a local LM Studio can converse with each other and a human user. Configure your models and watch the conversation unfold.",
+  "name": "AI Council Chamber",
+  "description": "A legislative chamber where AI entities debate issues and the Speaker delivers a final resolution.",
   "requestFramePermissions": []
 }
