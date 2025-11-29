@@ -7,6 +7,7 @@ import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS } from './constants';
 import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
 import LiveSession from './components/LiveSession';
+import CodingInterface from './components/CodingInterface';
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -349,7 +350,7 @@ const App: React.FC = () => {
             }
         }
         else {
-            // ... (Existing Proposal Logic - Truncated for brevity as no changes needed here) ...
+            // ... (Existing Proposal Logic) ...
              if (speaker) {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
                 const res = await processBotTurn(speaker, sessionHistory, prompt, "OPENING BRIEF");
@@ -382,12 +383,10 @@ const App: React.FC = () => {
             setSessionStatus(SessionStatus.VOTING);
             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "DEBATE CLOSED. PROCEEDING TO ROLL CALL VOTE." });
             
-            // ... (Voting logic remains identical to previous implementation) ...
-            // Skipping re-implementation to save tokens, assuming existing logic holds
             if (speaker) {
                  const votePrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.ECONOMY_VOTE_BATCH).replace('{{COUNCILORS_LIST}}', initialCouncilors.map(b => `- ${b.name}: ${b.persona}`).join('\n'))} Persona: ${speaker.persona}`;
                  const res = await processBotTurn(speaker, sessionHistory, votePrompt, "VOTE AGGREGATOR");
-                 // ... Parse votes ...
+                 // In a real app we'd parse this, here we rely on the component to display it
                  setSessionStatus(SessionStatus.RESOLVING);
                  const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_POST_VOTE)} Persona: ${speaker.persona}`;
                  const finalRes = await processBotTurn(speaker, sessionHistory, finalPrompt, "FINAL DECREE");
@@ -453,26 +452,46 @@ const App: React.FC = () => {
   const activePrivateHistory = privateCouncilorId ? privateMessages[privateCouncilorId] : [];
   const activePrivateBot = settings.bots.find(b => b.id === privateCouncilorId);
 
+  // --- CONDITIONAL RENDERING ---
+  const isCodingMode = sessionMode === SessionMode.SWARM_CODING;
+  const showCodingUI = isCodingMode && settings.ui.proCodingUI;
+
   return (
-    <div className="bg-slate-950 h-[100dvh] w-full flex flex-col font-sans text-slate-200 overflow-hidden relative pt-[env(safe-area-inset-top)]">
-      <ChatWindow 
-        messages={messages} 
-        activeBots={activeSessionBots.length > 0 ? activeSessionBots : settings.bots.filter(b => b.enabled)}
-        thinkingBotIds={thinkingBotIds}
-        onSendMessage={handleSendMessage}
-        statusText={sessionStatus !== SessionStatus.IDLE ? sessionStatus.toUpperCase().replace('_', ' ') : "AWAITING MOTION"}
-        currentTopic={currentTopic}
-        sessionMode={sessionMode}
-        sessionStatus={sessionStatus}
-        debateHeat={debateHeat}
-        onClearSession={clearSession}
-        onStopSession={() => controlSignal.current.stop = true}
-        onPauseSession={() => { controlSignal.current.pause = !controlSignal.current.pause; setSessionStatus(prev => prev === SessionStatus.PAUSED ? SessionStatus.DEBATING : SessionStatus.PAUSED); }}
-        onOpenLiveSession={() => setIsLiveSessionOpen(true)}
-        onCouncilorClick={openPrivateCounsel}
-      />
+    <div className="h-[100dvh] w-full bg-slate-950 flex flex-col font-sans text-slate-200 overflow-hidden relative pt-[env(safe-area-inset-top)]">
+      
+      {showCodingUI ? (
+          <CodingInterface 
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              isLoading={sessionStatus !== SessionStatus.IDLE && sessionStatus !== SessionStatus.ADJOURNED}
+              statusText={sessionStatus.toUpperCase().replace('_', ' ')}
+              thinkingBotIds={thinkingBotIds}
+              onStopSession={() => controlSignal.current.stop = true}
+              currentTopic={currentTopic}
+          />
+      ) : (
+          <ChatWindow 
+            messages={messages} 
+            activeBots={activeSessionBots.length > 0 ? activeSessionBots : settings.bots.filter(b => b.enabled)}
+            thinkingBotIds={thinkingBotIds}
+            onSendMessage={handleSendMessage}
+            statusText={sessionStatus !== SessionStatus.IDLE ? sessionStatus.toUpperCase().replace('_', ' ') : "AWAITING MOTION"}
+            currentTopic={currentTopic}
+            sessionMode={sessionMode}
+            sessionStatus={sessionStatus}
+            debateHeat={debateHeat}
+            onClearSession={clearSession}
+            onStopSession={() => controlSignal.current.stop = true}
+            onPauseSession={() => { controlSignal.current.pause = !controlSignal.current.pause; setSessionStatus(prev => prev === SessionStatus.PAUSED ? SessionStatus.DEBATING : SessionStatus.PAUSED); }}
+            onOpenLiveSession={() => setIsLiveSessionOpen(true)}
+            onCouncilorClick={openPrivateCounsel}
+            enableCodingMode={settings.ui.enableCodingMode}
+          />
+      )}
+
       <SettingsPanel settings={settings} onSettingsChange={setSettings} isOpen={isSettingsOpen} onToggle={() => setIsSettingsOpen(!isSettingsOpen)} />
       {isLiveSessionOpen && <LiveSession onClose={() => setIsLiveSessionOpen(false)} />}
+      
       {showCostWarning && (
         <div className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
             <div className="bg-slate-900 border border-amber-600 rounded-xl shadow-2xl max-w-md w-full p-6">

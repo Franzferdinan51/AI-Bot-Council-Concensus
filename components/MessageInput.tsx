@@ -7,9 +7,10 @@ interface MessageInputProps {
   onSendMessage: (content: string, attachments: Attachment[], mode: SessionMode) => void;
   isLoading: boolean;
   statusText: string;
+  enableCodingMode?: boolean;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, statusText }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, statusText, enableCodingMode = true }) => {
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [mode, setMode] = useState<SessionMode>(SessionMode.PROPOSAL);
@@ -124,13 +125,26 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
           case SessionMode.INQUIRY: return 'cyan';
           case SessionMode.RESEARCH: return 'emerald';
           case SessionMode.SWARM: return 'orange';
+          case SessionMode.SWARM_CODING: return 'pink';
           default: return 'slate';
       }
   };
   const activeColor = getModeColor(mode);
 
+  const availableModes = [
+      { m: SessionMode.PROPOSAL, label: 'Legislate', color: 'amber' },
+      { m: SessionMode.DELIBERATION, label: 'Deliberate', color: 'purple' },
+      { m: SessionMode.INQUIRY, label: 'Inquiry', color: 'cyan' },
+      { m: SessionMode.RESEARCH, label: 'Deep Research', color: 'emerald' },
+      { m: SessionMode.SWARM, label: 'Swarm Hive', color: 'orange' },
+  ];
+
+  if (enableCodingMode) {
+      availableModes.push({ m: SessionMode.SWARM_CODING, label: 'Swarm Coding', color: 'pink' });
+  }
+
   return (
-    <div className="w-full bg-slate-950 pb-[env(safe-area-inset-bottom)] pt-2 px-2 md:px-4 md:pb-4 relative z-10 transition-all duration-300 border-t border-transparent">
+    <div className="w-full bg-slate-950 pb-[env(safe-area-inset-bottom)] pt-2 px-2 md:px-4 md:pb-4 relative z-10 transition-all duration-300 border-t border-transparent shrink-0">
       <div className="max-w-4xl mx-auto relative">
         
         {/* Status Indicator (Floating above) */}
@@ -174,9 +188,9 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
                 <div className="relative">
                     <button 
                         onClick={() => setIsModeMenuOpen(!isModeMenuOpen)}
-                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all bg-${activeColor}-900/30 text-${activeColor}-400 hover:bg-${activeColor}-900/50 border border-${activeColor}-900/50`}
+                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all bg-${activeColor}-900/30 text-${activeColor}-400 hover:bg-${activeColor}-900/50 border border-${activeColor}-900/50`}
                     >
-                        <span>{mode}</span>
+                        <span>{mode.replace('_', ' ')}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${isModeMenuOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     
@@ -185,13 +199,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setIsModeMenuOpen(false)}></div>
                             <div className="absolute bottom-full left-0 mb-2 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-y-auto max-h-60 py-1 scrollbar-thin scrollbar-thumb-slate-600">
-                                {[
-                                    { m: SessionMode.PROPOSAL, label: 'Legislate', color: 'amber' },
-                                    { m: SessionMode.DELIBERATION, label: 'Deliberate', color: 'purple' },
-                                    { m: SessionMode.INQUIRY, label: 'Inquiry', color: 'cyan' },
-                                    { m: SessionMode.RESEARCH, label: 'Deep Research', color: 'emerald' },
-                                    { m: SessionMode.SWARM, label: 'Swarm Hive', color: 'orange' },
-                                ].map((opt) => (
+                                {availableModes.map((opt) => (
                                     <button
                                         key={opt.m}
                                         onClick={() => { setMode(opt.m); setIsModeMenuOpen(false); }}
@@ -297,7 +305,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
         {/* Footer Text */}
         <div className="text-center mt-1">
              <p className="text-[9px] text-slate-600 font-mono">
-                 AI Council • {mode.toUpperCase()} Mode Active
+                 AI Council • {mode.replace('_', ' ').toUpperCase()} Mode Active
              </p>
         </div>
       </div>

@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Message, BotConfig, SessionMode, SessionStatus } from '../types';
 import ChatMessage from './ChatMessage';
@@ -19,11 +20,12 @@ interface ChatWindowProps {
   onPauseSession: () => void;
   onOpenLiveSession: () => void;
   onCouncilorClick: (id: string) => void;
+  enableCodingMode?: boolean;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ 
     messages, activeBots, thinkingBotIds, onSendMessage, statusText, currentTopic, sessionMode, sessionStatus, 
-    debateHeat, onClearSession, onStopSession, onPauseSession, onOpenLiveSession, onCouncilorClick
+    debateHeat, onClearSession, onStopSession, onPauseSession, onOpenLiveSession, onCouncilorClick, enableCodingMode
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -47,6 +49,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           case 'inquiry': return "text-cyan-500";
           case 'research': return "text-emerald-500";
           case 'swarm': return "text-orange-500";
+          case 'swarm_coding': return "text-pink-500";
           default: return "text-slate-500";
       }
   };
@@ -161,7 +164,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Visual Deck of Councilors */}
         <CouncilorDeck councilors={activeBots} activeBotIds={thinkingBotIds} onCouncilorClick={onCouncilorClick} />
 
-      <div className="flex-1 overflow-y-auto p-2 md:p-8 relative z-0">
+      <div className="flex-1 overflow-y-auto p-2 md:p-8 relative z-0 min-h-0">
         <div className="max-w-5xl mx-auto pb-4">
           {messages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
@@ -226,6 +229,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         onSendMessage={onSendMessage} 
         isLoading={isSessionActive && !isPaused} 
         statusText={statusText}
+        enableCodingMode={enableCodingMode}
       />
     </div>
   );

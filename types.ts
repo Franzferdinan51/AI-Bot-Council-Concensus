@@ -60,6 +60,8 @@ export interface UISettings {
     debateDelay: number; // ms delay between turns
     fontSize: 'small' | 'medium' | 'large';
     customDirective?: string; // Override for Prime Directive
+    enableCodingMode?: boolean; // Toggle Swarm Coding Mode availability
+    proCodingUI?: boolean; // Toggle IDE-style interface for coding mode
 }
 
 export interface CostSettings {

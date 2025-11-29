@@ -604,6 +604,26 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     <h3 className="text-white font-serif text-lg mb-4">General Preferences</h3>
                     <div className="space-y-4">
                         <div>
+                            <label className="flex items-center cursor-pointer">
+                                <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.ui.enableCodingMode} onChange={e => updateUI('enableCodingMode', e.target.checked)} />
+                                <div className="ml-3">
+                                    <span className="text-white font-bold block">Enable Swarm Coding Mode</span>
+                                    <span className="text-xs text-slate-400">Show the developer-focused Swarm Coding mode in the input selector.</span>
+                                </div>
+                            </label>
+                        </div>
+                        {settings.ui.enableCodingMode && (
+                            <div className="pl-8 pt-2">
+                                <label className="flex items-center cursor-pointer">
+                                    <input type="checkbox" className="w-5 h-5 accent-pink-500" checked={settings.ui.proCodingUI} onChange={e => updateUI('proCodingUI', e.target.checked)} />
+                                    <div className="ml-3">
+                                        <span className="text-white font-bold block">Enable Pro Coding UI</span>
+                                        <span className="text-xs text-slate-400">Switch to an IDE-style layout when in Swarm Coding mode.</span>
+                                    </div>
+                                </label>
+                            </div>
+                        )}
+                        <div className="border-t border-slate-700 pt-4">
                             <label className="text-sm text-slate-300 block mb-1">Debate Speed (Delay)</label>
                             <select 
                                 value={settings.ui.debateDelay} 
