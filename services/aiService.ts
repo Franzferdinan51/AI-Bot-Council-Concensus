@@ -48,7 +48,9 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
     const role: 'user' | 'model' = (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'model';
     
     // Construct Text Part
-    let text = `${msg.author} (${msg.roleLabel || 'Member'}): ${msg.content}`;
+    // COST SAVING: Strip previous "Thinking" blocks to save tokens
+    const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+    let text = `${msg.author} (${msg.roleLabel || 'Member'}): ${cleanContent}`;
     
     // Inject link data into text with STRICT instructions
     if (msg.attachments && msg.attachments.length > 0) {
@@ -113,7 +115,10 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
 const formatHistoryForOpenAI = (history: Message[], settings: Settings) => {
     const prunedHistory = pruneHistory(history, settings);
     return prunedHistory.map(msg => {
-        let content = `${msg.author}: ${msg.content}`;
+        // COST SAVING: Strip previous "Thinking" blocks
+        const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+        let content = `${msg.author}: ${cleanContent}`;
+        
         const links = msg.attachments?.filter(a => a.type === 'link').map(a => a.data).join(', ');
         if (links) content += `\n[Context URLs: ${links}]`;
         
@@ -202,7 +207,17 @@ export const streamBotResponse = async (
     settings: Settings,
     onChunk: (text: string) => void
 ): Promise<string> => {
-    const systemPrompt = injectMCPContext(baseSystemInstruction, settings);
+    
+    // ECONOMY MODE LOGIC: Force lighter model if active and not Speaker
+    let effectiveModel = bot.model;
+    let effectiveSystemPrompt = baseSystemInstruction;
+    
+    if (settings.cost.economyMode && bot.role !== 'speaker') {
+        effectiveModel = 'gemini-2.5-flash';
+        effectiveSystemPrompt += "\n\n[ECONOMY MODE ACTIVE: Be concise. Skip pleasantries. Use standard logic, no advanced reasoning required.]";
+    }
+
+    const systemPrompt = injectMCPContext(effectiveSystemPrompt, settings);
 
     // SAFETY DELAY: Prevent API rate limits with small jitter
     await waitWithJitter(200, 800);
@@ -224,14 +239,15 @@ export const streamBotResponse = async (
             ]
         };
 
-        if (bot.model.includes('gemini-3-pro')) {
+        // Only use thinking for Pro models, unless Economy mode downgraded it
+        if (effectiveModel.includes('gemini-3-pro')) {
             config.thinkingConfig = { thinkingBudget: 32768 };
         }
         config.tools = [{ googleSearch: {} }];
 
         try {
             const result = await ai.models.generateContentStream({
-                model: bot.model,
+                model: effectiveModel,
                 contents: formatHistoryForGemini(history, settings),
                 config
             });

@@ -1,5 +1,5 @@
 
-import { BotConfig, AuthorType, Settings, MCPTool, Atmosphere } from './types';
+import { BotConfig, AuthorType, Settings, MCPTool } from './types';
 
 export const OPENROUTER_MODELS = [
   "anthropic/claude-3.5-sonnet",
@@ -221,15 +221,16 @@ export const DEFAULT_SETTINGS: Settings = {
         voiceVolume: 1.0
     },
     ui: {
-        debateDelay: 3000, 
+        debateDelay: 2000, 
         fontSize: 'medium',
-        atmosphere: 'default'
+        customDirective: ''
     },
     cost: {
         contextPruning: true,
-        maxContextTurns: 15,
+        maxContextTurns: 8, // Reduced from 15 to save cost
         parallelProcessing: true,
-        maxConcurrentRequests: 2 
+        maxConcurrentRequests: 2,
+        economyMode: false
     },
     knowledge: {
         documents: []

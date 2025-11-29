@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal } from './types';
 import { getBotResponse, generateSpeech, streamBotResponse } from './services/aiService';
@@ -26,6 +27,9 @@ const App: React.FC = () => {
   const [activeSessionBots, setActiveSessionBots] = useState<BotConfig[]>([]);
   const [sessionMode, setSessionMode] = useState<SessionMode>(SessionMode.PROPOSAL);
   const [debateHeat, setDebateHeat] = useState<number>(0); 
+  
+  // Cost Warning State
+  const [showCostWarning, setShowCostWarning] = useState(false);
 
   // Private Counsel State
   const [privateCouncilorId, setPrivateCouncilorId] = useState<string | null>(null);
@@ -33,6 +37,18 @@ const App: React.FC = () => {
   const [privateInput, setPrivateInput] = useState("");
 
   const controlSignal = useRef<ControlSignal>({ stop: false, pause: false });
+
+  useEffect(() => {
+      const hasAck = localStorage.getItem('ai_council_cost_ack');
+      if (!hasAck) {
+          setShowCostWarning(true);
+      }
+  }, []);
+
+  const handleAckCost = () => {
+      localStorage.setItem('ai_council_cost_ack', 'true');
+      setShowCostWarning(false);
+  };
 
   // --- AUDIO HANDLING (TTS) ---
   const speakText = useCallback(async (text: string, bot: BotConfig | null) => {
@@ -634,6 +650,35 @@ const App: React.FC = () => {
       
       {isLiveSessionOpen && (
           <LiveSession onClose={() => setIsLiveSessionOpen(false)} />
+      )}
+
+      {showCostWarning && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-slate-900 border border-amber-600 rounded-xl shadow-2xl max-w-md w-full p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
+                
+                <div className="flex items-center gap-3 mb-4 text-amber-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <h2 className="text-xl font-bold uppercase tracking-wider">High Usage Warning</h2>
+                </div>
+                
+                <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                    This application orchestrates <strong>multiple AI agents</strong> simultaneously. Modes like <em>Swarm</em> and <em>Deep Research</em> can perform dozens of API calls rapidly.
+                </p>
+                <p className="text-slate-300 text-sm leading-relaxed mb-6">
+                    If you are using paid providers (Gemini, OpenRouter), this may result in <strong>significant costs</strong>.
+                    <br/><br/>
+                    It is highly encouraged to use <strong>Local AI Providers</strong> (LM Studio, Ollama, Jan AI, vLLM) configured in Settings to run this totally free.
+                </p>
+                
+                <button 
+                    onClick={handleAckCost}
+                    className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-lg transition-colors uppercase tracking-wide text-sm"
+                >
+                    I Understand & Accept Risks
+                </button>
+            </div>
+        </div>
       )}
 
       {privateCouncilorId && activePrivateBot && (

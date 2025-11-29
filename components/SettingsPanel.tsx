@@ -395,12 +395,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     
                     <div className="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
                         <label className="flex items-center cursor-pointer">
-                            <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.cost.contextPruning} onChange={e => updateCost('contextPruning', e.target.checked)} />
+                            <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.cost.economyMode} onChange={e => updateCost('economyMode', e.target.checked)} />
                             <div className="ml-3">
-                                <span className="text-white font-bold block">Smart Context Pruning</span>
-                                <span className="text-xs text-slate-400">Saves tokens by limiting history sent to API.</span>
+                                <span className="text-amber-400 font-bold block">Economy Mode (Save $$$)</span>
+                                <span className="text-xs text-slate-400">Forces all Councilors/Agents to use cheaper models (Flash) and output concise answers. Speaker retains full power.</span>
                             </div>
                         </label>
+
+                        <div className="border-t border-slate-700 pt-4">
+                            <label className="flex items-center cursor-pointer">
+                                <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.cost.contextPruning} onChange={e => updateCost('contextPruning', e.target.checked)} />
+                                <div className="ml-3">
+                                    <span className="text-white font-bold block">Smart Context Pruning</span>
+                                    <span className="text-xs text-slate-400">Saves tokens by limiting history sent to API.</span>
+                                </div>
+                            </label>
+                        </div>
 
                         {settings.cost.contextPruning && (
                             <div className="ml-8">
