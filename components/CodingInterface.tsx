@@ -50,6 +50,7 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
             if (matches.length > 0) {
                  let bestFileMatch: string | null = null;
                  
+                 // Heuristic: Try to find file name mentioned in the message or role label
                  for (const fname of fileMap.keys()) {
                      if (msg.content.includes(fname) || (msg.roleLabel && msg.roleLabel.includes(fname))) {
                          bestFileMatch = fname;
@@ -64,6 +65,7 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
                      if (bestFileMatch) {
                          fileMap.set(bestFileMatch, { name: bestFileMatch, content, language: lang });
                      } else {
+                         // Fallback for unnamed artifacts
                          const artifactName = `artifact_${msg.id.substring(0,4)}_${idx}.${lang === 'javascript' ? 'js' : lang}`;
                          if (!fileMap.has(artifactName)) {
                              fileMap.set(artifactName, { name: artifactName, content, language: lang });
@@ -117,11 +119,17 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
                 <div className="flex bg-[#252526] border-b border-[#333] overflow-x-auto scrollbar-hide">
                     {activeFile && (
                         <div className="flex">
-                            <button onClick={() => setActiveTab('code')} className={`px-4 py-2 text-xs border-t-2 ${activeTab === 'code' ? 'bg-[#1e1e1e] text-white border-pink-500' : 'text-slate-500 border-transparent'}`}>
+                            <button 
+                                onClick={() => setActiveTab('code')}
+                                className={`px-4 py-2 text-xs border-t-2 ${activeTab === 'code' ? 'bg-[#1e1e1e] text-white border-pink-500' : 'text-slate-500 border-transparent'}`}
+                            >
                                 {activeFile.name}
                             </button>
                             {activeFile.language === 'html' && (
-                                <button onClick={() => setActiveTab('preview')} className={`px-4 py-2 text-xs border-t-2 ${activeTab === 'preview' ? 'bg-[#1e1e1e] text-white border-pink-500' : 'text-slate-500 border-transparent'}`}>
+                                <button 
+                                    onClick={() => setActiveTab('preview')}
+                                    className={`px-4 py-2 text-xs border-t-2 ${activeTab === 'preview' ? 'bg-[#1e1e1e] text-white border-pink-500' : 'text-slate-500 border-transparent'}`}
+                                >
                                     Preview
                                 </button>
                             )}

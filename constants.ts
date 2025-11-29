@@ -36,6 +36,38 @@ export const VOICE_MAP: Record<string, string> = {
 // --- PUBLIC MCP SERVER DEFINITIONS ---
 export const PUBLIC_MCP_REGISTRY = [
     {
+        id: 'fetch_website',
+        name: 'fetch_website',
+        description: 'Visit a website and scrape its text content.',
+        functionDeclaration: {
+            name: 'fetch_website',
+            description: 'Fetch text content from a URL.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    url: { type: Type.STRING, description: "The full URL to visit (https://...)" }
+                },
+                required: ["url"]
+            }
+        }
+    },
+    {
+        id: 'web_search',
+        name: 'web_search',
+        description: 'Perform a web search for current information.',
+        functionDeclaration: {
+            name: 'web_search',
+            description: 'Search the web for a query.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    query: { type: Type.STRING, description: "The search query" }
+                },
+                required: ["query"]
+            }
+        }
+    },
+    {
         id: 'open_meteo',
         name: 'get_weather',
         description: 'Get current weather data for a location (latitude/longitude).',
@@ -340,7 +372,7 @@ export const DEFAULT_SETTINGS: Settings = {
         enabled: true, 
         dockerEndpoint: "",
         customTools: [],
-        publicToolIds: ['open_meteo', 'wikipedia'] 
+        publicToolIds: ['fetch_website', 'web_search', 'wikipedia', 'open_meteo'] 
     },
     providers: {
         geminiApiKey: "",
