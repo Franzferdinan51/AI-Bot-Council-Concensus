@@ -58,11 +58,12 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
         if (links) {
             text += `\n\n[URGENT SYSTEM INSTRUCTION: The user has provided external sources via URL: ${links}.`;
             text += `\n1. You MUST use the 'googleSearch' tool IMMEDIATELY to access these URLs.`;
-            text += `\n2. Do NOT hallucinate the content. If you cannot access the specific URL, search for the page title or video ID to find a summary.`;
+            text += `\n2. First, FETCH and SUMMARIZE the content of the link in your <thinking> block before answering.`;
+            text += `\n3. Do NOT hallucinate the content. If you cannot access the specific URL directly, search for the page title or video ID to find a summary/transcript.`;
             
             // Specific YouTube Handling
             if (links.includes('youtube.com') || links.includes('youtu.be')) {
-                 text += `\n3. FOR YOUTUBE VIDEOS: You CANNOT watch the video directly. You MUST perform a Google Search for "transcript of youtube video ${links}" or "summary of youtube video ${links}" or the video title to understand its actual content. Do NOT guess based on the ID.`;
+                 text += `\n4. FOR YOUTUBE VIDEOS: You CANNOT watch the video directly. You MUST perform a Google Search for "transcript of youtube video ${links}" or "summary of youtube video ${links}" or the video title to understand its actual content. Extract the title and key arguments.`;
             }
             text += `]`;
         }
@@ -253,13 +254,33 @@ export const streamBotResponse = async (
             });
 
             let fullText = "";
+            let collectedSources: string[] = [];
+
             for await (const chunk of result) {
-                const text = chunk.text; // Fixed: accessing property directly as per SDK requirements
+                const text = chunk.text; 
                 if (text) {
                     fullText += text;
                     onChunk(fullText);
                 }
+                
+                // Collect Grounding Metadata from stream chunks
+                const chunkSources = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks
+                    ?.map((c: any) => c.web ? `• ${c.web.title}: ${c.web.uri}` : null)
+                    .filter(Boolean);
+                
+                if (chunkSources) {
+                    collectedSources = [...collectedSources, ...chunkSources];
+                }
             }
+            
+            // Append Unique Sources to the final text if found
+            const uniqueSources = Array.from(new Set(collectedSources));
+            if (uniqueSources.length > 0) {
+                const sourceText = `\n\n**Verified Sources:**\n${uniqueSources.join('\n')}`;
+                fullText += sourceText;
+                onChunk(fullText);
+            }
+
             return fullText;
         } catch (e: any) {
             // Enhanced Error handling for Rate Limits

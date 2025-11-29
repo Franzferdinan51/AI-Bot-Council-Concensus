@@ -31,61 +31,112 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   if (isSystem) {
       // Special rendering for Vote Tally
       if (message.voteData) {
-          const { yeas, nays, result, votes, avgConfidence } = message.voteData;
+          const { yeas, nays, result, votes, avgConfidence, consensusScore, consensusLabel } = message.voteData;
           const total = yeas + nays;
           const yeaPercent = total > 0 ? (yeas / total) * 100 : 0;
           
           return (
             <div className="flex justify-center my-6 animate-fade-in w-full px-2 md:px-0">
-                <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 md:p-6 max-w-2xl w-full shadow-2xl relative overflow-hidden">
+                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 max-w-2xl w-full shadow-2xl relative overflow-hidden group">
+                    {/* Background sheen */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 opacity-50 z-0"></div>
+
                     {/* Result Stamp */}
-                    <div className={`absolute top-4 right-4 md:right-6 text-2xl md:text-3xl font-black border-4 px-2 py-1 transform rotate-[-15deg] opacity-30 select-none ${result === 'PASSED' ? 'text-green-500 border-green-500' : result === 'REJECTED' ? 'text-red-500 border-red-500' : 'text-yellow-500 border-yellow-500'}`}>
+                    <div className={`absolute top-4 right-4 md:right-6 text-xl md:text-3xl font-black border-4 px-3 py-1 transform rotate-[-12deg] opacity-40 select-none z-10 transition-all group-hover:opacity-100 ${result === 'PASSED' ? 'text-green-500 border-green-500' : result === 'REJECTED' ? 'text-red-500 border-red-500' : 'text-amber-500 border-amber-500'}`}>
                         {result}
                     </div>
 
-                    <div className="flex items-center gap-3 mb-4">
-                         <div className="bg-slate-700 p-2 rounded-full"><AuthorIcon type={AuthorType.SYSTEM} /></div>
-                         <h3 className="text-slate-200 font-serif text-base md:text-lg tracking-widest uppercase font-bold">Official Roll Call Vote</h3>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mb-2">
-                        <div className="flex justify-between text-xs font-bold uppercase mb-1">
-                            <span className="text-green-400">Yeas: {yeas}</span>
-                            <span className="text-red-400">Nays: {nays}</span>
-                        </div>
-                        <div className="h-4 bg-slate-900 rounded-full overflow-hidden flex border border-slate-600">
-                            <div style={{ width: `${yeaPercent}%` }} className="bg-gradient-to-r from-green-600 to-green-500 transition-all duration-1000"></div>
-                            <div style={{ width: `${100 - yeaPercent}%` }} className="bg-gradient-to-l from-red-600 to-red-500 transition-all duration-1000"></div>
-                        </div>
-                    </div>
-                    
-                    {avgConfidence !== undefined && (
-                        <div className="mb-6 flex items-center gap-2">
-                             <div className="text-[10px] text-slate-500 uppercase">Avg. Confidence:</div>
-                             <div className="flex-1 h-1.5 bg-slate-900 rounded-full overflow-hidden">
-                                 <div className={`h-full ${avgConfidence > 7 ? 'bg-emerald-500' : avgConfidence > 4 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${avgConfidence * 10}%` }}></div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
+                             <div className="bg-slate-700 p-2 rounded-full shadow-inner"><AuthorIcon type={AuthorType.SYSTEM} /></div>
+                             <div>
+                                 <h3 className="text-slate-200 font-serif text-lg tracking-widest uppercase font-bold">Roll Call Vote</h3>
+                                 <p className="text-xs text-slate-500 uppercase tracking-wider">Session Resolution</p>
                              </div>
-                             <div className="text-[10px] text-slate-400 font-mono">{avgConfidence.toFixed(1)}/10</div>
                         </div>
-                    )}
 
-                    {/* Individual Votes */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {votes.map((v, i) => (
-                            <div key={i} className="bg-slate-900/50 p-3 rounded border border-slate-700/50 flex flex-col gap-1">
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${v.color}`}></div>
-                                        <span className="text-xs font-bold text-slate-300">{v.voter}</span>
+                        {/* Metrics Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            
+                            {/* Consensus Meter */}
+                            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
+                                <h4 className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2 w-full text-center">Consensus Score</h4>
+                                <div className="relative w-24 h-24 flex items-center justify-center">
+                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                        <path className="text-slate-700" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
+                                        <path 
+                                            className={`${consensusScore > 80 ? 'text-emerald-500' : consensusScore > 50 ? 'text-amber-500' : 'text-red-500'} transition-all duration-1000 ease-out`} 
+                                            strokeDasharray={`${consensusScore}, 100`} 
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            strokeWidth="3" 
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span className="text-2xl font-black text-white">{consensusScore}</span>
+                                        <span className="text-[8px] text-slate-400 uppercase">/100</span>
                                     </div>
-                                    <span className={`text-xs font-black px-2 py-0.5 rounded ${v.choice === 'YEA' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
-                                        {v.choice} <span className="text-[9px] opacity-70 ml-1">({v.confidence})</span>
-                                    </span>
                                 </div>
-                                <p className="text-[10px] text-slate-500 italic leading-tight">"{v.reason}"</p>
+                                <div className={`text-xs font-bold mt-2 px-2 py-0.5 rounded uppercase ${consensusScore > 80 ? 'bg-emerald-900/30 text-emerald-400' : consensusScore > 50 ? 'bg-amber-900/30 text-amber-400' : 'bg-red-900/30 text-red-400'}`}>
+                                    {consensusLabel || "Divided"}
+                                </div>
                             </div>
-                        ))}
+
+                            {/* Vote Tally */}
+                            <div className="flex flex-col justify-center gap-3">
+                                <div>
+                                    <div className="flex justify-between text-xs font-bold uppercase mb-1 px-1">
+                                        <span className="text-green-400 flex items-center gap-1">Yeas <span className="bg-green-900/50 px-1.5 rounded text-white">{yeas}</span></span>
+                                        <span className="text-red-400 flex items-center gap-1"><span className="bg-red-900/50 px-1.5 rounded text-white">{nays}</span> Nays</span>
+                                    </div>
+                                    <div className="h-4 bg-slate-900 rounded-full overflow-hidden flex border border-slate-600 relative">
+                                        <div style={{ width: `${yeaPercent}%` }} className="bg-gradient-to-r from-green-600 to-green-500 transition-all duration-1000 relative"></div>
+                                        <div style={{ width: `${100 - yeaPercent}%` }} className="bg-gradient-to-l from-red-600 to-red-500 transition-all duration-1000 relative"></div>
+                                        {/* Center Marker */}
+                                        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/20 z-10"></div>
+                                    </div>
+                                </div>
+                                
+                                {avgConfidence !== undefined && (
+                                    <div>
+                                         <div className="text-[10px] text-slate-500 uppercase mb-1">Avg. Confidence</div>
+                                         <div className="flex items-center gap-2">
+                                             <div className="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
+                                                 <div className={`h-full ${avgConfidence > 7 ? 'bg-blue-500' : avgConfidence > 4 ? 'bg-yellow-500' : 'bg-orange-500'}`} style={{ width: `${avgConfidence * 10}%` }}></div>
+                                             </div>
+                                             <div className="text-xs font-mono font-bold text-slate-300">{avgConfidence.toFixed(1)}</div>
+                                         </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Individual Votes Accordion style list */}
+                        <div className="bg-slate-900/30 rounded border border-slate-700/50 overflow-hidden">
+                            <div className="bg-slate-900/50 px-3 py-2 border-b border-slate-700/50 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Member Breakdown
+                            </div>
+                            <div className="divide-y divide-slate-800">
+                                {votes.map((v, i) => (
+                                    <div key={i} className="p-3 hover:bg-slate-800/50 transition-colors">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${v.color}`}></div>
+                                                <span className="text-sm font-bold text-slate-200">{v.voter}</span>
+                                            </div>
+                                            <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${v.choice === 'YEA' ? 'bg-green-950 text-green-400 border-green-900' : 'bg-red-950 text-red-400 border-red-900'}`}>
+                                                {v.choice}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-400 italic pl-4 border-l-2 border-slate-700 ml-1">"{v.reason}"</p>
+                                        <div className="flex justify-end mt-1">
+                                            <span className="text-[9px] text-slate-600 uppercase tracking-wider">Conf: {v.confidence}/10</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

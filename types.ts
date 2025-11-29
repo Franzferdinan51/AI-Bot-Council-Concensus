@@ -109,6 +109,8 @@ export interface VoteData {
     nays: number;
     result: 'PASSED' | 'REJECTED' | 'RECONCILIATION NEEDED';
     avgConfidence: number;
+    consensusScore: number; // 0-100 score representing unity
+    consensusLabel: string; // "Unanimous", "Strong", "Divided", "Contentious"
     votes: {
         voter: string;
         choice: 'YEA' | 'NAY';

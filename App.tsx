@@ -466,8 +466,24 @@ const App: React.FC = () => {
             const avgConfidence = votes.length > 0 ? totalConfidence / votes.length : 0;
             let result: VoteData['result'] = 'REJECTED';
             
+            // --- CONSENSUS SCORING ---
+            const totalVotes = votes.length;
+            const majority = Math.max(yeas, nays);
+            const margin = majority - Math.min(yeas, nays);
+            const unanimityScore = (margin / totalVotes) * 100; // 0 to 100
+            const confidenceFactor = avgConfidence * 10; // 0 to 100
+            
+            const consensusScore = Math.round((unanimityScore * 0.7) + (confidenceFactor * 0.3));
+            
+            let consensusLabel = "Divided";
+            if (consensusScore > 90) consensusLabel = "Unanimous";
+            else if (consensusScore > 75) consensusLabel = "Strong Consensus";
+            else if (consensusScore > 50) consensusLabel = "Majority";
+            else if (consensusScore > 30) consensusLabel = "Contentious";
+            else consensusLabel = "Deadlock";
+
             if (yeas > nays) {
-                if (avgConfidence < 6 || (yeas - nays) <= 1) {
+                if (consensusScore < 40) { // If score is low, even if majority wins
                     result = 'RECONCILIATION NEEDED';
                 } else {
                     result = 'PASSED';
@@ -480,6 +496,8 @@ const App: React.FC = () => {
                 nays,
                 result,
                 avgConfidence,
+                consensusScore,
+                consensusLabel,
                 votes
             };
 
@@ -494,7 +512,8 @@ const App: React.FC = () => {
                 setSessionStatus(result === 'PASSED' ? SessionStatus.ENACTING : (result === 'RECONCILIATION NEEDED' ? SessionStatus.RECONCILING : SessionStatus.RESOLVING));
                 
                 const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_POST_VOTE)} 
-                The vote result was: ${result}. Yeas: ${yeas}, Nays: ${nays}, Avg Confidence: ${avgConfidence.toFixed(1)}.
+                The vote result was: ${result}. Yeas: ${yeas}, Nays: ${nays}.
+                Consensus Score: ${consensusScore} (${consensusLabel}).
                 Persona: ${speaker.persona}`;
                 
                 const res = await processBotTurn(speaker, sessionHistory, finalPrompt, "FINAL DECREE");
