@@ -127,7 +127,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, s
 
   return (
     <form onSubmit={handleSubmit} className="bg-slate-900 border-t border-slate-700 shadow-2xl z-10 transition-colors duration-500 relative">
-      <div className="max-w-4xl mx-auto p-2 md:p-4 lg:p-6">
+      <div className="max-w-4xl mx-auto pt-2 px-2 pb-0 md:pt-4 md:px-4 md:pb-2">
         
         {/* Mode Selector - Horizontally Scrollable on Mobile */}
         <div className="flex gap-1.5 mb-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide -mx-2 px-2 md:mx-0 md:px-0">

@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal } from './types';
 import { getBotResponse, generateSpeech, streamBotResponse } from './services/aiService';
 import { searchMemories, searchDocuments, saveMemory } from './services/knowledgeService';
-import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS, ATMOSPHERE_PROMPTS } from './constants';
+import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS } from './constants';
 import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
 import LiveSession from './components/LiveSession';
@@ -214,8 +214,8 @@ const App: React.FC = () => {
     ].join('');
 
     const customDirective = settings.ui.customDirective || "";
-    // Inject Atmosphere Setting
-    const atmospherePrompt = ATMOSPHERE_PROMPTS[settings.ui.atmosphere] || ATMOSPHERE_PROMPTS.default;
+    // Default Professional Tone
+    const atmospherePrompt = "TONE: Professional, Objective, Legislative. Avoid theatrical or sci-fi language.";
 
     const injectTopic = (template: string) => {
         let text = template.replace(/{{TOPIC}}/g, topic);
@@ -604,7 +604,7 @@ const App: React.FC = () => {
                       id: 'priv-init',
                       author: bot.name,
                       authorType: bot.authorType,
-                      content: `(Whispering) Yes? What is it? Speak quickly before the others notice.`
+                      content: `Direct consultation channel active. I am ready to provide specific insight on the current agenda.`
                   }]
               }));
           }
@@ -712,7 +712,7 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Input */}
-                  <div className="p-3 border-t border-slate-800 bg-slate-900 pb-[env(safe-area-inset-bottom)]">
+                  <div className="p-3 border-t border-slate-800 bg-slate-900">
                       <form 
                         onSubmit={(e) => { e.preventDefault(); if(privateInput.trim()) handlePrivateSend(privateInput); }}
                         className="flex gap-2"
@@ -722,7 +722,7 @@ const App: React.FC = () => {
                             value={privateInput}
                             onChange={(e) => setPrivateInput(e.target.value)}
                             className="flex-1 bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:border-amber-500 outline-none"
-                            placeholder="Whisper something..."
+                            placeholder="Type consultation query..."
                           />
                           <button type="submit" className="bg-amber-700 hover:bg-amber-600 text-white px-3 rounded">➤</button>
                       </form>

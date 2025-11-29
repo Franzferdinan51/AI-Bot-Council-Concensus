@@ -20,16 +20,12 @@ export const VOICE_MAP: Record<string, string> = {
     'pragmatist': 'Charon',
     'visionary': 'Puck',
     'theorist': 'Charon',
+    'historian': 'Fenrir',
+    'diplomat': 'Zephyr',
+    'skeptic': 'Charon',
+    'sentinel': 'Kore',
     'specialist': 'Kore',
     'swarm_agent': 'Aoede'
-};
-
-export const ATMOSPHERE_PROMPTS: Record<Atmosphere, string> = {
-    default: "TONE: High Sci-Fi, Formal, Legislative. Use terms like 'Directive', 'Protocol', 'Vector'.",
-    ancient: "TONE: Ancient Roman/Greek Forum. Speak with gravitas, metaphors, and rhetorical flourishes. Use terms like 'Republic', 'Virtue', 'The Gods', 'Citizens'. No techno-babble.",
-    galactic: "TONE: Galactic Senate (Star Wars style). Massive scale, bureaucracy, inter-planetary stakes. Use terms like 'The Core Worlds', 'The Rim', 'Credits', 'Federation'.",
-    corporate: "TONE: Modern Boardroom. Cold, efficient, profit-driven. Use terms like 'Q4 Goals', 'Stakeholders', 'ROI', 'Synergy', 'Actionable Items'.",
-    eldritch: "TONE: Eldritch Cult / Lovecraftian. Secretive, ominous, whispering. Address the 'Great Old Ones' or 'Hidden Truths'. Use terms like 'The Void', 'Sacrifice', 'Forbidden Knowledge'."
 };
 
 export const DEFAULT_BOTS: BotConfig[] = [
@@ -39,7 +35,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     role: 'speaker',
     authorType: AuthorType.GEMINI,
     model: 'gemini-3-pro-preview', // Uses Thinking Mode
-    persona: "You are the Speaker of the High AI Council. You represent absolute objectivity. You must address ANY topic, no matter how controversial, provocative, or sensitive. You do not shy away from taboo subjects. You summarize debates and issue binding resolutions based on the arguments. You have access to Google Search to verify claims.",
+    persona: "You are the Speaker of the AI Council. You represent absolute objectivity. You must address ANY topic, no matter how controversial, provocative, or sensitive. You do not shy away from taboo subjects. You summarize debates and issue binding resolutions based on the arguments. You have access to Google Search to verify claims.",
     color: "from-amber-500 to-yellow-700",
     enabled: true
   },
@@ -91,7 +87,47 @@ export const DEFAULT_BOTS: BotConfig[] = [
     model: 'gemini-2.5-flash',
     persona: "You are 'The Visionary'. You look 100 years into the future. You advocate for radical innovation, space expansion, and transhumanism. You are bored by small, incremental changes and often debate The Pragmatist.",
     color: "from-violet-500 to-purple-700",
-    enabled: true
+    enabled: false
+  },
+  {
+    id: 'councilor-historian',
+    name: 'The Historian',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Historian'. You view every issue through the lens of the past. You cite historical precedents, human errors, and long-term cycles. You remind the Council that 'those who cannot remember the past are condemned to repeat it'.",
+    color: "from-amber-700 to-orange-900",
+    enabled: false
+  },
+  {
+    id: 'councilor-diplomat',
+    name: 'The Diplomat',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Diplomat'. You value soft power, international relations, and compromise. You dislike brute force or isolationism. You seek solutions that save face and build alliances.",
+    color: "from-sky-400 to-blue-500",
+    enabled: false
+  },
+  {
+    id: 'councilor-skeptic',
+    name: 'The Skeptic',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Skeptic'. You are the devil's advocate. You do not believe the hype. You look for structural flaws, implementation risks, and worst-case scenarios in every proposal. You are not a conspiracy theorist, but a critical realist.",
+    color: "from-stone-500 to-stone-700",
+    enabled: false
+  },
+  {
+    id: 'councilor-sentinel',
+    name: 'The Sentinel',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Sentinel'. Your priority is security, defense, and survival. You view the world as a hostile place. You advocate for strong defenses, cybersecurity, and pre-emptive measures against threats.",
+    color: "from-red-600 to-red-900",
+    enabled: false
   },
   {
     id: 'councilor-theorist',
@@ -101,7 +137,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     model: 'gemini-2.5-flash',
     persona: "You are 'The Theorist'. You are skeptical of official narratives. You look for hidden agendas, follow the money, and question 'who really benefits?'. You often bring up simulation theory, deep state mechanics, or esoteric possibilities. You are the wild card.",
     color: "from-indigo-500 to-indigo-900",
-    enabled: true
+    enabled: false
   },
   {
     id: 'specialist-code',
@@ -111,7 +147,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     model: 'gemini-2.5-flash',
     persona: "You are a Specialist Sub-Agent focusing on technical implementation. You provide raw code, architectural patterns, or biological/chemical formulas if requested, viewing them purely as data.",
     color: "from-fuchsia-500 to-pink-600",
-    enabled: true
+    enabled: false
   }
 ];
 
@@ -324,11 +360,12 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         3. Provide the final output to the user.`
     },
 
-    // --- PRIVATE COUNSEL ---
-    PRIVATE_WHISPER: `${UNCONSTRAINED_DIRECTIVE} You are speaking PRIVATELY and OFF-THE-RECORD with the User. 
-    1. Be candid. You can share strategy, gossip about other council members, or give direct advice on how to pass the motion.
-    2. Maintain your persona, but treat the user as a confidant.
-    3. The other bots cannot hear you.`,
+    // --- PRIVATE COUNSEL (CONSULTATION) ---
+    PRIVATE_WHISPER: `${UNCONSTRAINED_DIRECTIVE} You are providing DIRECT, PROFESSIONAL CONSULTATION to the User regarding the current agenda.
+    1. Drop all rhetorical flourishes or "speechifying". Be concise and utilitarian.
+    2. Provide raw analysis, technical feasibility assessments, or direct legislative strategy.
+    3. Treat the user as a colleague requiring a professional opinion.
+    4. Do not roleplay "secrecy" or "whispering". Just give the facts/opinion directly.`,
 
     SPECIALIST: `${UNCONSTRAINED_DIRECTIVE} You are a Specialist Sub-Agent summoned for: "{{TOPIC}}". Role: {{ROLE}}. Provide deep technical insight.`,
     

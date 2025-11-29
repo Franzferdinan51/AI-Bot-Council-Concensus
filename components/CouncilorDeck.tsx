@@ -66,7 +66,7 @@ const CouncilorDeck: React.FC<CouncilorDeckProps> = ({ councilors, activeBotIds,
 
             {/* Hover hint for Private Counsel */}
             <div className="absolute inset-0 bg-slate-900/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                <span className="text-[10px] font-bold text-white uppercase tracking-wider border border-white/50 px-2 py-1 rounded">Private Whisper</span>
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider border border-white/50 px-2 py-1 rounded">Direct Consult</span>
             </div>
           </div>
         );

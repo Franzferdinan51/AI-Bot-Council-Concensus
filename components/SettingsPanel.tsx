@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument, Atmosphere } from '../types';
+import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument } from '../types';
 import { MCP_PRESETS } from '../constants';
 import { getMemories } from '../services/knowledgeService';
 
@@ -531,22 +531,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                 <div className="space-y-6">
                     <h3 className="text-white font-serif text-lg mb-4">General Preferences</h3>
                     <div className="space-y-4">
-                        <div className="bg-slate-800 p-4 rounded border border-slate-700">
-                             <label className="text-sm font-bold text-amber-500 block mb-2">Council Atmosphere / Era</label>
-                             <select 
-                                value={settings.ui.atmosphere} 
-                                onChange={e => updateUI('atmosphere', e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-2 text-white"
-                             >
-                                 <option value="default">Default (Modern Sci-Fi)</option>
-                                 <option value="ancient">Ancient Forum (Rome/Greece)</option>
-                                 <option value="galactic">Galactic Senate (Star Wars)</option>
-                                 <option value="corporate">Corporate Boardroom</option>
-                                 <option value="eldritch">Eldritch / Lovecraftian</option>
-                             </select>
-                             <p className="text-[10px] text-slate-400 mt-2">Changes the system prompt flavor text for all agents.</p>
-                        </div>
-                        
                         <div>
                             <label className="text-sm text-slate-300 block mb-1">Debate Speed (Delay)</label>
                             <select 

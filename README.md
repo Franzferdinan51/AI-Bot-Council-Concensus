@@ -1,3 +1,4 @@
+
 # 🏛️ AI Council Chamber
 
 > A multi-agent legislative system where AI personas debate, deliberate, and govern.
@@ -8,27 +9,32 @@ The **AI Council Chamber** is a sophisticated React application that simulates a
 
 ### 🧠 Multi-Agent Core
 - **Dynamic Personas**: Includes default archetypes like *The Technocrat*, *The Ethicist*, *The Pragmatist*, and *The Theorist*.
+- **New Specialized Roles**:
+    - **The Historian**: Provides precedent, context, and warnings from the past.
+    - **The Diplomat**: Focuses on soft power, compromise, and international relations.
+    - **The Skeptic**: Identifying structural flaws, risks, and "devil's advocate" arguments.
+    - **The Sentinel**: Specializes in security, defense, and threat assessment.
 - **The Speaker**: A "Thinking" model (Gemini 3 Pro) that presides over sessions, synthesizes arguments, and issues binding rulings.
 - **The Moderator**: Enforces topic discipline and guides the flow of debate.
-- **Specialists**: Agents capable of being "summoned" dynamically (e.g., "Summon Agent: Quantum Physicist") to provide expert testimony.
 
 ### 📜 Session Modes
-1.  **Legislative Proposal**: The standard flow. A motion is proposed, debated in rounds, voted upon, and enacted into a decree.
+1.  **Legislative Proposal**: The standard flow. A motion is proposed, debated in rounds (with dynamic challenges), voted upon, and enacted into a decree.
 2.  **Deliberation**: A roundtable discussion focused on exploring nuances rather than binary voting.
 3.  **Inquiry**: A rapid Q&A mode where the user asks questions and the Council provides specific answers synthesized by the Speaker.
-4.  **Deep Research (Agentic)**: A complex mode where the Speaker formulates a research plan and assigns Councilors to investigate specific aspects using Google Search tools.
+4.  **Deep Research (Agentic)**: A recursive, multi-stage investigation mode where agents perform breadth and depth searches to compile a comprehensive dossier.
+5.  **Swarm Hive**: A dynamic task-decomposition mode where the Speaker spawns ephemeral "Drone Agents" to handle sub-tasks in parallel.
 
 ### 🛠️ Advanced Tooling
+- **Direct Consultation (Private Counsel)**: Click on any Councilor to enter a private, off-the-record chat to discuss strategy or get advice without the rest of the Council hearing.
 - **Google Search Grounding**: Agents actively verify claims and research topics using real-time web data.
 - **YouTube Analysis**: Attach YouTube links, and the agents will search for transcripts/summaries to discuss the video content intelligently.
-- **Image & Video Understanding**: Native multimodal support allows users to upload media for the Council to analyze.
 - **Live Audio Audience**: Engage in a real-time, low-latency voice conversation with the Council via the Gemini Live API.
 - **Broadcast Mode (TTS)**: The Council speaks back using distinct neural voices for each persona.
 
 ### ⚙️ Technical Capabilities
 - **Multi-Provider Support**: Configure endpoints for **Google Gemini**, **OpenRouter**, **LM Studio** (Local), **Ollama**, and **Jan AI**.
 - **Context Pruning**: Smart history management to reduce token costs while preserving the core topic.
-- **Parallel Processing**: Batch execution of Councilor turns to speed up debates.
+- **Parallel Processing**: Batch execution of Councilor turns to speed up debates in Research and Inquiry modes.
 - **Responsive Design**: Fully functional on Desktop, Tablet, and Mobile devices.
 
 ## 🚀 Getting Started
@@ -65,10 +71,10 @@ The **AI Council Chamber** is a sophisticated React application that simulates a
 ## 📖 Usage Guide
 
 ### The Interface
-*   **Councilor Deck**: The top bar displays active agents. A green pulse indicates who is currently "thinking".
+*   **Councilor Deck**: The top bar displays active agents. A green pulse indicates who is currently "thinking". Click a Councilor to open **Direct Consultation**.
 *   **Legislative Record**: The sidebar on the right (desktop) or toggle (mobile) shows the history of passed/failed motions.
 *   **Input Bar**:
-    *   **Tabs**: Switch between Proposal, Deliberation, Inquiry, and Research modes.
+    *   **Tabs**: Switch between Proposal, Deliberation, Inquiry, Research, and Swarm modes.
     *   **Microphone**: Dictate your proposal.
     *   **Attachment**: Upload images/videos or paste URLs for analysis.
 
@@ -77,6 +83,7 @@ Access the settings via the gear icon to:
 *   **Edit Council**: Add/Remove bots, change personas, or switch underlying models (e.g., make The Technocrat run on Llama 3 via OpenRouter).
 *   **Audio**: Enable Text-to-Speech and adjust playback speed.
 *   **Cost**: Toggle context pruning or parallel processing.
+*   **Knowledge**: Manage "Long Term Memory" (Precedents) and upload context documents for RAG.
 
 ## 🏗️ Architecture
 
