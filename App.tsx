@@ -601,7 +601,7 @@ const App: React.FC = () => {
   const showCodingUI = isCodingMode && settings.ui.proCodingUI;
 
   return (
-    <div className="fixed inset-0 h-[100dvh] w-full bg-slate-950 flex flex-col font-sans text-slate-200 overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed inset-0 h-[100dvh] w-full bg-slate-950 flex flex-col font-sans text-slate-200 overflow-hidden pt-[calc(0.5rem+env(safe-area-inset-top))] pb-[env(safe-area-inset-bottom)]">
       
       {showCodingUI ? (
           <CodingInterface 
