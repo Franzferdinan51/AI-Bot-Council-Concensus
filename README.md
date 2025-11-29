@@ -1,20 +1,94 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🏛️ AI Council Chamber
 
-# Run and deploy your AI Studio app
+> A multi-agent legislative system where AI personas debate, deliberate, and govern.
 
-This contains everything you need to run your app locally.
+The **AI Council Chamber** is a sophisticated React application that simulates a high-level government council composed of diverse Artificial Intelligence entities. Unlike a standard chat interface, this application structures interactions into parliamentary procedures, featuring a Speaker, varied Councilors (personas), and specialized phases for debate, voting, and enactment.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1kn5T83jE29WUo4pm15mfI0EIISeKxqjb
+## 🌟 Key Features
 
-## Run Locally
+### 🧠 Multi-Agent Core
+- **Dynamic Personas**: Includes default archetypes like *The Technocrat*, *The Ethicist*, *The Pragmatist*, and *The Theorist*.
+- **The Speaker**: A "Thinking" model (Gemini 3 Pro) that presides over sessions, synthesizes arguments, and issues binding rulings.
+- **The Moderator**: Enforces topic discipline and guides the flow of debate.
+- **Specialists**: Agents capable of being "summoned" dynamically (e.g., "Summon Agent: Quantum Physicist") to provide expert testimony.
 
-**Prerequisites:**  Node.js
+### 📜 Session Modes
+1.  **Legislative Proposal**: The standard flow. A motion is proposed, debated in rounds, voted upon, and enacted into a decree.
+2.  **Deliberation**: A roundtable discussion focused on exploring nuances rather than binary voting.
+3.  **Inquiry**: A rapid Q&A mode where the user asks questions and the Council provides specific answers synthesized by the Speaker.
+4.  **Deep Research (Agentic)**: A complex mode where the Speaker formulates a research plan and assigns Councilors to investigate specific aspects using Google Search tools.
 
+### 🛠️ Advanced Tooling
+- **Google Search Grounding**: Agents actively verify claims and research topics using real-time web data.
+- **YouTube Analysis**: Attach YouTube links, and the agents will search for transcripts/summaries to discuss the video content intelligently.
+- **Image & Video Understanding**: Native multimodal support allows users to upload media for the Council to analyze.
+- **Live Audio Audience**: Engage in a real-time, low-latency voice conversation with the Council via the Gemini Live API.
+- **Broadcast Mode (TTS)**: The Council speaks back using distinct neural voices for each persona.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### ⚙️ Technical Capabilities
+- **Multi-Provider Support**: Configure endpoints for **Google Gemini**, **OpenRouter**, **LM Studio** (Local), **Ollama**, and **Jan AI**.
+- **Context Pruning**: Smart history management to reduce token costs while preserving the core topic.
+- **Parallel Processing**: Batch execution of Councilor turns to speed up debates.
+- **Responsive Design**: Fully functional on Desktop, Tablet, and Mobile devices.
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- A Google Gemini API Key (recommended for full features)
+
+### Installation
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/your-username/ai-council-chamber.git
+    cd ai-council-chamber
+    ```
+
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Set up Environment Variables**
+    Create a `.env` file in the root:
+    ```env
+    API_KEY=your_google_gemini_api_key
+    ```
+    *Note: You can also enter API keys directly in the application Settings panel.*
+
+4.  **Run Development Server**
+    ```bash
+    npm run dev
+    ```
+
+## 📖 Usage Guide
+
+### The Interface
+*   **Councilor Deck**: The top bar displays active agents. A green pulse indicates who is currently "thinking".
+*   **Legislative Record**: The sidebar on the right (desktop) or toggle (mobile) shows the history of passed/failed motions.
+*   **Input Bar**:
+    *   **Tabs**: Switch between Proposal, Deliberation, Inquiry, and Research modes.
+    *   **Microphone**: Dictate your proposal.
+    *   **Attachment**: Upload images/videos or paste URLs for analysis.
+
+### Settings Panel
+Access the settings via the gear icon to:
+*   **Edit Council**: Add/Remove bots, change personas, or switch underlying models (e.g., make The Technocrat run on Llama 3 via OpenRouter).
+*   **Audio**: Enable Text-to-Speech and adjust playback speed.
+*   **Cost**: Toggle context pruning or parallel processing.
+
+## 🏗️ Architecture
+
+*   **Frontend**: React 18, Tailwind CSS, Vite.
+*   **AI SDK**: `@google/genai` for Gemini interactions.
+*   **State Management**: React Hooks (local state) with complex asynchronous flows for debate orchestration.
+*   **Streaming**: Token-by-token streaming for responsive UI.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please submit a Pull Request or open an Issue to discuss new features (e.g., new Session Modes, MCP Tool integrations).
+
+## 📄 License
+
+MIT License

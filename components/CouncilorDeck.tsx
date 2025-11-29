@@ -4,14 +4,14 @@ import { BotConfig } from '../types';
 
 interface CouncilorDeckProps {
   councilors: BotConfig[];
-  activeBotId: string | null; // ID of the bot currently thinking/speaking
+  activeBotIds: string[]; // IDs of the bots currently thinking/speaking
 }
 
-const CouncilorDeck: React.FC<CouncilorDeckProps> = ({ councilors, activeBotId }) => {
+const CouncilorDeck: React.FC<CouncilorDeckProps> = ({ councilors, activeBotIds }) => {
   return (
     <div className="flex gap-3 md:gap-4 p-3 md:p-4 overflow-x-auto bg-slate-900/80 border-b border-slate-800 backdrop-blur-sm z-20 scrollbar-hide">
       {councilors.map((bot) => {
-        const isActive = bot.id === activeBotId;
+        const isActive = activeBotIds.includes(bot.id);
         const isSpeaker = bot.role === 'speaker';
         const isSpecialist = bot.role === 'specialist';
         const isModerator = bot.role === 'moderator';
@@ -58,7 +58,7 @@ const CouncilorDeck: React.FC<CouncilorDeckProps> = ({ councilors, activeBotId }
             
             {isActive && (
                 <div className="mt-2 text-xs text-amber-200 font-mono flex items-center gap-1">
-                    <span className="animate-pulse">Speaking...</span>
+                    <span className="animate-pulse">Thinking...</span>
                 </div>
             )}
           </div>

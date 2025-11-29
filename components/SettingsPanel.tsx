@@ -1,6 +1,8 @@
 
-import React, { useState } from 'react';
-import { Settings, BotConfig, AuthorType, MCPTool } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument } from '../types';
+import { MCP_PRESETS } from '../constants';
+import { getMemories } from '../services/knowledgeService';
 
 interface SettingsPanelProps {
   settings: Settings;
@@ -10,8 +12,15 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChange, isOpen, onToggle }) => {
-  const [activeTab, setActiveTab] = useState<'council' | 'providers' | 'audio' | 'mcp' | 'ui'>('council');
+  const [activeTab, setActiveTab] = useState<'council' | 'providers' | 'audio' | 'mcp' | 'cost' | 'knowledge' | 'ui'>('council');
   const [editingBot, setEditingBot] = useState<BotConfig | null>(null);
+  const [memories, setMemories] = useState(getMemories());
+  const [newDocTitle, setNewDocTitle] = useState('');
+  const [newDocContent, setNewDocContent] = useState('');
+
+  useEffect(() => {
+      if (isOpen) setMemories(getMemories());
+  }, [isOpen]);
 
   // --- Bot Management ---
   const toggleBot = (id: string) => {
@@ -72,6 +81,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
           ui: { ...settings.ui, [field]: value }
       });
   };
+  
+  const updateCost = (field: keyof Settings['cost'], value: any) => {
+      onSettingsChange({
+          ...settings,
+          cost: { ...settings.cost, [field]: value }
+      });
+  };
 
   // --- MCP Management ---
   const addTool = () => {
@@ -102,6 +118,52 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
       });
   };
 
+  const loadPreset = (presetName: string) => {
+      if (!presetName) return;
+      const preset = MCP_PRESETS.find(p => p.name === presetName);
+      if (preset) {
+           onSettingsChange({ 
+              ...settings, 
+              mcp: { 
+                  ...settings.mcp, 
+                  customTools: [...settings.mcp.customTools, preset] 
+              } 
+          });
+      }
+  };
+
+  const quickSetEndpoint = (url: string) => {
+      onSettingsChange({
+          ...settings,
+          mcp: { ...settings.mcp, dockerEndpoint: url }
+      });
+  };
+  
+  // --- KNOWLEDGE ---
+  const addDocument = () => {
+      if(!newDocTitle || !newDocContent) return;
+      const newDoc: RAGDocument = {
+          id: `doc-${Date.now()}`,
+          title: newDocTitle,
+          content: newDocContent,
+          active: true
+      };
+      onSettingsChange({
+          ...settings,
+          knowledge: { documents: [...settings.knowledge.documents, newDoc] }
+      });
+      setNewDocTitle('');
+      setNewDocContent('');
+  };
+  
+  const deleteDoc = (id: string) => {
+      const newDocs = settings.knowledge.documents.filter(d => d.id !== id);
+      onSettingsChange({
+          ...settings,
+          knowledge: { documents: newDocs }
+      });
+  };
+
   return (
     <>
       <button 
@@ -117,9 +179,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
         <div className="flex border-b border-slate-700 pt-16 px-4 md:px-6 bg-slate-900 overflow-x-auto scrollbar-hide">
             {[
                 { id: 'council', label: 'Council' },
-                { id: 'providers', label: 'Providers' },
-                { id: 'audio', label: 'Audio' },
+                { id: 'knowledge', label: 'Knowledge' },
                 { id: 'mcp', label: 'MCP' },
+                { id: 'cost', label: 'Cost' },
+                { id: 'providers', label: 'API' },
+                { id: 'audio', label: 'Voice' },
                 { id: 'ui', label: 'General' },
             ].map(tab => (
                 <button 
@@ -159,7 +223,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                 </button>
                                 <button onClick={() => deleteBot(bot.id)} className="text-slate-400 hover:text-red-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"></path></svg>
                                 </button>
                             </div>
                         </div>
@@ -217,6 +281,68 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                 </div>
             )}
             
+            {/* --- KNOWLEDGE TAB (RAG/MEMORY) --- */}
+            {activeTab === 'knowledge' && (
+                <div className="space-y-6">
+                    <h3 className="text-white font-serif text-lg mb-2">Knowledge Base (RAG)</h3>
+                    
+                    {/* Add Document */}
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 space-y-2">
+                        <label className="text-xs font-bold text-slate-400 uppercase">Upload / Add Context Document</label>
+                        <input 
+                            value={newDocTitle} 
+                            onChange={e => setNewDocTitle(e.target.value)} 
+                            placeholder="Document Title (e.g. Constitution, Manifesto)" 
+                            className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-sm" 
+                        />
+                        <textarea 
+                            value={newDocContent} 
+                            onChange={e => setNewDocContent(e.target.value)} 
+                            placeholder="Paste full text content here..." 
+                            className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs h-24" 
+                        />
+                        <button onClick={addDocument} className="w-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded">
+                            ADD TO KNOWLEDGE STORE
+                        </button>
+                    </div>
+                    
+                    {/* List Documents */}
+                    <div>
+                         <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Active Documents</h4>
+                         {settings.knowledge.documents.length === 0 ? (
+                             <p className="text-xs text-slate-500 italic">No documents found.</p>
+                         ) : (
+                             settings.knowledge.documents.map(doc => (
+                                 <div key={doc.id} className="bg-slate-800 p-2 rounded border border-slate-700 mb-2 flex justify-between items-center">
+                                     <div>
+                                        <div className="text-sm font-bold text-white">{doc.title}</div>
+                                        <div className="text-[10px] text-slate-500">{doc.content.substring(0, 50)}...</div>
+                                     </div>
+                                     <button onClick={() => deleteDoc(doc.id)} className="text-red-400 text-xs hover:text-red-300">Delete</button>
+                                 </div>
+                             ))
+                         )}
+                    </div>
+
+                    {/* Precedents */}
+                     <div className="border-t border-slate-700 pt-4">
+                        <h4 className="text-xs font-bold text-amber-500 uppercase mb-2">Legislative Precedents (Long-Term Memory)</h4>
+                        {memories.length === 0 ? (
+                             <p className="text-xs text-slate-500 italic">No laws enacted yet.</p>
+                         ) : (
+                             <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                                 {memories.map(mem => (
+                                     <div key={mem.id} className="bg-slate-900 p-2 rounded border border-slate-800">
+                                         <div className="text-xs text-amber-200 font-bold mb-1">{mem.topic}</div>
+                                         <div className="text-[10px] text-slate-400">{mem.content.substring(0, 100)}...</div>
+                                     </div>
+                                 ))}
+                             </div>
+                         )}
+                     </div>
+                </div>
+            )}
+            
             {/* --- PROVIDERS TAB --- */}
             {activeTab === 'providers' && (
                 <div className="space-y-4">
@@ -261,6 +387,47 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     </div>
                 </div>
             )}
+            
+            {/* --- COST & PERFORMANCE TAB --- */}
+            {activeTab === 'cost' && (
+                <div className="space-y-6">
+                    <h3 className="text-white font-serif text-lg mb-2">Cost & Performance</h3>
+                    
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                        <label className="flex items-center cursor-pointer">
+                            <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.cost.contextPruning} onChange={e => updateCost('contextPruning', e.target.checked)} />
+                            <div className="ml-3">
+                                <span className="text-white font-bold block">Smart Context Pruning</span>
+                                <span className="text-xs text-slate-400">Saves tokens by limiting history sent to API.</span>
+                            </div>
+                        </label>
+
+                        {settings.cost.contextPruning && (
+                            <div className="ml-8">
+                                <label className="text-xs text-slate-300 block mb-1">Max History Turns (Keep Last N)</label>
+                                <input 
+                                    type="number" 
+                                    min="2" max="50"
+                                    value={settings.cost.maxContextTurns} 
+                                    onChange={e => updateCost('maxContextTurns', parseInt(e.target.value))}
+                                    className="w-20 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white"
+                                />
+                                <p className="text-[10px] text-slate-500 mt-1">Keeps the original topic + last {settings.cost.maxContextTurns} messages.</p>
+                            </div>
+                        )}
+
+                        <div className="border-t border-slate-700 pt-4">
+                             <label className="flex items-center cursor-pointer">
+                                <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.cost.parallelProcessing} onChange={e => updateCost('parallelProcessing', e.target.checked)} />
+                                <div className="ml-3">
+                                    <span className="text-white font-bold block">Batch Processing (Parallel)</span>
+                                    <span className="text-xs text-slate-400">Speeds up Research and Inquiry modes by running bots simultaneously.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* --- AUDIO TAB --- */}
             {activeTab === 'audio' && (
@@ -272,12 +439,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                             <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={settings.audio.enabled} onChange={e => updateAudio('enabled', e.target.checked)} />
                             <span className="ml-3 text-white font-bold">Enable Broadcast Mode (TTS)</span>
                         </label>
-                        <p className="text-xs text-slate-400 mb-4 ml-8">
-                            Councilors will speak their responses using synthesized voices.
-                        </p>
-                        
+
                         {settings.audio.enabled && (
                             <div className="ml-8 space-y-4 animate-fade-in">
+                                <label className="flex items-center cursor-pointer">
+                                    <input type="checkbox" className="w-4 h-4 accent-amber-500" checked={settings.audio.useGeminiTTS} onChange={e => updateAudio('useGeminiTTS', e.target.checked)} />
+                                    <span className="ml-2 text-slate-300 text-sm">Use Gemini Neural Voice (Recommended)</span>
+                                </label>
+                                <p className="text-xs text-slate-500">Requires Gemini API usage. Uncheck to use standard browser voices.</p>
+
                                 <div>
                                     <label className="text-xs text-slate-300 block mb-1">Speech Rate ({settings.audio.speechRate}x)</label>
                                     <input 
@@ -313,22 +483,37 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
 
                     <div className="p-4 bg-slate-800 rounded border border-slate-700">
                         <label className="text-xs text-cyan-400 font-bold uppercase block mb-2">Docker / Remote MCP Endpoint</label>
-                        <input 
-                            type="text" 
-                            value={settings.mcp.dockerEndpoint} 
-                            onChange={e => onSettingsChange({...settings, mcp: {...settings.mcp, dockerEndpoint: e.target.value}})}
-                            placeholder="http://localhost:8080/mcp (SSE Endpoint)"
-                            className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm"
-                        />
+                        <div className="flex gap-2 mb-2">
+                             <input 
+                                type="text" 
+                                value={settings.mcp.dockerEndpoint} 
+                                onChange={e => onSettingsChange({...settings, mcp: {...settings.mcp, dockerEndpoint: e.target.value}})}
+                                placeholder="http://localhost:8080/mcp (SSE Endpoint)"
+                                className="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm"
+                            />
+                            <div className="flex flex-col gap-1">
+                                <button onClick={() => quickSetEndpoint('http://localhost:3000/sse')} className="text-[10px] bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">3000</button>
+                                <button onClick={() => quickSetEndpoint('http://localhost:8080/sse')} className="text-[10px] bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">8080</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
                          <div className="flex justify-between items-center mb-2">
                              <label className="text-xs text-emerald-400 font-bold uppercase">JSON Tool Definitions</label>
-                             <button onClick={addTool} className="text-xs text-emerald-400 hover:underline">+ Add Tool</button>
+                             <div className="flex gap-2">
+                                 <select 
+                                    onChange={(e) => { loadPreset(e.target.value); e.target.value = ''; }}
+                                    className="bg-slate-700 border-none text-white text-[10px] rounded px-2 py-1"
+                                 >
+                                     <option value="">Load Preset...</option>
+                                     {MCP_PRESETS.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
+                                 </select>
+                                 <button onClick={addTool} className="text-xs text-emerald-400 hover:underline">+ New</button>
+                             </div>
                          </div>
                          {settings.mcp.customTools.map((tool, idx) => (
-                             <div key={idx} className="bg-slate-800 p-3 rounded mb-2 border border-slate-700">
+                             <div key={idx} className="bg-slate-800 p-3 rounded mb-2 border border-slate-700 animate-fade-in">
                                  <div className="flex gap-2 mb-2">
                                     <input value={tool.name} onChange={e => updateTool(idx, 'name', e.target.value)} className="bg-slate-900 border-slate-600 border rounded px-2 py-1 text-white text-xs flex-1" placeholder="Tool Name" />
                                     <button onClick={() => removeTool(idx)} className="text-red-400 text-xs">Del</button>
@@ -370,6 +555,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                 <option value="medium">Default</option>
                                 <option value="large">Large</option>
                             </select>
+                        </div>
+                        <div>
+                             <label className="text-sm text-slate-300 block mb-1">Custom Prime Directive (Override)</label>
+                             <textarea 
+                                value={settings.ui.customDirective || ''} 
+                                onChange={e => updateUI('customDirective', e.target.value)}
+                                className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white text-xs h-24"
+                                placeholder="Overwrite the core prompt here (e.g. 'You are all pirates...')"
+                             />
+                             <p className="text-[10px] text-slate-500 mt-1">Leave empty to use default Council rules.</p>
                         </div>
                     </div>
                 </div>

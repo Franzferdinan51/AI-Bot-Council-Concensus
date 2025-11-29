@@ -1,25 +1,95 @@
 
-import { GoogleGenAI } from "@google/genai";
-import { Message, AuthorType, BotConfig, Settings } from '../types';
+import { GoogleGenAI, Modality } from "@google/genai";
+import { Message, AuthorType, BotConfig, Settings, Attachment } from '../types';
+import { VOICE_MAP } from '../constants';
+
+// --- COST SAVING: CONTEXT PRUNING ---
+const pruneHistory = (history: Message[], settings: Settings): Message[] => {
+    if (!settings.cost.contextPruning || history.length <= settings.cost.maxContextTurns) {
+        return history;
+    }
+
+    // Always keep:
+    // 1. System/Clerk Init Message (Index 0 usually)
+    // 2. The last N messages
+    
+    const preservedHistory: Message[] = [];
+    
+    // Add first system message if exists
+    if (history.length > 0 && history[0].authorType === AuthorType.SYSTEM) {
+        preservedHistory.push(history[0]);
+    }
+
+    // Note: We removed the logic that forced keeping the *first* human message forever.
+    // This allows the topic to naturally shift or be cleared without old topics polluting the context.
+
+    // Get last N messages
+    const lastN = history.slice(-settings.cost.maxContextTurns);
+    
+    // Merge without duplicates
+    lastN.forEach(msg => {
+        if (!preservedHistory.find(m => m.id === msg.id)) {
+            preservedHistory.push(msg);
+        }
+    });
+
+    return preservedHistory;
+};
+
 
 // Helper to format chat history for Gemini
-const formatHistoryForGemini = (history: Message[]) => {
-  const contents = history.map(msg => {
+const formatHistoryForGemini = (history: Message[], settings: Settings) => {
+  const prunedHistory = pruneHistory(history, settings);
+
+  const contents = prunedHistory.map(msg => {
     const role: 'user' | 'model' = (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'model';
-    const text = `${msg.author} (${msg.roleLabel || 'Member'}): ${msg.content}`;
-    return {
-      role,
-      parts: [{ text }]
-    };
+    
+    // Construct Text Part
+    let text = `${msg.author} (${msg.roleLabel || 'Member'}): ${msg.content}`;
+    
+    // Inject link data into text with STRICT instructions
+    if (msg.attachments && msg.attachments.length > 0) {
+        const links = msg.attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
+        if (links) {
+            text += `\n\n[URGENT SYSTEM INSTRUCTION: The user has provided external sources via URL: ${links}.`;
+            text += `\n1. You MUST use the 'googleSearch' tool IMMEDIATELY to access these URLs.`;
+            text += `\n2. Do NOT hallucinate the content. If you cannot access the specific URL, search for the page title or video ID to find a summary.`;
+            
+            // Specific YouTube Handling
+            if (links.includes('youtube.com') || links.includes('youtu.be')) {
+                 text += `\n3. FOR YOUTUBE VIDEOS: You CANNOT watch the video directly. You MUST perform a Google Search for "transcript of youtube video ${links}" or "summary of youtube video ${links}" or the video title to understand its actual content. Do NOT guess based on the ID.`;
+            }
+            text += `]`;
+        }
+    }
+    
+    const parts: any[] = [{ text }];
+    
+    // Handle File Attachments (Images/Video)
+    if (msg.attachments && msg.attachments.length > 0) {
+        msg.attachments.forEach(att => {
+            if (att.type === 'file' && att.mimeType && att.data) {
+                parts.push({
+                    inlineData: {
+                        mimeType: att.mimeType,
+                        data: att.data
+                    }
+                });
+            }
+        });
+    }
+
+    return { role, parts };
   });
 
   // Consolidate consecutive roles
-  const mergedContents: { role: 'user' | 'model'; parts: { text: string }[] }[] = [];
+  const mergedContents: { role: 'user' | 'model'; parts: any[] }[] = [];
   if (contents.length > 0) {
       let lastMessage = { ...contents[0] };
       for (let i = 1; i < contents.length; i++) {
         if (lastMessage.role === contents[i].role) {
-            lastMessage.parts[0].text += `\n\n${contents[i].parts[0].text}`;
+            // Merge parts
+            lastMessage.parts = [...lastMessage.parts, ...contents[i].parts];
         } else {
             mergedContents.push(lastMessage);
             lastMessage = { ...contents[i] };
@@ -37,11 +107,18 @@ const formatHistoryForGemini = (history: Message[]) => {
 };
 
 // Helper for OpenAI / OpenRouter / LM Studio
-const formatHistoryForOpenAI = (history: Message[]) => {
-    return history.map(msg => ({
-        role: (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'assistant',
-        content: `${msg.author}: ${msg.content}`
-    }));
+const formatHistoryForOpenAI = (history: Message[], settings: Settings) => {
+    const prunedHistory = pruneHistory(history, settings);
+    return prunedHistory.map(msg => {
+        let content = `${msg.author}: ${msg.content}`;
+        const links = msg.attachments?.filter(a => a.type === 'link').map(a => a.data).join(', ');
+        if (links) content += `\n[Context URLs: ${links}]`;
+        
+        return {
+            role: (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'assistant',
+            content
+        };
+    });
 };
 
 const injectMCPContext = (systemPrompt: string, settings: Settings): string => {
@@ -61,6 +138,121 @@ const injectMCPContext = (systemPrompt: string, settings: Settings): string => {
     return systemPrompt + toolContext;
 };
 
+// --- AUDIO TRANSCRIPTION ---
+export const transcribeAudio = async (audioBlob: Blob, apiKey: string): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey });
+    
+    // Convert Blob to Base64
+    const buffer = await audioBlob.arrayBuffer();
+    const base64Audio = btoa(
+        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: {
+            parts: [
+                { inlineData: { mimeType: 'audio/wav', data: base64Audio } },
+                { text: "Transcribe this audio exactly as spoken." }
+            ]
+        }
+    });
+
+    return response.text || "";
+};
+
+// --- SPEECH GENERATION (TTS) ---
+export const generateSpeech = async (text: string, botRole: string, apiKey: string): Promise<string | null> => {
+    try {
+        const ai = new GoogleGenAI({ apiKey });
+        
+        // Map Role to Voice
+        let voiceName = 'Zephyr';
+        const roleKey = Object.keys(VOICE_MAP).find(k => botRole.toLowerCase().includes(k));
+        if (roleKey) voiceName = VOICE_MAP[roleKey];
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-preview-tts',
+            contents: { parts: [{ text }] },
+            config: {
+                responseModalities: [Modality.AUDIO],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName }
+                    }
+                }
+            }
+        });
+
+        return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
+    } catch (e) {
+        console.error("TTS Generation failed:", e);
+        return null;
+    }
+};
+
+// --- STREAMING RESPONSE ---
+export const streamBotResponse = async (
+    bot: BotConfig,
+    history: Message[],
+    baseSystemInstruction: string,
+    settings: Settings,
+    onChunk: (text: string) => void
+): Promise<string> => {
+    const systemPrompt = injectMCPContext(baseSystemInstruction, settings);
+
+    // GEMINI STREAMING
+    if (bot.authorType === AuthorType.GEMINI) {
+        const apiKey = settings.providers.geminiApiKey || process.env.API_KEY;
+        if (!apiKey) throw new Error("Gemini API Key missing.");
+
+        const ai = new GoogleGenAI({ apiKey });
+        const config: any = { 
+            systemInstruction: systemPrompt,
+            safetySettings: [
+                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' }
+            ]
+        };
+
+        // Note: For gemini-3-pro, thinking is handled via config in prompt or separate params. 
+        // If the model supports native thinking parameters, add them here.
+        if (bot.model.includes('gemini-3-pro')) {
+            config.thinkingConfig = { thinkingBudget: 32768 };
+        }
+        config.tools = [{ googleSearch: {} }];
+
+        try {
+            const result = await ai.models.generateContentStream({
+                model: bot.model,
+                contents: formatHistoryForGemini(history, settings),
+                config
+            });
+
+            let fullText = "";
+            for await (const chunk of result) {
+                const text = chunk.text; // Fixed: accessing property directly as per SDK requirements
+                if (text) {
+                    fullText += text;
+                    onChunk(fullText);
+                }
+            }
+            return fullText;
+        } catch (e: any) {
+            throw new Error(`Gemini Stream Error: ${e.message}`);
+        }
+    }
+
+    // Fallback to non-streaming for other providers
+    const text = await getBotResponse(bot, history, baseSystemInstruction, settings);
+    onChunk(text);
+    return text;
+};
+
+
 export const getBotResponse = async (
     bot: BotConfig, 
     history: Message[], 
@@ -77,21 +269,27 @@ export const getBotResponse = async (
         
         const ai = new GoogleGenAI({ apiKey });
         
-        // Enable Google Search tool and disable Safety Blocks
+        const config: any = { 
+            systemInstruction: systemPrompt,
+            safetySettings: [
+                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' }
+            ]
+        };
+
+        if (bot.model.includes('gemini-3-pro')) {
+            config.thinkingConfig = { thinkingBudget: 32768 };
+        }
+
+        config.tools = [{ googleSearch: {} }];
+
         const response = await ai.models.generateContent({
-            model: bot.model || 'gemini-2.5-flash',
-            contents: formatHistoryForGemini(history),
-            config: { 
-                systemInstruction: systemPrompt,
-                tools: [{ googleSearch: {} }], // Enable native search
-                safetySettings: [
-                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' }
-                ]
-            }
+            model: bot.model,
+            contents: formatHistoryForGemini(history, settings),
+            config
         });
 
         let text = response.text || "I have nothing to add.";
@@ -155,7 +353,7 @@ export const getBotResponse = async (
 
     const messages = [
         { role: 'system', content: systemPrompt },
-        ...formatHistoryForOpenAI(history)
+        ...formatHistoryForOpenAI(history, settings)
     ];
 
     try {
