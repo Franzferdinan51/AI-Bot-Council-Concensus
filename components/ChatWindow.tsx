@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Message, BotConfig, SessionMode, SessionStatus } from '../types';
 import ChatMessage from './ChatMessage';
@@ -41,17 +40,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const isPaused = sessionStatus === SessionStatus.PAUSED;
   const voteHistory = messages.filter(m => m.voteData);
 
-  const getModeLabel = (mode: SessionMode) => {
-      switch(mode) {
-          case 'proposal': return "Legislative Session";
-          case 'deliberation': return "Deliberation";
-          case 'inquiry': return "Council Inquiry";
-          case 'research': return "Deep Research";
-          case 'swarm': return "Swarm Hive";
-          default: return "Council Session";
-      }
-  };
-
   const getModeColor = (mode: SessionMode) => {
        switch(mode) {
           case 'proposal': return "text-amber-500";
@@ -66,7 +54,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const downloadTranscript = () => {
       let text = `# High AI Council - Official Record\n`;
       text += `Date: ${new Date().toLocaleString()}\n`;
-      text += `Mode: ${getModeLabel(sessionMode)}\n`;
+      text += `Mode: ${sessionMode}\n`;
       if (currentTopic) text += `Topic: ${currentTopic}\n\n`;
       text += `---\n\n`;
 
@@ -92,32 +80,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       URL.revokeObjectURL(url);
   };
 
-  // Heat Meter Color Calculation
-  // -1 = Red (Hostile), 0 = Yellow (Neutral), 1 = Green/Blue (Cooperative)
-  const getHeatColor = () => {
-      if (debateHeat < -0.3) return 'bg-red-500 shadow-red-500/50';
-      if (debateHeat > 0.3) return 'bg-emerald-500 shadow-emerald-500/50';
-      return 'bg-amber-500 shadow-amber-500/50';
-  };
-  
-  const getHeatLabel = () => {
-      if (debateHeat < -0.6) return 'HOSTILE';
-      if (debateHeat < -0.2) return 'TENSE';
-      if (debateHeat > 0.6) return 'COOPERATIVE';
-      if (debateHeat > 0.2) return 'PRODUCTIVE';
-      return 'NEUTRAL';
-  };
-
   return (
     <div className="flex flex-col flex-1 h-full bg-slate-950 relative overflow-hidden">
-        {/* Background Overlay for texture */}
+        {/* Background Overlay */}
         <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
         
         {/* HEADER */}
         <header className="bg-slate-900 border-b border-amber-900/50 shadow-lg z-20 shrink-0 relative transition-all duration-300">
             <div className="flex items-center justify-between px-2 md:px-4 h-14 md:h-16 w-full max-w-7xl mx-auto">
                 
-                {/* LEFT: Live & Export */}
+                {/* LEFT */}
                 <div className="flex items-center justify-start gap-2 w-24 md:w-40 shrink-0">
                      <button 
                         onClick={onOpenLiveSession}
@@ -140,13 +112,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     </button>
                 </div>
     
-                {/* CENTER: Title, Topic, Controls */}
+                {/* CENTER */}
                 <div className="flex-1 flex flex-col items-center justify-center min-w-0 px-2 text-center">
                     <div className="flex items-center justify-center gap-2 w-full">
-                         {/* Hide Title on very small screens to prioritize controls */}
                          <h1 className={`${getModeColor(sessionMode)} hidden sm:block font-serif text-sm md:text-lg font-bold tracking-widest uppercase whitespace-nowrap`}>High AI Council</h1>
                          
-                         {/* Session Controls */}
                          {isSessionActive && (
                             <div className="flex items-center gap-1 ml-0 sm:ml-2 sm:border-l border-slate-700 sm:pl-2">
                                 <button onClick={onPauseSession} title={isPaused ? "Resume" : "Pause"} className={`p-1 rounded hover:bg-slate-800 transition-colors ${isPaused ? 'text-green-400' : 'text-yellow-400'}`}>
@@ -160,21 +130,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     </div>
     
                     <div className="flex items-center justify-center w-full max-w-[240px] md:max-w-md gap-2 mt-0.5">
-                        {/* Heat Meter - Desktop only */}
-                        {isSessionActive && (
-                            <div className="hidden lg:flex items-center gap-1 flex-shrink-0" title={`Debate Heat: ${debateHeat.toFixed(2)}`}>
-                                <div className="w-12 h-1 bg-slate-800 rounded-full overflow-hidden">
-                                    <div className={`h-full transition-all duration-1000 ${getHeatColor()}`} style={{ width: '100%', transform: `scaleX(${(debateHeat + 1) / 2})`, transformOrigin: 'left' }}></div>
-                                </div>
-                            </div>
-                        )}
                         <p className="text-slate-400 text-[10px] md:text-xs font-mono truncate text-center opacity-90 w-full">
                             {currentTopic ? currentTopic : statusText}
                         </p>
                     </div>
                 </div>
     
-                {/* RIGHT: New Chat & History */}
+                {/* RIGHT */}
                 <div className="flex items-center justify-end gap-2 w-24 md:w-40 shrink-0">
                      <button 
                         onClick={onClearSession}

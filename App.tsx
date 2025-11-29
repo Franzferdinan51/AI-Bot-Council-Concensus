@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal } from './types';
 import { getBotResponse, generateSpeech, streamBotResponse } from './services/aiService';
@@ -26,14 +25,13 @@ const App: React.FC = () => {
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(SessionStatus.IDLE);
   const [activeSessionBots, setActiveSessionBots] = useState<BotConfig[]>([]);
   const [sessionMode, setSessionMode] = useState<SessionMode>(SessionMode.PROPOSAL);
-  const [debateHeat, setDebateHeat] = useState<number>(0); // -1 to 1
+  const [debateHeat, setDebateHeat] = useState<number>(0); 
 
   // Private Counsel State
   const [privateCouncilorId, setPrivateCouncilorId] = useState<string | null>(null);
   const [privateMessages, setPrivateMessages] = useState<Record<string, Message[]>>({});
   const [privateInput, setPrivateInput] = useState("");
 
-  // CONTROL SIGNALS (Refs for synchronous access in async loops)
   const controlSignal = useRef<ControlSignal>({ stop: false, pause: false });
 
   // --- AUDIO HANDLING (TTS) ---
@@ -79,7 +77,6 @@ const App: React.FC = () => {
     const newMessage = { ...message, id: Date.now().toString() + Math.random() };
     setMessages(prev => {
         const next = [...prev, newMessage];
-        // Calculate Heat based on last 5 messages
         const recent = next.slice(-5).map(m => m.content.toLowerCase()).join(' ');
         let heat = 0;
         if (recent.includes('agree') || recent.includes('concur') || recent.includes('support')) heat += 0.2;
@@ -103,7 +100,6 @@ const App: React.FC = () => {
       setMessages(prev => prev.map(m => m.id === id ? { ...m, content, thinking } : m));
   }, []);
 
-  // FLOW CONTROL HELPER
   const checkControlSignal = async () => {
       if (controlSignal.current.stop) throw new Error("SESSION_STOPPED");
       while (controlSignal.current.pause) {
@@ -114,7 +110,6 @@ const App: React.FC = () => {
 
   const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // HELPER: Batch Processing for Parallel Requests
   const runBatchWithConcurrency = async <T, R>(
     items: T[], 
     fn: (item: T) => Promise<R>, 
@@ -124,7 +119,6 @@ const App: React.FC = () => {
       for (let i = 0; i < items.length; i += maxConcurrency) {
           await checkControlSignal();
           const batch = items.slice(i, i + maxConcurrency);
-          // Wait slightly before batch start for UI pacing
           await wait(1000); 
           const batchResults = await Promise.all(batch.map(fn));
           results.push(...batchResults);
@@ -140,11 +134,7 @@ const App: React.FC = () => {
   ): Promise<string> => {
       await checkControlSignal();
       setThinkingBotIds(prev => [...prev, bot.id]);
-      
-      // SAFETY: Explicit delay between "Thinking" UI appearance and API call start
-      // This gives the visual cue to the user and slows down the loop naturally
       await wait(settings.ui.debateDelay); 
-      
       await checkControlSignal();
       
       const tempMsg = addMessage({ 
@@ -170,11 +160,7 @@ const App: React.FC = () => {
           if (!cleanSpeech.includes('[PASS]') && cleanSpeech.length > 5) {
              speakText(cleanSpeech, bot);
           }
-          
-          // COOL DOWN: Wait a moment after finishing before returning control to the loop
-          // This ensures we don't spam the next request instantly
           await wait(1000);
-
           return fullResponse;
       } catch (e: any) {
           setThinkingBotIds(prev => prev.filter(id => id !== bot.id));
@@ -205,7 +191,6 @@ const App: React.FC = () => {
     setSessionStatus(SessionStatus.OPENING);
     setDebateHeat(0);
     
-    // RAG INJECTION
     const precedents = searchMemories(topic);
     const docSnippets = searchDocuments(settings.knowledge.documents, topic);
     const contextBlock = [
@@ -214,12 +199,10 @@ const App: React.FC = () => {
     ].join('');
 
     const customDirective = settings.ui.customDirective || "";
-    // Default Professional Tone
     const atmospherePrompt = "TONE: Professional, Objective, Legislative. Avoid theatrical or sci-fi language.";
 
     const injectTopic = (template: string) => {
         let text = template.replace(/{{TOPIC}}/g, topic);
-        // Prepend Atmosphere & Custom Directives
         text = atmospherePrompt + "\n\n" + (customDirective ? customDirective + "\n\n" : "") + text;
         return text + contextBlock;
     };
@@ -229,13 +212,11 @@ const App: React.FC = () => {
     try {
         if (mode === SessionMode.SWARM) {
              if (speaker) {
-                 // 1. Decomposition
                  addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PROTOCOL: HIVE DECOMPOSITION. Speaker is analyzing task vectors..." });
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SPEAKER_DECOMPOSITION)} Persona: ${speaker.persona}`;
                  const res = await processBotTurn(speaker, sessionHistory, prompt, "HIVE OVERSEER");
                  sessionHistory.push({ id: 'spk', author: speaker.name, authorType: speaker.authorType, content: res });
                  
-                 // 2. Spawn Agents based on output
                  const agentMatches = res.matchAll(/- Agent ([A-Za-z0-9\s]+):/g);
                  const swarmAgents: BotConfig[] = [];
                  for (const match of agentMatches) {
@@ -252,7 +233,6 @@ const App: React.FC = () => {
                      });
                  }
                  
-                 // Fallback if regex fails
                  if (swarmAgents.length === 0) {
                      swarmAgents.push(
                          { id: 'sw1', name: 'Swarm: Alpha', role: 'swarm_agent', authorType: AuthorType.GEMINI, model: 'gemini-2.5-flash', persona: 'Analyst', color: 'from-orange-500 to-red-600', enabled: true },
@@ -260,14 +240,12 @@ const App: React.FC = () => {
                      );
                  }
 
-                 // Update UI to show swarm
                  setActiveSessionBots([...currentSessionBots, ...swarmAgents]);
                  await wait(1000);
                  
                  setSessionStatus(SessionStatus.DEBATING);
                  addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `DEPLOYING ${swarmAgents.length} SWARM AGENTS.` });
 
-                 // 3. Parallel Execution (Batched)
                  const results = await runBatchWithConcurrency(swarmAgents, async (agent: BotConfig) => {
                      const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SWARM_AGENT).replace('{{ROLE}}', agent.name).replace('{{TASK}}', 'Execute your assigned vector from the Overseer.')}`;
                      const res = await processBotTurn(agent, sessionHistory, prompt, agent.name.toUpperCase());
@@ -278,7 +256,6 @@ const App: React.FC = () => {
                      sessionHistory.push({ id: `swarm-${agent.id}`, author: agent.name, authorType: agent.authorType, content: res });
                  });
 
-                 // 4. Aggregation
                  setSessionStatus(SessionStatus.RESOLVING);
                  addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "AGGREGATING SWARM DATA." });
                  const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SPEAKER_AGGREGATION)} Persona: ${speaker.persona}`;
@@ -288,7 +265,6 @@ const App: React.FC = () => {
         }
         else if (mode === SessionMode.RESEARCH) {
             if (speaker) {
-                // Plan
                 addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PROTOCOL: DEEP RESEARCH. Phase 1: Planning." });
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_PLANNING)} Persona: ${speaker.persona}`;
                 const res = await processBotTurn(speaker, sessionHistory, prompt, "LEAD INVESTIGATOR");
@@ -298,7 +274,6 @@ const App: React.FC = () => {
             setSessionStatus(SessionStatus.DEBATING);
             const investigators = initialCouncilors.slice(0, 3);
             
-            // Phase 2: Breadth (Round 1) - Batched
             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Phase 2: Broad Spectrum Collection." });
             await runBatchWithConcurrency(investigators, async (councilor: BotConfig) => {
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${councilor.persona}`;
@@ -307,7 +282,6 @@ const App: React.FC = () => {
                  return res;
             }, maxConcurrency);
 
-            // Phase 3: Depth (Iterative) - Batched
             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Phase 3: Recursive Drill-Down & Verification." });
              await runBatchWithConcurrency(investigators, async (councilor: BotConfig) => {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_2)} Persona: ${councilor.persona}`;
@@ -316,7 +290,6 @@ const App: React.FC = () => {
                 return res;
             }, maxConcurrency);
 
-            // Phase 4: Synthesis
             if (speaker) {
                 setSessionStatus(SessionStatus.RESOLVING);
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_REPORT)} Persona: ${speaker.persona}`;
@@ -372,7 +345,6 @@ const App: React.FC = () => {
             }
         }
         else {
-            // PROPOSAL MODE
             if (speaker) {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
                 const res = await processBotTurn(speaker, sessionHistory, prompt, "OPENING BRIEF");
@@ -381,17 +353,14 @@ const App: React.FC = () => {
             
             setSessionStatus(SessionStatus.DEBATING);
 
-            // PRIORITY QUEUE FOR DEBATE
-            // Instead of simple loop, we use a dynamic queue to allow challenges
             let debateQueue = [...initialCouncilors];
             let rounds = 0;
-            const MAX_DEBATE_ROUNDS = 4; // Max turns to prevent infinite loop
+            const MAX_DEBATE_ROUNDS = 4; 
 
             while (debateQueue.length > 0 && rounds < MAX_DEBATE_ROUNDS * initialCouncilors.length) {
                 const councilor = debateQueue.shift();
                 if (!councilor) break;
 
-                // Moderator Intervention check every 3 turns
                 if (moderator && rounds > 0 && rounds % 3 === 0) {
                      const modPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.MODERATOR)} Persona: ${moderator.persona}`;
                      await processBotTurn(moderator, sessionHistory, modPrompt, "MODERATOR");
@@ -405,27 +374,22 @@ const App: React.FC = () => {
                 sessionHistory.push({ id: `deb-${rounds}`, author: councilor.name, authorType: councilor.authorType, content: res });
                 rounds++;
 
-                // PARSE SPECIAL TAGS
-                // [PASS] - Bot yields floor
                 if (res.includes('[PASS]')) {
-                    continue; // Do nothing, proceed to next
+                    continue; 
                 }
 
-                // [CHALLENGE: Name] - Priority Rebuttal
                 const challengeMatch = res.match(/\[CHALLENGE:\s*([^\]]+)\]/i);
                 if (challengeMatch) {
                     const challengedName = challengeMatch[1].toLowerCase();
                     const challengedBot = currentSessionBots.find(b => b.name.toLowerCase().includes(challengedName) || b.id.includes(challengedName));
                     if (challengedBot) {
-                        // Move challenged bot to front of queue
-                        debateQueue = debateQueue.filter(b => b.id !== challengedBot.id); // Remove if exists elsewhere
-                        debateQueue.unshift(challengedBot); // Add to front
+                        debateQueue = debateQueue.filter(b => b.id !== challengedBot.id); 
+                        debateQueue.unshift(challengedBot); 
                         
                         addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `POINT OF ORDER: ${councilor.name} has challenged ${challengedBot.name}. Rebuttal granted.` });
                     }
                 }
                 
-                // [SUMMON AGENT: Role] - Specialist
                 const summonMatch = res.match(/\[SUMMON AGENT:\s*([^\]]+)\]/i);
                 if (summonMatch) {
                     const role = summonMatch[1];
@@ -450,7 +414,6 @@ const App: React.FC = () => {
                 }
             }
 
-            // VOTING
             setSessionStatus(SessionStatus.VOTING);
             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "DEBATE CLOSED. PROCEEDING TO ROLL CALL VOTE." });
             
@@ -463,7 +426,6 @@ const App: React.FC = () => {
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.COUNCILOR_VOTE)} Persona: ${councilor.persona}`;
                  const res = await processBotTurn(councilor, sessionHistory, prompt, "VOTING");
                  
-                 // XML PARSING
                  const voteMatch = res.match(/<vote>(.*?)<\/vote>/i);
                  const reasonMatch = res.match(/<reason>([\s\S]*?)<\/reason>/i);
                  const confMatch = res.match(/<confidence>(.*?)<\/confidence>/i);
@@ -512,7 +474,6 @@ const App: React.FC = () => {
                 voteData 
             });
 
-            // ENACTMENT / RECONCILIATION
             if (speaker) {
                 setSessionStatus(result === 'PASSED' ? SessionStatus.ENACTING : (result === 'RECONCILIATION NEEDED' ? SessionStatus.RECONCILING : SessionStatus.RESOLVING));
                 
@@ -522,7 +483,6 @@ const App: React.FC = () => {
                 
                 const res = await processBotTurn(speaker, sessionHistory, finalPrompt, "FINAL DECREE");
                 
-                // SAVE MEMORY IF PASSED
                 if (result === 'PASSED') {
                     saveMemory({
                         id: `mem-${Date.now()}`,
@@ -548,18 +508,15 @@ const App: React.FC = () => {
   };
 
   const handleSendMessage = (content: string, attachments: Attachment[], mode: SessionMode) => {
-    // Check if Private Counsel
     if (privateCouncilorId) {
         handlePrivateSend(content);
         return;
     }
 
-    // New Session Logic
     setCurrentTopic(content);
     setSessionMode(mode);
     setSessionStatus(SessionStatus.OPENING);
     
-    // Attachments link handling
     let fullContent = content;
     if (attachments.length > 0) {
         const links = attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
@@ -592,7 +549,6 @@ const App: React.FC = () => {
       setActiveSessionBots([]);
   };
   
-  // --- PRIVATE COUNSEL LOGIC ---
   const openPrivateCounsel = (botId: string) => {
       setPrivateCouncilorId(botId);
       if (!privateMessages[botId]) {
@@ -628,7 +584,6 @@ const App: React.FC = () => {
       }));
       setPrivateInput("");
 
-      // Get response
       const history = [...(privateMessages[privateCouncilorId] || []), userMsg];
       const prompt = `${COUNCIL_SYSTEM_INSTRUCTION.PRIVATE_WHISPER} Persona: ${bot.persona}`;
       
@@ -650,7 +605,6 @@ const App: React.FC = () => {
   return (
     <div className="bg-slate-950 h-[100dvh] w-full flex flex-col font-sans text-slate-200 overflow-hidden relative pt-[env(safe-area-inset-top)]">
       
-      {/* Main Chat Area - ChatWindow will take flex-1 */}
       <ChatWindow 
         messages={messages} 
         activeBots={activeSessionBots.length > 0 ? activeSessionBots : settings.bots.filter(b => b.enabled)}
@@ -665,13 +619,12 @@ const App: React.FC = () => {
         onStopSession={() => controlSignal.current.stop = true}
         onPauseSession={() => { 
             controlSignal.current.pause = !controlSignal.current.pause;
-            setSessionStatus(prev => prev === SessionStatus.PAUSED ? SessionStatus.DEBATING : SessionStatus.PAUSED); // Visual only, ref handles logic
+            setSessionStatus(prev => prev === SessionStatus.PAUSED ? SessionStatus.DEBATING : SessionStatus.PAUSED); 
         }}
         onOpenLiveSession={() => setIsLiveSessionOpen(true)}
         onCouncilorClick={openPrivateCounsel}
       />
 
-      {/* Settings Modal */}
       <SettingsPanel 
         settings={settings} 
         onSettingsChange={setSettings} 
@@ -679,16 +632,13 @@ const App: React.FC = () => {
         onToggle={() => setIsSettingsOpen(!isSettingsOpen)} 
       />
       
-      {/* Live Session Overlay */}
       {isLiveSessionOpen && (
           <LiveSession onClose={() => setIsLiveSessionOpen(false)} />
       )}
 
-      {/* Private Counsel Overlay */}
       {privateCouncilorId && activePrivateBot && (
           <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-end animate-fade-in">
-              <div className="w-full md:w-96 h-full bg-slate-950 border-l border-amber-900/50 shadow-2xl flex flex-col">
-                  {/* Header */}
+              <div className="w-full md:w-96 h-full bg-slate-950 border-l border-amber-900/50 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
                   <div className={`p-4 border-b border-slate-800 bg-gradient-to-r ${activePrivateBot.color} bg-opacity-10 flex justify-between items-center`}>
                       <div className="flex items-center gap-3">
                           <div className={`w-3 h-3 rounded-full bg-white animate-pulse`}></div>
@@ -700,7 +650,6 @@ const App: React.FC = () => {
                       <button onClick={closePrivateCounsel} className="text-slate-400 hover:text-white">✕</button>
                   </div>
 
-                  {/* Chat */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
                       {activePrivateHistory.map((msg, i) => (
                           <div key={i} className={`flex flex-col ${msg.authorType === AuthorType.HUMAN ? 'items-end' : 'items-start'}`}>
@@ -711,7 +660,6 @@ const App: React.FC = () => {
                       ))}
                   </div>
 
-                  {/* Input */}
                   <div className="p-3 border-t border-slate-800 bg-slate-900">
                       <form 
                         onSubmit={(e) => { e.preventDefault(); if(privateInput.trim()) handlePrivateSend(privateInput); }}
