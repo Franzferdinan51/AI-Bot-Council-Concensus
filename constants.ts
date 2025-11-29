@@ -336,7 +336,7 @@ export const MCP_PRESETS: MCPTool[] = [
 export const DEFAULT_SETTINGS: Settings = {
     bots: DEFAULT_BOTS,
     mcp: {
-        enabled: false,
+        enabled: true, // Enabled by default to allow Wikipedia/Weather tools
         dockerEndpoint: "",
         customTools: [],
         publicToolIds: ['open_meteo', 'wikipedia'] 
@@ -359,8 +359,8 @@ export const DEFAULT_SETTINGS: Settings = {
         debateDelay: 2000, 
         fontSize: 'medium',
         customDirective: '',
-        enableCodingMode: false, // Disabled by default
-        proCodingUI: false // Disabled by default
+        enableCodingMode: false,
+        proCodingUI: false
     },
     cost: {
         contextPruning: true,
