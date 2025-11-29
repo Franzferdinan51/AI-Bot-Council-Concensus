@@ -1,8 +1,8 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData } from './types';
 import { getBotResponse } from './services/aiService';
-import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_BOTS } from './constants';
+import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS } from './constants';
 import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
 
@@ -16,32 +16,51 @@ const App: React.FC = () => {
       }
   ]);
   
-  const [settings, setSettings] = useState<Settings>({
-    bots: DEFAULT_BOTS,
-    mcp: {
-        enabled: false,
-        dockerEndpoint: "",
-        customTools: []
-    },
-    globalOpenRouterKey: ""
-  });
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   const [thinkingBotId, setThinkingBotId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(SessionStatus.IDLE);
-  
-  // Track bots involved in the current active session (including dynamically summoned ones)
   const [activeSessionBots, setActiveSessionBots] = useState<BotConfig[]>([]);
+
+  // --- AUDIO HANDLING (TTS) ---
+  const speakText = useCallback((text: string, bot: BotConfig | null) => {
+    if (!settings.audio.enabled || !window.speechSynthesis) return;
+    
+    // Stop current speech
+    window.speechSynthesis.cancel();
+    
+    // Clean text (remove URLs, formatting chars for smoother speech)
+    const cleanText = text.replace(/https?:\/\/[^\s]+/g, '').replace(/[*_#]/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = settings.audio.speechRate;
+    utterance.volume = settings.audio.voiceVolume;
+
+    // Attempt to pick a voice based on persona/role (simple hashing or assignment)
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0 && bot) {
+        // Simple deterministic assignment based on bot ID length/chars
+        let voiceIndex = 0;
+        if (bot.role === 'speaker') voiceIndex = 0; // Usually a system default
+        else voiceIndex = (bot.id.charCodeAt(0) + bot.id.length) % voices.length;
+        
+        utterance.voice = voices[voiceIndex] || voices[0];
+    }
+    
+    window.speechSynthesis.speak(utterance);
+  }, [settings.audio]);
 
   const addMessage = useCallback((message: Omit<Message, 'id'>) => {
     setMessages(prev => [...prev, { ...message, id: Date.now().toString() + Math.random() }]);
   }, []);
 
+  // Delay helper for pacing the debate
+  const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
   const runCouncilSession = async (topic: string, initialHistory: Message[]) => {
     let sessionHistory = [...initialHistory];
     
-    // Initialize session bots from settings
     const enabledBots = settings.bots.filter(b => b.enabled);
     let currentSessionBots = [...enabledBots];
     setActiveSessionBots(currentSessionBots);
@@ -56,15 +75,39 @@ const App: React.FC = () => {
         return;
     }
 
-    // --- PHASE 1: OPENING ---
     setSessionStatus(SessionStatus.OPENING);
-    addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 1: COMMITTEE STATEMENTS." });
+    addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 1: SESSION OPENING & BRIEFING." });
 
+    const injectTopic = (template: string) => template.replace(/{{TOPIC}}/g, topic);
+
+    // --- PHASE 1-A: SPEAKER OPENING STATEMENT ---
+    if (speaker) {
+        setThinkingBotId(speaker.id);
+        await wait(settings.ui.debateDelay);
+        try {
+            const systemPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
+            const response = await getBotResponse(speaker, sessionHistory, systemPrompt, settings);
+            
+            const msg: Message = { 
+                id: 'temp', author: speaker.name, authorType: speaker.authorType, 
+                content: response, color: speaker.color, roleLabel: "SPEAKER BRIEFING" 
+            };
+            addMessage(msg);
+            sessionHistory.push(msg);
+            speakText(response, speaker);
+        } catch (e: any) {
+             console.error(e);
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Speaker failed to open session. (${e.message})` });
+        }
+    }
+
+    // --- PHASE 1-B: COMMITTEE STATEMENTS ---
     for (const councilor of initialCouncilors) {
         setThinkingBotId(councilor.id);
+        await wait(settings.ui.debateDelay);
         try {
-            const systemPrompt = `${COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_OPENING} Persona: ${councilor.persona}`;
-            const response = await getBotResponse(councilor, sessionHistory, systemPrompt, settings.globalOpenRouterKey, settings.mcp);
+            const systemPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_OPENING)} Persona: ${councilor.persona}`;
+            const response = await getBotResponse(councilor, sessionHistory, systemPrompt, settings);
             
             const msg: Message = { 
                 id: 'temp', author: councilor.name, authorType: councilor.authorType, 
@@ -72,6 +115,7 @@ const App: React.FC = () => {
             };
             addMessage(msg);
             sessionHistory.push(msg);
+            speakText(response, councilor);
         } catch (e: any) {
              console.error(e);
              addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `${councilor.name} is absent. (${e.message})` });
@@ -81,24 +125,24 @@ const App: React.FC = () => {
     // --- PHASE 2: DEBATE & DYNAMIC SPECIALISTS ---
     if (initialCouncilors.length > 0) {
         setSessionStatus(SessionStatus.DEBATING);
-        const DEBATE_ROUNDS = 2; // Increased to 2 rounds for back-and-forth
+        const DEBATE_ROUNDS = 2; 
 
         for (let round = 1; round <= DEBATE_ROUNDS; round++) {
             
-            // --- MODERATOR INTERJECTION ---
-            // The moderator speaks before round 2 to guide the debate
             if (moderator && round > 1) {
+                await wait(settings.ui.debateDelay);
                 addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "The Moderator has recognized the floor." });
                 setThinkingBotId(moderator.id);
                 try {
-                     const modPrompt = `${COUNCIL_SYSTEM_INSTRUCTION.MODERATOR} Persona: ${moderator.persona}`;
-                     const response = await getBotResponse(moderator, sessionHistory, modPrompt, settings.globalOpenRouterKey, settings.mcp);
+                     const modPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.MODERATOR)} Persona: ${moderator.persona}`;
+                     const response = await getBotResponse(moderator, sessionHistory, modPrompt, settings);
                      const msg: Message = { 
                         id: 'temp', author: moderator.name, authorType: moderator.authorType, 
                         content: response, color: moderator.color, roleLabel: "MODERATOR" 
                     };
                     addMessage(msg);
                     sessionHistory.push(msg);
+                    speakText(response, moderator);
                 } catch (e: any) {
                     addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Moderator absent. (${e.message})` });
                 }
@@ -106,14 +150,14 @@ const App: React.FC = () => {
 
             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `PHASE 2: FLOOR DEBATE - ROUND ${round} of ${DEBATE_ROUNDS}.` });
             
-            // Re-fetch councilors from the local session list (in case any logic changes, though usually static)
             const activeCouncilors = currentSessionBots.filter(b => b.role === 'councilor');
 
             for (const councilor of activeCouncilors) {
                 setThinkingBotId(councilor.id);
+                await wait(settings.ui.debateDelay);
                 try {
-                    const systemPrompt = `${COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_REBUTTAL} Persona: ${councilor.persona}`;
-                    const response = await getBotResponse(councilor, sessionHistory, systemPrompt, settings.globalOpenRouterKey, settings.mcp);
+                    const systemPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_REBUTTAL)} Persona: ${councilor.persona}`;
+                    const response = await getBotResponse(councilor, sessionHistory, systemPrompt, settings);
                     
                     const msg: Message = { 
                         id: 'temp', author: councilor.name, authorType: councilor.authorType, 
@@ -121,39 +165,35 @@ const App: React.FC = () => {
                     };
                     addMessage(msg);
                     sessionHistory.push(msg);
+                    speakText(response, councilor);
 
-                    // --- CHECK FOR SUMMONING ---
-                    // Regex to find "SUMMON AGENT: <Role>"
                     const summonMatch = response.match(/SUMMON AGENT:[\s]*([a-zA-Z0-9\s-]+?)(?=[.!]|$|\n)/i);
                     
                     if (summonMatch) {
                         const requestedRole = summonMatch[1].trim();
-                        // Check if we already have this specialist to avoid duplicates
                         const exists = currentSessionBots.find(b => b.name.includes(requestedRole));
                         
                         if (!exists) {
                             addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `MOTION RECOGNIZED. Summoning Subject Matter Expert: ${requestedRole}...` });
+                            await wait(1500);
                             
-                            // Create Dynamic Bot
                             const newSpecialist: BotConfig = {
                                 id: `specialist-${Date.now()}`,
                                 name: `Expert (${requestedRole})`,
                                 role: 'specialist',
-                                authorType: AuthorType.GEMINI, // Default to reliable model
+                                authorType: AuthorType.GEMINI, 
                                 model: 'gemini-2.5-flash',
                                 persona: `You are a world-class subject matter expert in ${requestedRole}. The High Council has summoned you for a specific deep-dive.`,
                                 color: "from-fuchsia-500 to-purple-600",
                                 enabled: true
                             };
                             
-                            // Update State & Local
                             currentSessionBots = [...currentSessionBots, newSpecialist];
                             setActiveSessionBots(currentSessionBots);
 
-                            // Let the specialist speak immediately
                             setThinkingBotId(newSpecialist.id);
-                            const specSystemPrompt = COUNCIL_SYSTEM_INSTRUCTION.SPECIALIST.replace('{{ROLE}}', requestedRole) + ` Persona: ${newSpecialist.persona}`;
-                            const specResponse = await getBotResponse(newSpecialist, sessionHistory, specSystemPrompt, settings.globalOpenRouterKey, settings.mcp);
+                            const specSystemPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SPECIALIST).replace('{{ROLE}}', requestedRole) + ` Persona: ${newSpecialist.persona}`;
+                            const specResponse = await getBotResponse(newSpecialist, sessionHistory, specSystemPrompt, settings);
 
                             const specMsg: Message = { 
                                 id: 'temp', author: newSpecialist.name, authorType: newSpecialist.authorType, 
@@ -161,10 +201,11 @@ const App: React.FC = () => {
                             };
                             addMessage(specMsg);
                             sessionHistory.push(specMsg);
+                            speakText(specResponse, newSpecialist);
                         }
                     }
 
-                } catch (e: any) { console.error(e); addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `${councilor.name} yielded the floor. (${e.message})` }); }
+                } catch (e: any) { console.error(e); addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `${councilor.name} yielded the floor.` }); }
             }
         }
     }
@@ -172,12 +213,13 @@ const App: React.FC = () => {
     // --- PHASE 3: RESOLUTION ---
     if (speaker) {
         setSessionStatus(SessionStatus.RESOLVING);
+        await wait(settings.ui.debateDelay);
         addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 3: SPEAKER'S RULING." });
         setThinkingBotId(speaker.id);
         
         try {
-            const systemPrompt = `${COUNCIL_SYSTEM_INSTRUCTION.SPEAKER} Persona: ${speaker.persona}`;
-            const response = await getBotResponse(speaker, sessionHistory, systemPrompt, settings.globalOpenRouterKey, settings.mcp);
+            const systemPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SPEAKER)} Persona: ${speaker.persona}`;
+            const response = await getBotResponse(speaker, sessionHistory, systemPrompt, settings);
             
             const msg: Message = { 
                 id: 'temp', author: speaker.name, authorType: speaker.authorType, 
@@ -185,12 +227,14 @@ const App: React.FC = () => {
             };
             addMessage(msg);
             sessionHistory.push(msg);
+            speakText(response, speaker);
             
             // --- PHASE 4: VOTING ---
             const finalVotingMembers = currentSessionBots.filter(b => b.role === 'councilor');
             
             if (finalVotingMembers.length > 0) {
                  setSessionStatus(SessionStatus.VOTING);
+                 await wait(settings.ui.debateDelay);
                  addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "PHASE 4: ROLL CALL VOTE." });
                  
                  const currentVotes: VoteData['votes'] = [];
@@ -199,11 +243,12 @@ const App: React.FC = () => {
 
                  for (const councilor of finalVotingMembers) {
                      setThinkingBotId(councilor.id);
-                     const votePrompt = `${COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_VOTE} Persona: ${councilor.persona}`;
+                     await wait(1000); // Quick voting cadence
+                     const votePrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.COUNCILOR_VOTE)} Persona: ${councilor.persona}`;
                      try {
-                        const voteRes = await getBotResponse(councilor, sessionHistory, votePrompt, settings.globalOpenRouterKey, settings.mcp);
+                        const voteRes = await getBotResponse(councilor, sessionHistory, votePrompt, settings);
                         
-                        let choice: 'YEA' | 'NAY' = 'YEA'; // Default fallback
+                        let choice: 'YEA' | 'NAY' = 'YEA'; 
                         let reason = "Agreed with Speaker.";
 
                         const cleanRes = voteRes.replace(/\*/g, '').trim();
@@ -211,24 +256,20 @@ const App: React.FC = () => {
                             choice = 'NAY';
                             nays++;
                         } else {
-                            // Assume YEA unless explicit NAY
                             yeas++;
                         }
                         
-                        // Attempt to extract reasoning text after the vote keyword
                         const splitText = cleanRes.split(/VOTE: ?(YEA|NAY)/i);
                         if (splitText.length > 1) reason = splitText[splitText.length - 1].replace(/^[:\s-]+/, '').trim();
                         
                         currentVotes.push({
                             voter: councilor.name,
                             choice,
-                            reason: reason.substring(0, 120) + (reason.length > 120 ? '...' : ''), // Truncate for UI
+                            reason: reason.substring(0, 120) + (reason.length > 120 ? '...' : ''), 
                             color: councilor.color
                         });
 
-                     } catch (e: any) {
-                         // Abstention or error
-                     }
+                     } catch (e: any) { }
                  }
 
                  const result = yeas > nays ? "PASSED" : "REJECTED";
@@ -250,8 +291,6 @@ const App: React.FC = () => {
                 };
                 
                 addMessage(voteMessage);
-                
-                // Add vote tally to history for AI context
                 sessionHistory.push({
                     id: 'sys-vote',
                     author: 'SYSTEM',
@@ -259,18 +298,18 @@ const App: React.FC = () => {
                     content: `VOTE RESULT: ${result}. Yeas: ${yeas}, Nays: ${nays}.`
                 });
 
-                 // --- PHASE 5: ENACTMENT / CONCLUSION ---
+                 // --- PHASE 5: ENACTMENT ---
                  setSessionStatus(SessionStatus.ENACTING);
+                 await wait(settings.ui.debateDelay);
                  setThinkingBotId(speaker.id);
                  
-                 // Re-prompt Speaker for Final Decree based on Vote
-                 const enactmentPrompt = COUNCIL_SYSTEM_INSTRUCTION.SPEAKER_POST_VOTE
+                 const enactmentPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SPEAKER_POST_VOTE)
                     .replace('{{RESULT}}', result)
                     .replace('{{YEAS}}', yeas.toString())
                     .replace('{{NAYS}}', nays.toString())
                     + ` Persona: ${speaker.persona}`;
                  
-                 const enactmentResponse = await getBotResponse(speaker, sessionHistory, enactmentPrompt, settings.globalOpenRouterKey, settings.mcp);
+                 const enactmentResponse = await getBotResponse(speaker, sessionHistory, enactmentPrompt, settings);
 
                  addMessage({ 
                     author: speaker.name, 
@@ -279,21 +318,24 @@ const App: React.FC = () => {
                     color: speaker.color, 
                     roleLabel: result === 'PASSED' ? "ENACTMENT DECREE" : "TABLED NOTICE"
                 });
-
+                speakText(enactmentResponse, speaker);
             }
 
         } catch (e: any) {
              addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Speaker Error: ${e.message}` });
         }
     }
-
+    
+    // --- ADJOURNMENT ---
+    setSessionStatus(SessionStatus.ADJOURNED);
+    await wait(2000);
+    addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Session Adjourned. The Council is in recess." });
     setThinkingBotId(null);
-    setSessionStatus(SessionStatus.IDLE);
     setCurrentTopic(null);
   };
 
   const handleMotionProposed = (content: string) => {
-    if (sessionStatus !== SessionStatus.IDLE) return;
+    if (sessionStatus !== SessionStatus.IDLE && sessionStatus !== SessionStatus.ADJOURNED) return;
 
     setCurrentTopic(content);
     const humanMessage: Message = {
@@ -310,21 +352,22 @@ const App: React.FC = () => {
 
   const getStatusText = () => {
     switch(sessionStatus) {
-        case SessionStatus.OPENING: return "Committee Review...";
+        case SessionStatus.OPENING: return "Briefing & Opening Statements...";
         case SessionStatus.DEBATING: return "Floor Debate in Progress...";
         case SessionStatus.RESOLVING: return "Speaker deliberation...";
         case SessionStatus.VOTING: return "Roll Call Vote...";
         case SessionStatus.ENACTING: return "Final Enactment...";
+        case SessionStatus.ADJOURNED: return "Session Adjourned.";
         default: return "Chamber in Recess";
     }
   };
 
   return (
-    <div className="h-screen w-screen flex antialiased font-sans bg-slate-950">
+    <div className={`h-screen w-screen flex antialiased font-sans bg-slate-950 ${settings.ui.fontSize === 'large' ? 'text-lg' : settings.ui.fontSize === 'small' ? 'text-sm' : 'text-base'}`}>
       <main className="flex-1 h-full flex flex-col relative">
         <ChatWindow
             messages={messages}
-            activeBots={sessionStatus === SessionStatus.IDLE ? settings.bots.filter(b => b.enabled) : activeSessionBots}
+            activeBots={sessionStatus === SessionStatus.IDLE || sessionStatus === SessionStatus.ADJOURNED ? settings.bots.filter(b => b.enabled) : activeSessionBots}
             thinkingBotId={thinkingBotId}
             onSendMessage={handleMotionProposed}
             statusText={getStatusText()}

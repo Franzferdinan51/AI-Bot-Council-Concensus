@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Message, AuthorType } from '../types';
 
 interface ChatMessageProps {
@@ -9,6 +9,7 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isHuman = message.authorType === AuthorType.HUMAN;
   const isSystem = message.authorType === AuthorType.SYSTEM;
+  const [showSources, setShowSources] = useState(false);
   
   const AuthorIcon: React.FC<{ type: AuthorType }> = ({ type }) => {
     switch (type) {
@@ -93,6 +94,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const roleLabel = message.roleLabel || "Member";
   const borderColor = message.color ? message.color : "from-slate-500 to-slate-700";
 
+  // Parse Source Content (clean up text clutter)
+  const parts = message.content.split('**Verified Sources:**');
+  const mainContent = parts[0].trim();
+  const sourceContent = parts.length > 1 ? parts[1].trim() : null;
+
   return (
     <div className={`flex items-start gap-3 md:gap-4 my-4 md:my-6 ${isHuman ? 'flex-row-reverse' : 'flex-row animate-fade-in-up'}`}>
       <div className={`flex-shrink-0 w-8 h-8 md:w-12 md:h-12 rounded-lg bg-slate-800 flex items-center justify-center border ${isHuman ? 'border-slate-500' : `border-slate-700 shadow-lg`}`}>
@@ -109,9 +115,31 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             </span>
             <span className="text-sm md:text-lg font-serif font-medium text-slate-200">{message.author}</span>
             </div>
+            
+            {/* Main Content */}
             <div className="text-slate-300 leading-relaxed font-serif text-sm md:text-md whitespace-pre-wrap">
-                {message.content}
+                {mainContent}
             </div>
+
+            {/* Collapsible Sources Section */}
+            {sourceContent && (
+                <div className="mt-4 pt-3 border-t border-slate-800">
+                    <button 
+                        onClick={() => setShowSources(!showSources)}
+                        className="flex items-center gap-2 text-xs text-amber-500/80 hover:text-amber-400 font-bold uppercase tracking-wider transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${showSources ? 'rotate-90' : ''}`}>
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                        Scanned Data / Sources
+                    </button>
+                    {showSources && (
+                        <div className="mt-2 bg-slate-950/50 p-3 rounded border border-slate-800 text-xs text-slate-400 font-mono whitespace-pre-wrap animate-fade-in">
+                            {sourceContent}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
       </div>
     </div>

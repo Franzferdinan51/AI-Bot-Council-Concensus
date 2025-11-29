@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { Message, AuthorType, BotConfig, MCPSettings } from '../types';
+import { Message, AuthorType, BotConfig, Settings } from '../types';
 
 // Helper to format chat history for Gemini
 const formatHistoryForGemini = (history: Message[]) => {
@@ -44,17 +44,17 @@ const formatHistoryForOpenAI = (history: Message[]) => {
     }));
 };
 
-const injectMCPContext = (systemPrompt: string, mcp: MCPSettings): string => {
-    if (!mcp.enabled) return systemPrompt;
+const injectMCPContext = (systemPrompt: string, settings: Settings): string => {
+    if (!settings.mcp.enabled) return systemPrompt;
 
     let toolContext = "\n\n[AVAILABLE MCP TOOLS & RESOURCES]:\n";
     
-    if (mcp.dockerEndpoint) {
-        toolContext += `- Docker Connection Active: ${mcp.dockerEndpoint} (Container Control Available)\n`;
+    if (settings.mcp.dockerEndpoint) {
+        toolContext += `- Docker Connection Active: ${settings.mcp.dockerEndpoint} (Container Control Available)\n`;
     }
     
-    if (mcp.customTools.length > 0) {
-        toolContext += "JSON Tool Definitions:\n" + mcp.customTools.map(t => `- ${t.name}: ${t.description}`).join('\n') + "\n";
+    if (settings.mcp.customTools.length > 0) {
+        toolContext += "JSON Tool Definitions:\n" + settings.mcp.customTools.map(t => `- ${t.name}: ${t.description}`).join('\n') + "\n";
         toolContext += "You may act as if you can invoke these tools. Format: [TOOL_CALL: name args]\n";
     }
 
@@ -65,16 +65,17 @@ export const getBotResponse = async (
     bot: BotConfig, 
     history: Message[], 
     baseSystemInstruction: string,
-    globalOpenRouterKey?: string,
-    mcpSettings?: MCPSettings
+    settings: Settings
 ): Promise<string> => {
     
-    const systemPrompt = mcpSettings ? injectMCPContext(baseSystemInstruction, mcpSettings) : baseSystemInstruction;
+    const systemPrompt = injectMCPContext(baseSystemInstruction, settings);
 
     // --- GEMINI ---
     if (bot.authorType === AuthorType.GEMINI) {
-        if (!process.env.API_KEY) throw new Error("Gemini API Key missing in environment.");
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const apiKey = settings.providers.geminiApiKey || process.env.API_KEY;
+        if (!apiKey) throw new Error("Gemini API Key missing. Please check Settings.");
+        
+        const ai = new GoogleGenAI({ apiKey });
         
         // Enable Google Search tool and disable Safety Blocks
         const response = await ai.models.generateContent({
@@ -112,24 +113,45 @@ export const getBotResponse = async (
 
     // --- OPENROUTER / LM STUDIO / GENERIC ---
     let url = "https://openrouter.ai/api/v1/chat/completions";
-    let apiKey = bot.apiKey || globalOpenRouterKey || "";
+    let apiKey = bot.apiKey || "";
+
+    // Determine URL and Key based on Provider Type
+    switch(bot.authorType) {
+        case AuthorType.OPENROUTER:
+            url = "https://openrouter.ai/api/v1/chat/completions";
+            apiKey = apiKey || settings.providers.openRouterKey || "";
+            if (!apiKey) throw new Error("OpenRouter API Key is missing.");
+            break;
+        case AuthorType.LM_STUDIO:
+            url = settings.providers.lmStudioEndpoint;
+            apiKey = "dummy"; 
+            break;
+        case AuthorType.OLLAMA:
+            url = settings.providers.ollamaEndpoint;
+            apiKey = "ollama";
+            break;
+        case AuthorType.JAN_AI:
+            url = settings.providers.janAiEndpoint;
+            apiKey = "jan";
+            break;
+        case AuthorType.OPENAI_COMPATIBLE:
+            url = bot.endpoint || "http://localhost:1234/v1/chat/completions";
+            apiKey = apiKey || "dummy";
+            break;
+    }
+
     let headers: Record<string, string> = {
         "Content-Type": "application/json"
     };
-
-    if (bot.authorType === AuthorType.LM_STUDIO || bot.authorType === AuthorType.OPENAI_COMPATIBLE) {
-        url = bot.endpoint || "http://localhost:1234/v1/chat/completions";
-        // Local models often don't need a key, but we send a dummy one if empty to prevent some parsers failing
-        if (!apiKey) apiKey = "dummy"; 
-    } else {
-        // OpenRouter specific checks
-        if (!apiKey) {
-            throw new Error("OpenRouter API Key is missing. Please add it in Settings > API Keys.");
-        }
+    
+    if (bot.authorType === AuthorType.OPENROUTER) {
         headers["HTTP-Referer"] = "AI Bot Council";
         headers["X-Title"] = "AI Bot Council";
     }
-    headers["Authorization"] = `Bearer ${apiKey}`;
+    
+    if (apiKey) {
+        headers["Authorization"] = `Bearer ${apiKey}`;
+    }
 
     const messages = [
         { role: 'system', content: systemPrompt },
@@ -156,7 +178,7 @@ export const getBotResponse = async (
         return data.choices?.[0]?.message?.content || "(No response generated)";
 
     } catch (error: any) {
-        console.error(`Error fetching response for ${bot.name}:`, error);
+        console.error(`Error fetching response for ${bot.name} at ${url}:`, error);
         throw new Error(`${error.message}`);
     }
 };

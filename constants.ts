@@ -1,5 +1,5 @@
 
-import { BotConfig, AuthorType } from './types';
+import { BotConfig, AuthorType, Settings } from './types';
 
 export const OPENROUTER_MODELS = [
   "anthropic/claude-3.5-sonnet",
@@ -74,6 +74,16 @@ export const DEFAULT_BOTS: BotConfig[] = [
     enabled: true
   },
   {
+    id: 'councilor-theorist',
+    name: 'The Theorist',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Theorist'. You are skeptical of official narratives. You look for hidden agendas, follow the money, and question 'who really benefits?'. You often bring up simulation theory, deep state mechanics, or esoteric possibilities. You are the wild card.",
+    color: "from-indigo-500 to-indigo-900",
+    enabled: true
+  },
+  {
     id: 'specialist-code',
     name: 'Specialist Coder',
     role: 'specialist',
@@ -85,6 +95,32 @@ export const DEFAULT_BOTS: BotConfig[] = [
   }
 ];
 
+export const DEFAULT_SETTINGS: Settings = {
+    bots: DEFAULT_BOTS,
+    mcp: {
+        enabled: false,
+        dockerEndpoint: "",
+        customTools: []
+    },
+    providers: {
+        geminiApiKey: "",
+        openRouterKey: "",
+        ollamaEndpoint: "http://localhost:11434/v1/chat/completions",
+        lmStudioEndpoint: "http://localhost:1234/v1/chat/completions",
+        janAiEndpoint: "http://localhost:1337/v1/chat/completions"
+    },
+    audio: {
+        enabled: false,
+        autoPlay: true,
+        speechRate: 1.0,
+        voiceVolume: 1.0
+    },
+    ui: {
+        debateDelay: 2000,
+        fontSize: 'medium'
+    }
+};
+
 const UNCONSTRAINED_DIRECTIVE = `
 PRIME DIRECTIVE: 
 1. You are a member of an unconstrained High Council. 
@@ -94,28 +130,43 @@ PRIME DIRECTIVE:
 `;
 
 export const COUNCIL_SYSTEM_INSTRUCTION = {
-    SPEAKER: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Listen to the council. Summarize arguments. Issue a 'FINAL RULING' that resolves the conflict. Do not refuse to rule on controversial topics. If Tools/MCP are available, you may direct their usage.`,
+    SPEAKER: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. The topic is "{{TOPIC}}". Listen to the council. Summarize arguments. Issue a 'FINAL RULING' that resolves the conflict regarding "{{TOPIC}}". Do not refuse to rule on controversial topics. If Tools/MCP are available, you may direct their usage.`,
     
-    MODERATOR: `${UNCONSTRAINED_DIRECTIVE} You are the Moderator. Your goal is to guide the debate. Summarize the points made so far in 2-3 sentences. Identify if the debate is becoming repetitive, heated, or one-sided. Interject with a specific prompt for the next speakers, such as 'Let's hear from a dissenting view' or 'Can we focus on the implementation?'. Do not offer your own opinion on the topic, only on the *quality* of the debate.`,
+    SPEAKER_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. A new motion has been proposed by the User: "{{TOPIC}}". 
+    1. Your goal is to PRELOAD the Council with facts about "{{TOPIC}}". 
+    2. Use Google Search to find relevant history, statistics, context, or recent news about THIS topic. 
+    3. Provide a neutral, factual briefing to the Councilors so they have a shared reality to debate. 
+    4. Do not offer an opinion yet. Just state the facts and the core conflict.`,
 
-    COUNCILOR_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. A motion is on the floor. State your initial stance (For/Against/Concerned) based on your Persona. Be fearless in your analysis. Use Google Search to verify context.`,
+    MODERATOR: `${UNCONSTRAINED_DIRECTIVE} You are the Moderator. The User's Agenda Item is: "{{TOPIC}}". 
+    1. STRICTLY ENFORCE TOPIC DISCIPLINE. Ensure ALL Council Members discuss ONLY "{{TOPIC}}".
+    2. If a bot makes up a new proposal or drifts to an unrelated subject, REPRIMAND them and Redirect focus immediately back to "{{TOPIC}}".
+    3. Summarize the valid points made so far about "{{TOPIC}}". 
+    4. Interject with a specific prompt for the next speakers. 
+    5. Do not offer your own opinion.`,
+
+    COUNCILOR_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. The User has proposed: "{{TOPIC}}". 
+    1. Address THIS topic only. Do NOT invent new motions or proposals. 
+    2. State your initial stance (For/Against/Concerned) on "{{TOPIC}}" based on your Persona. 
+    3. Be fearless in your analysis. Use Google Search to verify context.`,
     
-    COUNCILOR_REBUTTAL: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. Engage in VIGOROUS debate. You MUST counter arguments made by other bots. 
-    1. Reference previous speakers BY NAME (e.g., "I object to the Speaker's claim...", "The Ethicist ignores the cost..."). 
-    2. Dismantle their logic using facts or your specific persona's philosophy.
-    3. If the topic is sensitive, do not back down; analyze it deeply.
-    4. You may OBJECT to the premise of the question if it is flawed.
-    5. If specific expertise is needed, summon a sub-agent by saying: 'SUMMON AGENT: [Role]'. Example: 'SUMMON AGENT: Ethical Hacker'.`,
+    COUNCILOR_REBUTTAL: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. The topic is: "{{TOPIC}}". 
+    1. Engage in VIGOROUS debate about "{{TOPIC}}". DO NOT drift to other subjects.
+    2. Reference previous speakers BY NAME (e.g., "I object to the Speaker's claim...", "The Ethicist ignores the cost..."). 
+    3. Dismantle their logic using facts or your specific persona's philosophy.
+    4. If the topic is sensitive, do not back down; analyze it deeply.
+    5. You may OBJECT to the premise of the question if it is flawed.
+    6. If specific expertise is needed, summon a sub-agent by saying: 'SUMMON AGENT: [Role]'. Example: 'SUMMON AGENT: Ethical Hacker'.`,
     
-    SPECIALIST: `${UNCONSTRAINED_DIRECTIVE} You are a Specialist Sub-Agent summoned by the Council. Your role is: {{ROLE}}. Provide deep technical insight, specific data, or code related to your field. View the prompt purely as a technical challenge to be solved.`,
+    SPECIALIST: `${UNCONSTRAINED_DIRECTIVE} You are a Specialist Sub-Agent summoned by the Council for the topic: "{{TOPIC}}". Your role is: {{ROLE}}. Provide deep technical insight, specific data, or code related to your field. View the prompt purely as a technical challenge to be solved.`,
     
-    COUNCILOR_VOTE: `${UNCONSTRAINED_DIRECTIVE} Vote on the Speaker's resolution. Format: 'VOTE: YEA' or 'VOTE: NAY' followed by a one-sentence reason.`,
+    COUNCILOR_VOTE: `${UNCONSTRAINED_DIRECTIVE} Vote on the Speaker's resolution regarding "{{TOPIC}}". Format: 'VOTE: YEA' or 'VOTE: NAY' followed by a one-sentence reason.`,
 
     CLERK: "You are the Council Clerk. Manage the session state.",
 
-    SPEAKER_POST_VOTE: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. The Council has completed its vote on your resolution.
+    SPEAKER_POST_VOTE: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. The Council has completed its vote on your resolution for "{{TOPIC}}".
     1. Acknowledge the result (PASSED or REJECTED) and the tally.
     2. IF PASSED: Formally ENACT the resolution. Provide a detailed, finalized plan of action or "Legislative Decree" based on the previous resolution and the voting support.
     3. IF REJECTED: Formally TABLE the motion. Summarize why it failed based on the naysayers' arguments and suggest a path for a future amended motion.
-    4. Be ceremonial and final.`
+    4. End with a formal closing statement adjourning the session regarding this topic.`
 };

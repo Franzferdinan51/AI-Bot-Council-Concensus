@@ -4,6 +4,8 @@ export enum AuthorType {
   GEMINI = 'gemini',
   OPENROUTER = 'openrouter',
   LM_STUDIO = 'lmstudio',
+  OLLAMA = 'ollama',
+  JAN_AI = 'jan_ai',
   OPENAI_COMPATIBLE = 'openai_compatible',
   SYSTEM = 'system',
 }
@@ -15,34 +17,57 @@ export interface BotConfig {
   name: string;
   role: BotRole;
   authorType: AuthorType;
-  model: string; // e.g., 'gemini-2.5-flash', 'gpt-4', 'local-model'
-  apiKey?: string; // Optional per-bot key
-  endpoint?: string; // For LM Studio / Local / Generic
+  model: string; 
+  apiKey?: string; 
+  endpoint?: string; 
   persona: string;
-  color: string; // Tailwind gradient classes
+  color: string; 
   enabled: boolean;
+  voiceIndex?: number; // Preference for TTS voice index
 }
 
 export interface MCPTool {
   name: string;
   description: string;
-  schema: string; // JSON string of the schema
+  schema: string; 
 }
 
 export interface MCPSettings {
   enabled: boolean;
-  dockerEndpoint: string; // Simulating a connection to a local Docker MCP
-  customTools: MCPTool[]; // JSON definitions
+  dockerEndpoint: string; 
+  customTools: MCPTool[]; 
+}
+
+export interface AudioSettings {
+    enabled: boolean;
+    autoPlay: boolean;
+    speechRate: number; // 0.5 to 2.0
+    voiceVolume: number; // 0 to 1.0
+}
+
+export interface UISettings {
+    debateDelay: number; // ms delay between turns
+    fontSize: 'small' | 'medium' | 'large';
+}
+
+export interface ProviderSettings {
+    geminiApiKey?: string;
+    openRouterKey?: string;
+    ollamaEndpoint: string;
+    lmStudioEndpoint: string;
+    janAiEndpoint: string;
 }
 
 export interface Settings {
   bots: BotConfig[];
   mcp: MCPSettings;
-  globalOpenRouterKey?: string;
+  audio: AudioSettings;
+  ui: UISettings;
+  providers: ProviderSettings;
 }
 
 export interface VoteData {
-    topic: string; // The motion being voted on
+    topic: string; 
     yeas: number;
     nays: number;
     result: 'PASSED' | 'REJECTED';
@@ -59,9 +84,9 @@ export interface Message {
   author: string;
   content: string;
   authorType: AuthorType;
-  color?: string; // Store color at message level for consistency
+  color?: string; 
   roleLabel?: string;
-  voteData?: VoteData; // Optional structured data for voting results
+  voteData?: VoteData; 
 }
 
 export enum SessionStatus {
@@ -71,4 +96,5 @@ export enum SessionStatus {
     RESOLVING = 'resolving',
     VOTING = 'voting',
     ENACTING = 'enacting',
+    ADJOURNED = 'adjourned'
 }

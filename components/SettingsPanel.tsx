@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Settings, BotConfig, AuthorType, MCPTool } from '../types';
-import { OPENROUTER_MODELS, DEFAULT_BOTS } from '../constants';
 
 interface SettingsPanelProps {
   settings: Settings;
@@ -11,7 +10,7 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChange, isOpen, onToggle }) => {
-  const [activeTab, setActiveTab] = useState<'council' | 'mcp' | 'api'>('council');
+  const [activeTab, setActiveTab] = useState<'council' | 'providers' | 'audio' | 'mcp' | 'ui'>('council');
   const [editingBot, setEditingBot] = useState<BotConfig | null>(null);
 
   // --- Bot Management ---
@@ -49,6 +48,28 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
           enabled: true,
           endpoint: "",
           apiKey: ""
+      });
+  };
+
+  // --- Helpers ---
+  const updateProvider = (field: keyof Settings['providers'], value: string) => {
+      onSettingsChange({
+          ...settings,
+          providers: { ...settings.providers, [field]: value }
+      });
+  };
+
+  const updateAudio = (field: keyof Settings['audio'], value: any) => {
+      onSettingsChange({
+          ...settings,
+          audio: { ...settings.audio, [field]: value }
+      });
+  };
+  
+  const updateUI = (field: keyof Settings['ui'], value: any) => {
+      onSettingsChange({
+          ...settings,
+          ui: { ...settings.ui, [field]: value }
       });
   };
 
@@ -94,13 +115,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
         
         {/* Header Tabs */}
         <div className="flex border-b border-slate-700 pt-16 px-4 md:px-6 bg-slate-900 overflow-x-auto scrollbar-hide">
-            <button onClick={() => setActiveTab('council')} className={`pb-3 px-3 md:px-4 text-xs md:text-sm font-bold uppercase tracking-wider whitespace-nowrap ${activeTab === 'council' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-slate-500 hover:text-slate-300'}`}>Council</button>
-            <button onClick={() => setActiveTab('mcp')} className={`pb-3 px-3 md:px-4 text-xs md:text-sm font-bold uppercase tracking-wider whitespace-nowrap ${activeTab === 'mcp' ? 'text-cyan-500 border-b-2 border-cyan-500' : 'text-slate-500 hover:text-slate-300'}`}>MCP / Tools</button>
-            <button onClick={() => setActiveTab('api')} className={`pb-3 px-3 md:px-4 text-xs md:text-sm font-bold uppercase tracking-wider whitespace-nowrap ${activeTab === 'api' ? 'text-emerald-500 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-300'}`}>API Keys</button>
+            {[
+                { id: 'council', label: 'Council' },
+                { id: 'providers', label: 'Providers' },
+                { id: 'audio', label: 'Audio' },
+                { id: 'mcp', label: 'MCP' },
+                { id: 'ui', label: 'General' },
+            ].map(tab => (
+                <button 
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)} 
+                    className={`pb-3 px-3 md:px-4 text-xs md:text-sm font-bold uppercase tracking-wider whitespace-nowrap ${activeTab === tab.id ? 'text-amber-500 border-b-2 border-amber-500' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    {tab.label}
+                </button>
+            ))}
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 animate-fade-in">
             
             {/* --- COUNCIL TAB --- */}
             {activeTab === 'council' && !editingBot && (
@@ -163,7 +196,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                 <option value={AuthorType.GEMINI}>Gemini</option>
                                 <option value={AuthorType.OPENROUTER}>OpenRouter</option>
                                 <option value={AuthorType.LM_STUDIO}>LM Studio</option>
-                                <option value={AuthorType.OPENAI_COMPATIBLE}>OpenAI Generic</option>
+                                <option value={AuthorType.OLLAMA}>Ollama</option>
+                                <option value={AuthorType.JAN_AI}>Jan AI</option>
+                                <option value={AuthorType.OPENAI_COMPATIBLE}>Generic OpenAI</option>
                             </select>
                         </div>
                     </div>
@@ -172,13 +207,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         <label className="text-xs text-slate-400">Model ID</label>
                         <input value={editingBot.model} onChange={e => setEditingBot({...editingBot, model: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" placeholder="e.g. gemini-2.5-flash" />
                     </div>
-
-                    {(editingBot.authorType === AuthorType.LM_STUDIO || editingBot.authorType === AuthorType.OPENAI_COMPATIBLE) && (
-                        <div>
-                            <label className="text-xs text-slate-400">API Endpoint</label>
-                            <input value={editingBot.endpoint || ''} onChange={e => setEditingBot({...editingBot, endpoint: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" placeholder="http://localhost:11434/v1/chat/completions" />
-                        </div>
-                    )}
                     
                     <div>
                         <label className="text-xs text-slate-400">System Persona</label>
@@ -188,17 +216,98 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     <button onClick={() => saveBot(editingBot)} className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded">SAVE MEMBER</button>
                 </div>
             )}
+            
+            {/* --- PROVIDERS TAB --- */}
+            {activeTab === 'providers' && (
+                <div className="space-y-4">
+                    <h3 className="text-white font-serif text-lg mb-4">API Configuration</h3>
+                    
+                    <div className="p-4 bg-slate-800 rounded border border-slate-700">
+                        <label className="text-sm font-bold text-amber-500 block mb-2">Google Gemini API Key</label>
+                        <input 
+                            type="password" 
+                            value={settings.providers.geminiApiKey || ''} 
+                            onChange={e => updateProvider('geminiApiKey', e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600"
+                            placeholder="(Optional) Override environment key"
+                        />
+                    </div>
+                    
+                    <div className="p-4 bg-slate-800 rounded border border-slate-700">
+                        <label className="text-sm font-bold text-emerald-500 block mb-2">OpenRouter API Key</label>
+                        <input 
+                            type="password" 
+                            value={settings.providers.openRouterKey || ''} 
+                            onChange={e => updateProvider('openRouterKey', e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600"
+                            placeholder="sk-or-..."
+                        />
+                    </div>
+
+                    <div className="p-4 bg-slate-800 rounded border border-slate-700 space-y-3">
+                        <h4 className="text-sm font-bold text-blue-400 block">Local Providers (URLs)</h4>
+                        <div>
+                            <label className="text-xs text-slate-400">LM Studio Endpoint</label>
+                            <input type="text" value={settings.providers.lmStudioEndpoint} onChange={e => updateProvider('lmStudioEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                        </div>
+                        <div>
+                            <label className="text-xs text-slate-400">Ollama Endpoint</label>
+                            <input type="text" value={settings.providers.ollamaEndpoint} onChange={e => updateProvider('ollamaEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                        </div>
+                        <div>
+                            <label className="text-xs text-slate-400">Jan AI Endpoint</label>
+                            <input type="text" value={settings.providers.janAiEndpoint} onChange={e => updateProvider('janAiEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- AUDIO TAB --- */}
+            {activeTab === 'audio' && (
+                <div className="space-y-6">
+                    <h3 className="text-white font-serif text-lg mb-2">Voice & Broadcast</h3>
+                    
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700">
+                        <label className="flex items-center cursor-pointer mb-4">
+                            <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={settings.audio.enabled} onChange={e => updateAudio('enabled', e.target.checked)} />
+                            <span className="ml-3 text-white font-bold">Enable Broadcast Mode (TTS)</span>
+                        </label>
+                        <p className="text-xs text-slate-400 mb-4 ml-8">
+                            Councilors will speak their responses using synthesized voices.
+                        </p>
+                        
+                        {settings.audio.enabled && (
+                            <div className="ml-8 space-y-4 animate-fade-in">
+                                <div>
+                                    <label className="text-xs text-slate-300 block mb-1">Speech Rate ({settings.audio.speechRate}x)</label>
+                                    <input 
+                                        type="range" min="0.5" max="2.0" step="0.1" 
+                                        value={settings.audio.speechRate} 
+                                        onChange={e => updateAudio('speechRate', parseFloat(e.target.value))}
+                                        className="w-full"
+                                    />
+                                </div>
+                                <label className="flex items-center cursor-pointer">
+                                    <input type="checkbox" className="w-4 h-4 accent-amber-500" checked={settings.audio.autoPlay} onChange={e => updateAudio('autoPlay', e.target.checked)} />
+                                    <span className="ml-2 text-slate-300 text-sm">Auto-play new messages</span>
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* --- MCP / TOOLS TAB --- */}
             {activeTab === 'mcp' && (
                 <div className="space-y-6">
+                    <h3 className="text-white font-serif text-lg mb-4">Model Context Protocol (MCP)</h3>
                     <div>
                         <label className="flex items-center cursor-pointer mb-4">
                             <input type="checkbox" className="w-4 h-4" checked={settings.mcp.enabled} onChange={e => onSettingsChange({...settings, mcp: {...settings.mcp, enabled: e.target.checked}})} />
                             <span className="ml-2 text-white font-bold">Enable Tools / MCP Context</span>
                         </label>
                         <p className="text-xs text-slate-400 mb-4">
-                            Bots will be informed of these tools and may attempt to "call" them in their JSON output or reasoning.
+                            Bots will be informed of these tools and may attempt to "call" them.
                         </p>
                     </div>
 
@@ -231,23 +340,41 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     </div>
                 </div>
             )}
-
-            {/* --- API KEYS TAB --- */}
-            {activeTab === 'api' && (
-                <div className="space-y-4">
-                     <div className="p-4 bg-slate-800 rounded border border-slate-700">
-                        <label className="text-sm font-bold text-white block mb-2">Global OpenRouter Key</label>
-                        <input 
-                            type="password" 
-                            value={settings.globalOpenRouterKey || ''} 
-                            onChange={e => onSettingsChange({...settings, globalOpenRouterKey: e.target.value})}
-                            className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white"
-                            placeholder="sk-or-..."
-                        />
-                        <p className="text-xs text-slate-500 mt-2">Used for all OpenRouter bots unless overridden.</p>
-                     </div>
+            
+            {/* --- GENERAL UI TAB --- */}
+            {activeTab === 'ui' && (
+                <div className="space-y-6">
+                    <h3 className="text-white font-serif text-lg mb-4">General Preferences</h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-sm text-slate-300 block mb-1">Debate Speed (Delay)</label>
+                            <select 
+                                value={settings.ui.debateDelay} 
+                                onChange={e => updateUI('debateDelay', parseInt(e.target.value))}
+                                className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white"
+                            >
+                                <option value={1000}>Fast (1s)</option>
+                                <option value={2000}>Normal (2s)</option>
+                                <option value={4000}>Slow (4s)</option>
+                                <option value={6000}>Contemplative (6s)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-sm text-slate-300 block mb-1">Font Size</label>
+                            <select 
+                                value={settings.ui.fontSize} 
+                                onChange={e => updateUI('fontSize', e.target.value)}
+                                className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white"
+                            >
+                                <option value="small">Compact</option>
+                                <option value="medium">Default</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             )}
+
         </div>
       </div>
     </>
