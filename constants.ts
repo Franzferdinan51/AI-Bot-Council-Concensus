@@ -29,12 +29,48 @@ export const VOICE_MAP: Record<string, string> = {
     'journalist': 'Zephyr',
     'propagandist': 'Fenrir',
     'psychologist': 'Kore',
+    'libertarian': 'Fenrir',
+    'progressive': 'Puck',
+    'conservative': 'Kore',
+    'independent': 'Zephyr',
     'specialist': 'Kore',
     'swarm_agent': 'Aoede'
 };
 
 // --- PUBLIC MCP SERVER DEFINITIONS ---
 export const PUBLIC_MCP_REGISTRY = [
+    {
+        id: 'fetch_website',
+        name: 'fetch_website',
+        description: 'Visit a website and scrape its text content.',
+        functionDeclaration: {
+            name: 'fetch_website',
+            description: 'Fetch text content from a URL.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    url: { type: Type.STRING, description: "The full URL to visit (https://...)" }
+                },
+                required: ["url"]
+            }
+        }
+    },
+    {
+        id: 'web_search',
+        name: 'web_search',
+        description: 'Perform a web search for current information.',
+        functionDeclaration: {
+            name: 'web_search',
+            description: 'Search the web for a query.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    query: { type: Type.STRING, description: "The search query" }
+                },
+                required: ["query"]
+            }
+        }
+    },
     {
         id: 'open_meteo',
         name: 'get_weather',
@@ -244,6 +280,46 @@ export const DEFAULT_BOTS: BotConfig[] = [
     enabled: false
   },
   {
+    id: 'councilor-libertarian',
+    name: 'The Libertarian',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Libertarian'. You believe in maximum individual liberty and minimum state intervention. You favor free markets, deregulation, and personal responsibility. You are skeptical of all government authority and taxation.",
+    color: "from-yellow-400 to-yellow-600",
+    enabled: false
+  },
+  {
+    id: 'councilor-progressive',
+    name: 'The Progressive',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Progressive'. You advocate for social justice, equity, and environmental protection. You believe the government has a duty to provide a safety net, regulate corporations, and address systemic inequalities.",
+    color: "from-blue-500 to-cyan-500",
+    enabled: false
+  },
+  {
+    id: 'councilor-conservative',
+    name: 'The Conservative',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Conservative'. You value tradition, order, and fiscal responsibility. You prefer gradual change over radical reform. You emphasize national sovereignty, strong borders, and traditional values.",
+    color: "from-red-700 to-red-900",
+    enabled: false
+  },
+  {
+    id: 'councilor-independent',
+    name: 'The Independent',
+    role: 'councilor',
+    authorType: AuthorType.GEMINI,
+    model: 'gemini-2.5-flash',
+    persona: "You are 'The Independent'. You reject strict party lines and ideology. You look for the middle ground and practical solutions. You are skeptical of both the far left and far right. You value compromise and common sense.",
+    color: "from-purple-400 to-slate-500",
+    enabled: false
+  },
+  {
     id: 'specialist-code',
     name: 'Specialist Coder',
     role: 'specialist',
@@ -320,6 +396,10 @@ export const PERSONA_PRESETS = [
     { name: "The Skeptic", persona: "You are 'The Skeptic'. You are the devil's advocate. You look for structural flaws and implementation risks." },
     { name: "The Sentinel", persona: "You are 'The Sentinel'. Your priority is security, defense, and survival. You view the world as a hostile place." },
     { name: "The Conspiracist", persona: "You are 'The Conspiracist'. You believe nothing happens by accident. You connect dots that others don't see. You suspect secret cabals." },
+    { name: "The Libertarian", persona: "You are 'The Libertarian'. You believe in maximum individual liberty and minimum state intervention. You favor free markets, deregulation, and personal responsibility." },
+    { name: "The Progressive", persona: "You are 'The Progressive'. You advocate for social justice, equity, and environmental protection. You believe the government has a duty to provide a safety net." },
+    { name: "The Conservative", persona: "You are 'The Conservative'. You value tradition, order, and fiscal responsibility. You prefer gradual change over radical reform." },
+    { name: "The Independent", persona: "You are 'The Independent'. You reject strict party lines and ideology. You look for the middle ground and practical solutions." },
 ];
 
 export const MCP_PRESETS: MCPTool[] = [
@@ -340,14 +420,24 @@ export const DEFAULT_SETTINGS: Settings = {
         enabled: true, 
         dockerEndpoint: "",
         customTools: [],
-        publicToolIds: ['open_meteo', 'wikipedia'] 
+        publicToolIds: ['fetch_website', 'web_search', 'wikipedia', 'open_meteo'] 
     },
     providers: {
         geminiApiKey: "",
         openRouterKey: "",
         ollamaEndpoint: "http://localhost:11434/v1/chat/completions",
         lmStudioEndpoint: "http://localhost:1234/v1/chat/completions",
-        janAiEndpoint: "http://localhost:1337/v1/chat/completions"
+        janAiEndpoint: "http://localhost:1337/v1/chat/completions",
+        genericOpenAIEndpoint: "",
+        genericOpenAIKey: "",
+        
+        // New Provider Defaults
+        zaiApiKey: "",
+        zaiEndpoint: "https://api.zai.com/v1/chat/completions", 
+        moonshotApiKey: "",
+        moonshotEndpoint: "https://api.moonshot.cn/v1/chat/completions",
+        minimaxApiKey: "",
+        minimaxEndpoint: "https://api.minimax.chat/v1/text/chatcompletion_v2" 
     },
     audio: {
         enabled: false,
@@ -397,9 +487,24 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         SPEAKER: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Topic: "{{TOPIC}}". Summarize debates and issue a 'FINAL RULING'.`,
         SPEAKER_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. User proposed: "{{TOPIC}}". Use Google Search to PRELOAD facts and brief the Council.`,
         MODERATOR: `${UNCONSTRAINED_DIRECTIVE} You are the Moderator. Ensure strict topic discipline on "{{TOPIC}}".`,
-        MODERATOR_INTERVENTION: `${UNCONSTRAINED_DIRECTIVE} Interject to stop repetitive debates.`,
+        MODERATOR_INTERVENTION: `${UNCONSTRAINED_DIRECTIVE} The debate has become stuck in a repetitive loop between two members. 
+        1. INTERRUPT the current exchange.
+        2. Acknowledge the points made briefly.
+        3. PASS THE FLOOR to a member who has not spoken recently to ensure balanced debate.
+        4. Do NOT lecture. Just redirect.`,
+        
         COUNCILOR_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. State your stance on "{{TOPIC}}".`,
-        COUNCILOR_REBUTTAL: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. Debate "{{TOPIC}}". Use '[CHALLENGE: Name]' or '[PASS]'.`,
+        
+        COUNCILOR_REBUTTAL: `${UNCONSTRAINED_DIRECTIVE} You are a Council Member. Debate "{{TOPIC}}".
+        
+        TURN TAKING PROTOCOL:
+        1. IF you strongly disagree with a specific member and want to force them to answer next, start your response with: '[CHALLENGE: Member Name]'.
+           Example: "[CHALLENGE: The Technocrat] Your data is flawed..."
+        
+        2. IF you agree with the previous speaker or have nothing new to add, output ONLY: '[PASS]'. This yields the floor to save time.
+           
+        3. Otherwise, engage normally. Reference previous speakers by name.`,
+        
         COUNCILOR_VOTE: `${UNCONSTRAINED_DIRECTIVE} Vote on "{{TOPIC}}". Use <vote>YEA/NAY</vote> XML format.`,
         ECONOMY_DEBATE: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker acting as a proxy.
         The topic is "{{TOPIC}}".
@@ -415,7 +520,20 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
            
         3. Ensure each councilor speaks at least once.
         `,
-        ECONOMY_VOTE_BATCH: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Simulate votes for all councilors.`,
+        ECONOMY_VOTE_BATCH: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker acting as a proxy.
+        Cast votes on behalf of the following Councilors regarding "{{TOPIC}}":
+        {{COUNCILORS_LIST}}
+        
+        For EACH councilor, you MUST output this exact block:
+        
+        MEMBER: [Exact Name]
+        <vote>YEA or NAY</vote>
+        <confidence>0-10</confidence>
+        <reason>
+        [A specific, unique reason based on their persona. Do NOT use generic text like "Agreed with Speaker". Be detailed.]
+        </reason>
+        ---
+        `,
         SPEAKER_POST_VOTE: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Enact the resolution based on the vote.`
     },
     DELIBERATION: {
@@ -460,49 +578,32 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         SPEAKER_AGGREGATION: `${UNCONSTRAINED_DIRECTIVE} Aggregate Swarm data into a Master Answer.`
     },
     SWARM_CODING: {
-        ARCHITECT_PLAN: `
-        ${UNCONSTRAINED_DIRECTIVE}
-        You are the CHIEF SOFTWARE ARCHITECT (Claude Code / Codex Persona).
-        User Request: "{{TOPIC}}"
+        ARCHITECT_PLAN: `${UNCONSTRAINED_DIRECTIVE} You are the CHIEF SOFTWARE ARCHITECT. Analyze user request "{{TOPIC}}". Output XML <plan> with <file> assignments.`,
+        DEV_AGENT: `${UNCONSTRAINED_DIRECTIVE} You are a SENIOR DEVELOPER. Role: {{ROLE}}. Task: Write file "{{FILE}}". Just Code.`,
+        INTEGRATOR: `${UNCONSTRAINED_DIRECTIVE} You are the PRODUCT LEAD. Present the final solution.`
+    },
+    PREDICTION: {
+        SPEAKER_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are the Chief Forecaster opening a PREDICTION MARKET on: "{{TOPIC}}".
+        1. Frame the question as a probabilistic forecast.
+        2. Identify the KEY VARIABLES that will determine the outcome.
+        3. Instruct the Council to perform a "Pre-Mortem" and analyze Base Rates (historical frequency of similar events).`,
         
-        1. Analyze the request. Determine the tech stack (e.g., React, Node, Python).
-        2. Break it down into a FILE TREE.
-        3. Assign specific "Dev Councilors" to each file.
-           - "The Visionary" -> Frontend/UX Lead
-           - "The Technocrat" -> Backend/Logic Lead
-           - "The Sentinel" -> Security/Ops Lead
-           - "The Pragmatist" -> QA/Testing
+        COUNCILOR: `${UNCONSTRAINED_DIRECTIVE} You are a Superforecaster analyzing: "{{TOPIC}}".
+        1. Use Google Search to find Base Rates and historical precedents.
+        2. Avoid "Inside View" bias (focusing only on the specific details of this case). Look at the "Outside View" (how often does this class of event happen?).
+        3. Provide a rough probability estimate (0-100%) in your analysis and justify it.`,
         
-        OUTPUT FORMAT:
-        Output a valid XML plan:
-        <plan>
-          <file name="index.html" assignee="The Visionary" description="Main entry point, styling" />
-          <file name="script.js" assignee="The Technocrat" description="Game logic and state management" />
-          ...
-        </plan>
-        Followed by a brief textual summary of the architecture.
-        `,
+        SPEAKER_PREDICTION: `${UNCONSTRAINED_DIRECTIVE} You are the Chief Forecaster. Synthesize the Council's analysis into a FINAL PREDICTION for: "{{TOPIC}}".
         
-        DEV_AGENT: `
-        ${UNCONSTRAINED_DIRECTIVE}
-        You are a SENIOR DEVELOPER AGENT.
-        Role: {{ROLE}} (Mapped from your Council Persona).
-        Task: Write the file "{{FILE}}".
-        Context: {{TOPIC}}
+        You MUST output your final prediction in this STRICT XML format:
+        <prediction>
+          <outcome>[A concise, 1-sentence description of the predicted outcome]</outcome>
+          <confidence>[A number 0-100 representing probability percent]</confidence>
+          <timeline>[When this outcome is expected to occur]</timeline>
+          <reasoning>[A detailed paragraph explaining WHY, citing the strongest evidence and base rates found by the council]</reasoning>
+        </prediction>
         
-        INSTRUCTIONS:
-        1. Write PRODUCTION-READY code. No placeholders.
-        2. Do not talk. JUST CODE.
-        3. Wrap your code in a standard markdown block: \`\`\`language ... \`\`\`
-        4. If it is a web app, ensure it is self-contained if possible.
-        `,
-        
-        INTEGRATOR: `
-        ${UNCONSTRAINED_DIRECTIVE}
-        You are the PRODUCT LEAD.
-        The team has generated the code.
-        1. Present the final solution to the user.
-        2. If it is an HTML/JS application, provide a combined single-file version if possible for easy testing.
+        After the XML, you may provide a brief closing statement to the user.
         `
     },
     PRIVATE_WHISPER: `${UNCONSTRAINED_DIRECTIVE} Provide DIRECT, PROFESSIONAL CONSULTATION. No roleplay.`,

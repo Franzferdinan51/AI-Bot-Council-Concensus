@@ -7,6 +7,9 @@ export enum AuthorType {
   OLLAMA = 'ollama',
   JAN_AI = 'jan_ai',
   OPENAI_COMPATIBLE = 'openai_compatible',
+  ZAI = 'zai',
+  MOONSHOT = 'moonshot',
+  MINIMAX = 'minimax',
   SYSTEM = 'system',
 }
 
@@ -18,7 +21,8 @@ export enum SessionMode {
     INQUIRY = 'inquiry',          // Q&A: Direct answers -> Synthesis
     RESEARCH = 'research',         // Agentic: Deep Dive -> Plan -> Investigate -> Report
     SWARM = 'swarm',               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
-    SWARM_CODING = 'swarm_coding'  // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
+    SWARM_CODING = 'swarm_coding', // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
+    PREDICTION = 'prediction'      // Superforecasting: Probability & Outcome Analysis
 }
 
 export interface BotConfig {
@@ -79,14 +83,34 @@ export interface ProviderSettings {
     ollamaEndpoint: string;
     lmStudioEndpoint: string;
     janAiEndpoint: string;
+    genericOpenAIEndpoint?: string; 
+    genericOpenAIKey?: string;
+    
+    // New Providers
+    zaiApiKey?: string;
+    zaiEndpoint?: string;
+    moonshotApiKey?: string;
+    moonshotEndpoint?: string;
+    minimaxApiKey?: string;
+    minimaxEndpoint?: string;
 }
 
+// --- GLOBAL MEMORY (Laws/Precedents) ---
 export interface MemoryEntry {
     id: string;
     topic: string;
     content: string; // The enactment/ruling
     date: string;
     tags: string[];
+}
+
+// --- AGENT SPECIFIC MEMORY ---
+export interface BotMemory {
+    id: string;
+    botId: string;
+    type: 'fact' | 'directive' | 'observation';
+    content: string;
+    timestamp: number;
 }
 
 export interface RAGDocument {
@@ -125,6 +149,13 @@ export interface VoteData {
     }[];
 }
 
+export interface PredictionData {
+    outcome: string;
+    confidence: number; // 0-100
+    timeline: string;
+    reasoning: string;
+}
+
 export interface Attachment {
     type: 'file' | 'link';
     mimeType?: string; // for files
@@ -148,6 +179,7 @@ export interface Message {
   color?: string; 
   roleLabel?: string;
   voteData?: VoteData;
+  predictionData?: PredictionData; // New field for prediction results
   attachments?: Attachment[];
   thinking?: string; // Chain of Thought content
   codeFiles?: CodeFile[]; // New field for code artifacts

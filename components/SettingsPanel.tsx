@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument } from '../types';
+import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument, BotMemory } from '../types';
 import { MCP_PRESETS, PERSONA_PRESETS, PUBLIC_MCP_REGISTRY } from '../constants';
-import { getMemories } from '../services/knowledgeService';
+import { getMemories, getBotMemories, addBotMemory, deleteBotMemory } from '../services/knowledgeService';
 
 interface SettingsPanelProps {
   settings: Settings;
@@ -17,10 +17,26 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
   const [memories, setMemories] = useState(getMemories());
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
+  
+  // Bot Memory State
+  const [botMemories, setBotMemories] = useState<BotMemory[]>([]);
+  const [newMemoryContent, setNewMemoryContent] = useState('');
+  const [newMemoryType, setNewMemoryType] = useState<'fact'|'directive'|'observation'>('fact');
+
+  // MCP Import State
+  const [toolImportUrl, setToolImportUrl] = useState('');
+  const [importStatus, setImportStatus] = useState('');
 
   useEffect(() => {
       if (isOpen) setMemories(getMemories());
   }, [isOpen]);
+
+  // Load specific bot memories when editing
+  useEffect(() => {
+      if (editingBot) {
+          setBotMemories(getBotMemories(editingBot.id));
+      }
+  }, [editingBot]);
 
   // --- Bot Management ---
   const toggleBot = (id: string) => {
@@ -70,6 +86,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
               persona: preset.persona || editingBot.persona
           });
       }
+  };
+
+  // --- Bot Memory Handlers ---
+  const handleAddBotMemory = () => {
+      if (!editingBot || !newMemoryContent.trim()) return;
+      const mem = addBotMemory(editingBot.id, newMemoryContent, newMemoryType);
+      setBotMemories([...botMemories, mem]);
+      setNewMemoryContent('');
+  };
+
+  const handleDeleteBotMemory = (id: string) => {
+      deleteBotMemory(id);
+      setBotMemories(botMemories.filter(m => m.id !== id));
   };
 
   // --- Helpers ---
@@ -144,6 +173,51 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
       }
   };
 
+  const handleImportToolFromUrl = async () => {
+      if (!toolImportUrl) return;
+      setImportStatus("Fetching...");
+      try {
+          const res = await fetch(toolImportUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          
+          const toolsToAdd: MCPTool[] = [];
+          
+          // Handle Array of tools or Single tool object
+          const items = Array.isArray(data) ? data : [data];
+          
+          items.forEach((item: any) => {
+              if (item.name && item.description) {
+                  // Attempt to normalize schema. 
+                  // Handles standard Gemini functionDeclaration or raw JSON schema in 'parameters' or 'input_schema'
+                  const schemaObj = item.parameters || item.input_schema || item.schema || {};
+                  
+                  toolsToAdd.push({
+                      name: item.name,
+                      description: item.description,
+                      schema: JSON.stringify(schemaObj, null, 2)
+                  });
+              }
+          });
+
+          if (toolsToAdd.length > 0) {
+              onSettingsChange({
+                  ...settings,
+                  mcp: {
+                      ...settings.mcp,
+                      customTools: [...settings.mcp.customTools, ...toolsToAdd]
+                  }
+              });
+              setImportStatus(`Successfully imported ${toolsToAdd.length} tools.`);
+              setToolImportUrl('');
+          } else {
+              setImportStatus("No valid tool definitions found in JSON.");
+          }
+      } catch (e: any) {
+          setImportStatus(`Error: ${e.message}`);
+      }
+  };
+
   const quickSetEndpoint = (url: string) => {
       onSettingsChange({
           ...settings,
@@ -162,6 +236,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
       onSettingsChange({
           ...settings,
           mcp: { ...settings.mcp, publicToolIds: newIds }
+      });
+  };
+
+  const toggleAllPublicTools = (enable: boolean) => {
+      onSettingsChange({
+          ...settings,
+          mcp: { 
+              ...settings.mcp, 
+              publicToolIds: enable ? PUBLIC_MCP_REGISTRY.map(t => t.id) : [] 
+          }
       });
   };
   
@@ -265,12 +349,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         <h3 className="text-white font-bold">Edit Member</h3>
                     </div>
                     
-                    <div>
-                        <label className="text-xs text-slate-400">Name</label>
-                        <input value={editingBot.name} onChange={e => setEditingBot({...editingBot, name: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" />
-                    </div>
-                    
+                    {/* Bot Basic Info */}
                     <div className="grid grid-cols-2 gap-2">
+                         <div>
+                            <label className="text-xs text-slate-400">Name</label>
+                            <input value={editingBot.name} onChange={e => setEditingBot({...editingBot, name: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" />
+                        </div>
                         <div>
                             <label className="text-xs text-slate-400">Role</label>
                             <select value={editingBot.role} onChange={e => setEditingBot({...editingBot, role: e.target.value as any})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
@@ -280,25 +364,30 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                 <option value="specialist">Specialist Agent</option>
                             </select>
                         </div>
+                    </div>
+                    
+                    {/* Bot Provider Info */}
+                    <div className="grid grid-cols-2 gap-2">
                         <div>
                             <label className="text-xs text-slate-400">Provider</label>
                             <select value={editingBot.authorType} onChange={e => setEditingBot({...editingBot, authorType: e.target.value as any})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
                                 <option value={AuthorType.GEMINI}>Gemini</option>
                                 <option value={AuthorType.OPENROUTER}>OpenRouter</option>
-                                <option value={AuthorType.LM_STUDIO}>LM Studio</option>
+                                <option value={AuthorType.LM_STUDIO}>LM Studio / Local</option>
                                 <option value={AuthorType.OLLAMA}>Ollama</option>
                                 <option value={AuthorType.JAN_AI}>Jan AI</option>
+                                <option value={AuthorType.ZAI}>Z.ai</option>
+                                <option value={AuthorType.MOONSHOT}>Moonshot (Kimi)</option>
+                                <option value={AuthorType.MINIMAX}>Minimax (M2)</option>
                                 <option value={AuthorType.OPENAI_COMPATIBLE}>Generic OpenAI</option>
                             </select>
                         </div>
+                        <div>
+                            <label className="text-xs text-slate-400">Model ID</label>
+                            <input value={editingBot.model} onChange={e => setEditingBot({...editingBot, model: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" placeholder="e.g. gemini-2.5-flash" />
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="text-xs text-slate-400">Model ID</label>
-                        <input value={editingBot.model} onChange={e => setEditingBot({...editingBot, model: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" placeholder="e.g. gemini-2.5-flash" />
-                    </div>
-
-                    {/* Quick Load Persona */}
                      <div>
                         <label className="text-xs text-cyan-400 font-bold uppercase mb-1 block">Quick Load Persona Preset</label>
                         <select 
@@ -314,8 +403,52 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         <label className="text-xs text-slate-400">System Persona</label>
                         <textarea value={editingBot.persona} onChange={e => setEditingBot({...editingBot, persona: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white h-24 text-sm" />
                     </div>
+
+                    {/* --- MEMORY BANK --- */}
+                    <div className="border-t border-slate-700 pt-4 mt-2">
+                        <h4 className="text-sm font-bold text-emerald-400 mb-2 uppercase tracking-wider">Agent Memory Bank</h4>
+                        <div className="bg-slate-800 p-3 rounded border border-slate-700 mb-3 space-y-2">
+                            <input 
+                                value={newMemoryContent} 
+                                onChange={e => setNewMemoryContent(e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" 
+                                placeholder="Add a persistent fact, directive, or memory..."
+                            />
+                            <div className="flex gap-2">
+                                <select 
+                                    value={newMemoryType} 
+                                    onChange={e => setNewMemoryType(e.target.value as any)}
+                                    className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                                >
+                                    <option value="fact">Fact</option>
+                                    <option value="directive">Directive</option>
+                                    <option value="observation">Observation</option>
+                                </select>
+                                <button onClick={handleAddBotMemory} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded">ADD MEMORY</button>
+                            </div>
+                        </div>
+
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                            {botMemories.length === 0 ? (
+                                <p className="text-xs text-slate-500 italic">No custom memories saved for this agent.</p>
+                            ) : (
+                                botMemories.map(mem => (
+                                    <div key={mem.id} className="flex justify-between items-start bg-slate-900 p-2 rounded border border-slate-800">
+                                        <div>
+                                            <span className={`text-[9px] uppercase font-bold mr-2 px-1 rounded ${
+                                                mem.type === 'directive' ? 'bg-red-900 text-red-300' :
+                                                mem.type === 'fact' ? 'bg-blue-900 text-blue-300' : 'bg-slate-700 text-slate-300'
+                                            }`}>{mem.type}</span>
+                                            <span className="text-xs text-slate-300">{mem.content}</span>
+                                        </div>
+                                        <button onClick={() => handleDeleteBotMemory(mem.id)} className="text-red-500 hover:text-white ml-2">×</button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
                     
-                    <button onClick={() => saveBot(editingBot)} className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded">SAVE MEMBER</button>
+                    <button onClick={() => saveBot(editingBot)} className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded mt-4">SAVE MEMBER</button>
                 </div>
             )}
             
@@ -408,8 +541,64 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         />
                     </div>
 
+                    {/* NEW: SPECIALIZED PROVIDERS */}
+                    <div className="p-4 bg-slate-800 rounded border border-slate-700 mt-4 space-y-4">
+                        <label className="text-sm font-bold text-pink-400 block border-b border-slate-700 pb-2">Specialized / International Providers</label>
+                        
+                        {/* Moonshot */}
+                        <div className="space-y-1">
+                            <label className="text-xs text-slate-400">Moonshot (Kimi) API Key</label>
+                            <input type="password" value={settings.providers.moonshotApiKey || ''} onChange={e => updateProvider('moonshotApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                            <label className="text-[10px] text-slate-500">Endpoint</label>
+                            <input type="text" value={settings.providers.moonshotEndpoint || ''} onChange={e => updateProvider('moonshotEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-400 text-[10px]" />
+                        </div>
+
+                        {/* Minimax */}
+                        <div className="space-y-1">
+                            <label className="text-xs text-slate-400">Minimax (M2) API Key</label>
+                            <input type="password" value={settings.providers.minimaxApiKey || ''} onChange={e => updateProvider('minimaxApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                            <label className="text-[10px] text-slate-500">Endpoint</label>
+                            <input type="text" value={settings.providers.minimaxEndpoint || ''} onChange={e => updateProvider('minimaxEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-400 text-[10px]" />
+                        </div>
+
+                        {/* Z.ai */}
+                        <div className="space-y-1">
+                            <label className="text-xs text-slate-400">Z.ai API Key</label>
+                            <input type="password" value={settings.providers.zaiApiKey || ''} onChange={e => updateProvider('zaiApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
+                            <label className="text-[10px] text-slate-500">Endpoint</label>
+                            <input type="text" value={settings.providers.zaiEndpoint || ''} onChange={e => updateProvider('zaiEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-400 text-[10px]" />
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-800 rounded border border-slate-700 mt-4">
+                        <label className="text-sm font-bold text-violet-400 block mb-2">Generic OpenAI-Compatible API</label>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="text-xs text-slate-400">Base URL (v1/chat/completions)</label>
+                                <input 
+                                    type="text" 
+                                    value={settings.providers.genericOpenAIEndpoint || ''} 
+                                    onChange={e => updateProvider('genericOpenAIEndpoint', e.target.value)} 
+                                    className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600 text-xs"
+                                    placeholder="https://api.groq.com/openai/v1/chat/completions"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400">API Key</label>
+                                <input 
+                                    type="password" 
+                                    value={settings.providers.genericOpenAIKey || ''} 
+                                    onChange={e => updateProvider('genericOpenAIKey', e.target.value)} 
+                                    className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600 text-xs"
+                                    placeholder="sk-..."
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="p-4 bg-slate-800 rounded border border-slate-700 space-y-3">
-                        <h4 className="text-sm font-bold text-blue-400 block">Local Providers (URLs)</h4>
+                        <h4 className="text-sm font-bold text-blue-400 block">Local Providers (Network / Tailscale)</h4>
+                        <p className="text-[10px] text-slate-400 mb-2">Enter full URLs including http/https. Use Tailscale IP for remote access.</p>
                         <div>
                             <label className="text-xs text-slate-400">LM Studio Endpoint</label>
                             <input type="text" value={settings.providers.lmStudioEndpoint} onChange={e => updateProvider('lmStudioEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
@@ -425,6 +614,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     </div>
                 </div>
             )}
+            
+            {/* ... other tabs ... */}
             
             {/* --- COST & PERFORMANCE TAB --- */}
             {activeTab === 'cost' && (
@@ -531,15 +722,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
 
                     {/* PUBLIC TOOLS TOGGLES */}
                     <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
-                        <label className="text-xs text-cyan-400 font-bold uppercase block mb-3">Public / Built-in Tools</label>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs text-cyan-400 font-bold uppercase">Public / Built-in Tools</label>
+                            <div className="flex gap-2">
+                                <button onClick={() => toggleAllPublicTools(true)} className="text-[10px] text-emerald-400 hover:underline">Select All</button>
+                                <span className="text-[10px] text-slate-600">|</span>
+                                <button onClick={() => toggleAllPublicTools(false)} className="text-[10px] text-slate-400 hover:text-white hover:underline">None</button>
+                            </div>
+                        </div>
                         <div className="space-y-2">
                              {PUBLIC_MCP_REGISTRY.map(tool => (
                                  <div key={tool.id} className="flex items-center justify-between">
-                                     <div>
+                                     <div className="mr-4">
                                          <div className="text-sm font-bold text-slate-200">{tool.name}</div>
                                          <div className="text-[10px] text-slate-500">{tool.description}</div>
                                      </div>
-                                     <label className="relative inline-flex items-center cursor-pointer">
+                                     <label className="relative inline-flex items-center cursor-pointer shrink-0">
                                         <input 
                                             type="checkbox" 
                                             className="sr-only peer"
@@ -551,6 +749,27 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                  </div>
                              ))}
                         </div>
+                    </div>
+
+                    {/* DYNAMIC IMPORT SECTION */}
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
+                        <label className="text-xs text-cyan-400 font-bold uppercase block mb-2">Import Tool Definition from URL</label>
+                        <p className="text-[10px] text-slate-400 mb-2">Paste a URL pointing to a raw JSON file containing a tool definition (or array of definitions).</p>
+                        <div className="flex gap-2">
+                             <input 
+                                type="text" 
+                                value={toolImportUrl} 
+                                onChange={e => setToolImportUrl(e.target.value)}
+                                placeholder="https://example.com/tools.json"
+                                className="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm"
+                            />
+                            <button onClick={handleImportToolFromUrl} className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded uppercase">
+                                Fetch
+                            </button>
+                        </div>
+                        {importStatus && (
+                            <p className={`text-[10px] mt-2 ${importStatus.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>{importStatus}</p>
+                        )}
                     </div>
 
                     <div className="p-4 bg-slate-800 rounded border border-slate-700 mb-4">

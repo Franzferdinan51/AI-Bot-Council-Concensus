@@ -49,7 +49,7 @@ The system comes pre-loaded with archetypes designed to cover the full spectrum 
 *   **Direct Consultation**: Click any Councilor to open a private, off-the-record side channel.
 *   **Live Audio Audience**: Speak directly to the Council using Gemini's native low-latency audio API.
 *   **Broadcast Mode**: The Council speaks back using distinct neural voices for each persona.
-*   **MCP Support**: Integrate external tools via the Model Context Protocol.
+*   **MCP Support**: Integrate external tools via the Model Context Protocol (Weather, Wikipedia, etc.).
 
 ---
 
