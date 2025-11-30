@@ -30,6 +30,7 @@ The Council operates in distinct modes tailored to your specific needs:
 *   **💻 Swarm Coding**: A dedicated software engineering workflow where the Council transforms into a Dev Team (Architect, Backend, Frontend, SecOps) to write production-ready code with live artifact previews. Includes a dedicated **IDE-Style UI**.
 *   **🗣️ Inquiry**: A rapid-fire Q&A mode where the user asks questions and the Council provides specific answers synthesized by the Speaker.
 *   **🛡️ Deliberation**: A roundtable discussion focused on exploring nuances rather than binary voting.
+*   **🔮 Prediction**: A Superforecasting mode where the Council analyzes base rates, historical precedents, and variables to produce a probabilistic forecast (0-100%) for future events.
 
 ### 2. The Councilors (Personas)
 The system comes pre-loaded with archetypes designed to cover the full spectrum of human thought:
@@ -101,7 +102,7 @@ You can save costs or ensure privacy by running Councilors on local hardware.
 
 The application is built on a modern React stack designed for performance and modularity.
 
-*   **Frontend**: React 18, TypeScript, Tailwind CSS.
+*   **Frontend**: React 19, TypeScript, Tailwind CSS.
 *   **AI Orchestration**: Custom `aiService` layer that handles prompt injection, context pruning, and multi-provider routing.
 *   **State Management**: Complex local state orchestration to handle the asynchronous "Turn-Taking" of the debate cycle.
 *   **Streaming**: Real-time token streaming for a responsive, "alive" feel.
