@@ -25,9 +25,9 @@ export class SessionStorageService {
     this.config = {
       storageDir: process.env.SESSION_STORAGE_DIR || path.join(process.cwd(), 'data', 'sessions'),
       autoSave: true,
-      saveInterval: 30, // Auto-save every 30 seconds
+      saveInterval: 2, // Auto-save every 2 seconds for better persistence
       compressionEnabled: false,
-      backupOnSave: true
+      backupOnSave: false // Disable backups to speed up saves
     };
   }
 

@@ -287,6 +287,25 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
       }
     },
     {
+      name: 'council_get_transcript',
+      description: 'Get a clean, readable transcript of a council session - returns formatted conversation',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          sessionId: {
+            type: 'string',
+            description: 'The session ID to retrieve transcript from'
+          },
+          format: {
+            type: 'string',
+            enum: ['text', 'json', 'markdown'],
+            description: 'Output format (default: text)'
+          }
+        },
+        required: ['sessionId']
+      }
+    },
+    {
       name: 'council_stop_session',
       description: 'Stop a running council session',
       inputSchema: {
@@ -342,6 +361,8 @@ export async function handleCouncilToolCall(
         return await handleListSessions();
       case 'council_get_session':
         return await handleGetSession(arguments_);
+      case 'council_get_transcript':
+        return await handleGetTranscript(arguments_);
       case 'council_stop_session':
         return await handleStopSession(arguments_, orchestrator);
       case 'council_pause_session':
@@ -632,17 +653,25 @@ async function handleListSessions(): Promise<CallToolResult> {
 async function handleGetSession(args: any): Promise<CallToolResult> {
   const startTime = responseSchema.startExecution();
 
-  const validation = ValidationService.validateSessionId(args);
-  if (!validation.isValid) {
-    const errorResponse = responseSchema.validationError(
-      'council_get_session',
-      validation.errors,
-      { executionTime: Date.now() - startTime }
-    );
-    return responseSchema.toMCPResponse(errorResponse);
+  // Flexible validation - accept sessionId as string or in an object
+  let sessionId: string;
+  if (typeof args === 'string') {
+    sessionId = args;
+  } else if (args?.sessionId) {
+    sessionId = typeof args.sessionId === 'string' ? args.sessionId : args.sessionId.sessionId;
+  } else if (Array.isArray(args) && args[0]?.sessionId) {
+    sessionId = args[0].sessionId;
+  } else {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: sessionId is required and must be a string'
+        }
+      ]
+    };
   }
 
-  const { sessionId } = args;
   const session = sessionService.getSession(sessionId);
 
   if (!session) {
@@ -672,6 +701,115 @@ async function handleGetSession(args: any): Promise<CallToolResult> {
     {
       executionTime: Date.now() - startTime,
       includeMessages: true
+    }
+  );
+
+  return responseSchema.toMCPResponse(unifiedResponse);
+}
+
+async function handleGetTranscript(args: any): Promise<CallToolResult> {
+  const startTime = responseSchema.startExecution();
+
+  // Flexible validation - accept sessionId as string or in an object
+  let sessionId: string;
+  if (typeof args === 'string') {
+    sessionId = args;
+  } else if (args.sessionId) {
+    sessionId = typeof args.sessionId === 'string' ? args.sessionId : args.sessionId.sessionId;
+  } else if (typeof args === 'object' && args[0]) {
+    sessionId = args[0].sessionId;
+  } else {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: sessionId is required and must be a string'
+        }
+      ]
+    };
+  }
+
+  const session = sessionService.getSession(sessionId);
+
+  if (!session) {
+    const errorResponse = responseSchema.error(
+      'council_get_transcript',
+      'SESSION_NOT_FOUND',
+      `Session ${sessionId} not found`,
+      { sessionId, executionTime: Date.now() - startTime }
+    );
+    return responseSchema.toMCPResponse(errorResponse);
+  }
+
+  const format = args.format || 'text';
+
+  let transcriptText = '';
+
+  if (format === 'markdown') {
+    transcriptText = `# Council Session Transcript\n\n`;
+    transcriptText += `**Topic:** ${session.topic}\n`;
+    transcriptText += `**Mode:** ${session.mode}\n`;
+    transcriptText += `**Status:** ${session.status}\n`;
+    transcriptText += `**Messages:** ${session.messages.length}\n\n`;
+    transcriptText += `---\n\n`;
+
+    session.messages.forEach((m, idx) => {
+      const prefix = m.authorType === 'system' ? '🖥️ System' : `👤 ${m.author}`;
+      transcriptText += `## Message ${idx + 1} (${prefix})\n\n`;
+      transcriptText += `${m.content}\n\n`;
+    });
+
+    if (session.predictionData) {
+      transcriptText += `---\n\n## Prediction Results\n\n`;
+      transcriptText += `**Outcome:** ${session.predictionData.outcome}\n\n`;
+      transcriptText += `**Confidence:** ${session.predictionData.confidence}%\n\n`;
+      transcriptText += `**Timeline:** ${session.predictionData.timeline}\n\n`;
+      transcriptText += `**Reasoning:**\n${session.predictionData.reasoning}\n\n`;
+    }
+  } else if (format === 'json') {
+    transcriptText = JSON.stringify(session.messages, null, 2);
+  } else {
+    // Default text format - clean and readable
+    transcriptText = `╔════════════════════════════════════════════════════════════╗\n`;
+    transcriptText += `║           AI COUNCIL SESSION TRANSCRIPT                   ║\n`;
+    transcriptText += `╚════════════════════════════════════════════════════════════╝\n\n`;
+    transcriptText += `SESSION ID: ${session.id}\n`;
+    transcriptText += `TOPIC: ${session.topic}\n`;
+    transcriptText += `MODE: ${session.mode}\n`;
+    transcriptText += `STATUS: ${session.status}\n`;
+    transcriptText += `MESSAGE COUNT: ${session.messages.length}\n\n`;
+    transcriptText += `═══════════════════════════════════════════════════════════\n\n`;
+
+    session.messages.forEach((m, idx) => {
+      const prefix = m.authorType === 'system' ? '[SYSTEM]' : `[${m.author}]`;
+      transcriptText += `${String(idx + 1).padStart(3, ' ')} | ${prefix}\n`;
+      transcriptText += `     | ${m.content}\n\n`;
+    });
+
+    if (session.predictionData) {
+      transcriptText += `═══════════════════════════════════════════════════════════\n\n`;
+      transcriptText += `PREDICTION RESULTS:\n\n`;
+      transcriptText += `Outcome: ${session.predictionData.outcome}\n`;
+      transcriptText += `Confidence: ${session.predictionData.confidence}%\n`;
+      transcriptText += `Timeline: ${session.predictionData.timeline}\n`;
+      transcriptText += `\nReasoning:\n${session.predictionData.reasoning}\n`;
+    }
+
+    transcriptText += `\n╚════════════════════════════════════════════════════════════╝\n`;
+  }
+
+  const unifiedResponse = responseSchema.success(
+    'council_get_transcript',
+    {
+      sessionId,
+      format,
+      transcript: transcriptText,
+      messageCount: session.messages.length,
+      executionTime: Date.now() - startTime
+    },
+    {
+      sessionId,
+      executionTime: Date.now() - startTime
     }
   );
 
