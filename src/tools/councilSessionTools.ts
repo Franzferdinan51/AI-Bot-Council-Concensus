@@ -5,6 +5,7 @@ import {
 import { z } from 'zod';
 import { CouncilOrchestrator } from '../services/councilOrchestrator.js';
 import { sessionService } from '../services/sessionService.js';
+import { sessionStorage } from '../services/sessionStorageService.js';
 import { getBotsWithCustomConfigs, DEFAULT_SETTINGS } from '../types/constants.js';
 import {
   CouncilToolInput,
@@ -914,21 +915,41 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
 
   // Check 1: API Keys
   const apiKeys = {
+    gemini: !!process.env.GEMINI_API_KEY,
     anthropic: !!process.env.ANTHROPIC_API_KEY,
     openai: !!process.env.OPENAI_API_KEY,
-    anthropicConfigured: process.env.ANTHROPIC_API_KEY ? process.env.ANTHROPIC_API_KEY.substring(0, 7) + '...' : null
+    openrouter: !!process.env.OPENROUTER_API_KEY,
+    lmStudio: !!process.env.LM_STUDIO_ENDPOINT,
+    ollama: !!process.env.OLLAMA_ENDPOINT,
+    configured: []
   };
+
+  // Track which providers are configured
+  if (apiKeys.gemini) apiKeys.configured.push('Gemini');
+  if (apiKeys.anthropic) apiKeys.configured.push('Anthropic');
+  if (apiKeys.openai) apiKeys.configured.push('OpenAI');
+  if (apiKeys.openrouter) apiKeys.configured.push('OpenRouter');
+  if (apiKeys.lmStudio) apiKeys.configured.push('LM Studio');
+  if (apiKeys.ollama) apiKeys.configured.push('Ollama');
 
   diagnostics.checks.apiKeys = apiKeys;
 
-  if (!apiKeys.anthropic && !apiKeys.openai) {
+  // Check if at least one provider is configured
+  const hasCloudProvider = apiKeys.gemini || apiKeys.anthropic || apiKeys.openai || apiKeys.openrouter;
+  const hasLocalProvider = apiKeys.lmStudio || apiKeys.ollama;
+
+  if (!hasCloudProvider && !hasLocalProvider) {
     diagnostics.errors.push({
       component: 'API Keys',
-      issue: 'No AI API keys configured',
+      issue: 'No AI providers configured',
       severity: 'CRITICAL',
-      message: 'Set ANTHROPIC_API_KEY or OPENAI_API_KEY in environment'
+      message: 'Configure at least one provider:\n' +
+               '  - Cloud: GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, or OPENROUTER_API_KEY\n' +
+               '  - Local: LM_STUDIO_ENDPOINT or OLLAMA_ENDPOINT'
     });
     diagnostics.status = 'ERROR';
+  } else {
+    console.log(`[Diagnostics] Configured providers: ${apiKeys.configured.join(', ')}`);
   }
 
   // Check 2: Session Service
@@ -1041,8 +1062,16 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
 
   // API Keys Status
   report += `─── API KEYS ───\n`;
+  report += `Gemini: ${apiKeys.gemini ? '✓ Configured' : '✗ Missing'}\n`;
   report += `Anthropic: ${apiKeys.anthropic ? '✓ Configured' : '✗ Missing'}\n`;
-  report += `OpenAI: ${apiKeys.openai ? '✓ Configured' : '✗ Missing'}\n\n`;
+  report += `OpenAI: ${apiKeys.openai ? '✓ Configured' : '✗ Missing'}\n`;
+  report += `OpenRouter: ${apiKeys.openrouter ? '✓ Configured' : '✗ Missing'}\n`;
+  report += `LM Studio: ${apiKeys.lmStudio ? '✓ Configured' : '✗ Missing'}\n`;
+  report += `Ollama: ${apiKeys.ollama ? '✓ Configured' : '✗ Missing'}\n\n`;
+
+  if (apiKeys.configured.length > 0) {
+    report += `Configured Providers: ${apiKeys.configured.join(', ')}\n\n`;
+  }
 
   // Session Service
   report += `─── SESSIONS ───\n`;
