@@ -101,11 +101,12 @@ start.bat
 - **Prediction Mode**: Superforecasting with probabilistic outcomes
 - **Swarm Coding**: Software development workflow with code generation
 - **Memory System**: Persisted precedents and knowledge base
+- **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
 - **Real-time Streaming**: Live token streaming for responsive sessions
 
 ### Available MCP Tools
 
-This server provides **14 MCP tools** organized in three categories:
+This server provides **13+ MCP tools** organized in three categories:
 
 #### 1. Council Session Tools (8 tools)
 - `council_proposal` - Legislative proposal with voting
@@ -125,7 +126,7 @@ This server provides **14 MCP tools** organized in three categories:
 - `council_pause_session` - Pause/resume a session
 - `council_diagnostics` - Server health check and diagnostics ⭐
 
-#### 3. Management Tools (2 tools)
+#### 3. Management Tools (9 tools)
 - `council_list_bots` - List all councilor bots
 - `council_update_bot` - Update bot configuration
 - `council_add_memory` - Add precedent to memory
@@ -134,6 +135,7 @@ This server provides **14 MCP tools** organized in three categories:
 - `council_add_document` - Add knowledge base document
 - `council_search_documents` - Search documents
 - `council_list_documents` - List all documents
+- Bot Memory Management: Each bot automatically maintains personal memories ⭐
 
 ### Core Features
 
@@ -144,7 +146,14 @@ This server provides **14 MCP tools** organized in three categories:
 - **Prediction Mode**: Superforecasting with probabilistic outcomes
 - **Swarm Coding**: Software development workflow with code generation
 - **Memory System**: Persisted precedents and knowledge base
+- **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
 - **Real-time Streaming**: Live token streaming for responsive sessions
+
+### Latest Improvements (v2.2) ⭐
+
+#### ✨ New Features
+- **Bot-Specific Memory System**: Each council bot now maintains persistent, personalized memories across sessions! Bots can remember facts, directives, and observations from previous interactions, enabling continuity-aware conversations. Directives are always included in context, while facts/observations are intelligently matched to current topics.
+- **Enhanced Knowledge Storage**: 30-day memory retention with 500-memory cap per bot, automatic cleanup, and smart context retrieval
 
 ### Latest Improvements (v2.1) ⭐
 
