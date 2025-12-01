@@ -1,4 +1,4 @@
-import { MemoryEntry, RAGDocument } from '../types/index.js';
+import { MemoryEntry, RAGDocument, BotMemory } from '../types/index.js';
 
 export interface CleanupConfig {
   maxMemories: number;
@@ -6,12 +6,15 @@ export interface CleanupConfig {
   memoryRetentionDays: number;
   documentRetentionDays: number;
   autoCleanup: boolean;
+  maxBotMemories?: number;
+  botMemoryRetentionDays?: number;
 }
 
 // Simple in-memory storage (in production, use a proper database)
 class KnowledgeStore {
   private memories: Map<string, MemoryEntry> = new Map();
   private documents: Map<string, RAGDocument> = new Map();
+  private botMemories: Map<string, BotMemory> = new Map();
   private cleanupConfig: CleanupConfig;
 
   constructor() {
@@ -20,7 +23,9 @@ class KnowledgeStore {
       maxDocuments: 500,
       memoryRetentionDays: 90,
       documentRetentionDays: 365,
-      autoCleanup: true
+      autoCleanup: true,
+      maxBotMemories: 500,
+      botMemoryRetentionDays: 30
     };
   }
 
@@ -113,6 +118,40 @@ class KnowledgeStore {
     return this.documents.delete(id);
   }
 
+  // Bot Memory operations
+  addBotMemory(memory: BotMemory): void {
+    this.botMemories.set(memory.id, memory);
+  }
+
+  getBotMemory(id: string): BotMemory | undefined {
+    return this.botMemories.get(id);
+  }
+
+  getBotMemories(botId: string): BotMemory[] {
+    return Array.from(this.botMemories.values()).filter(m => m.botId === botId);
+  }
+
+  searchBotContext(botId: string, query: string): string {
+    const memories = this.getBotMemories(botId);
+    if (memories.length === 0) return "";
+
+    const q = query.toLowerCase();
+    // Find memories that match the current topic/query
+    // Or return all if they are marked as 'directives' (permanent instructions)
+    const relevant = memories.filter(m => {
+      if (m.type === 'directive') return true; // Always include directives
+      return m.content.toLowerCase().includes(q) || q.includes(m.content.toLowerCase());
+    });
+
+    if (relevant.length === 0) return "";
+
+    return `\n[PERSONAL MEMORY / CONTEXT]:\n${relevant.map(m => `- ${m.content}`).join('\n')}`;
+  }
+
+  deleteBotMemory(id: string): boolean {
+    return this.botMemories.delete(id);
+  }
+
   // Cleanup methods
   /**
    * Clean up old or excess memories
@@ -188,17 +227,53 @@ class KnowledgeStore {
   }
 
   /**
-   * Run full cleanup on both memories and documents
+   * Clean up old or excess bot memories
+   * @returns Number of bot memories cleaned
+   */
+  cleanupBotMemories(): number {
+    const now = Date.now();
+    const retentionMs = (this.cleanupConfig.botMemoryRetentionDays || 30) * 24 * 60 * 60 * 1000;
+    let cleanedCount = 0;
+
+    // First, remove old bot memories
+    for (const [id, memory] of this.botMemories.entries()) {
+      const age = now - memory.timestamp;
+      if (age > retentionMs) {
+        this.botMemories.delete(id);
+        cleanedCount++;
+      }
+    }
+
+    // Then, enforce max count by removing oldest
+    const maxBotMemories = this.cleanupConfig.maxBotMemories || 500;
+    if (this.botMemories.size > maxBotMemories) {
+      const memories = Array.from(this.botMemories.entries())
+        .sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+      const toDelete = memories.slice(0, this.botMemories.size - maxBotMemories);
+      for (const [id] of toDelete) {
+        this.botMemories.delete(id);
+        cleanedCount++;
+      }
+    }
+
+    return cleanedCount;
+  }
+
+  /**
+   * Run full cleanup on both memories, documents, and bot memories
    * @returns Summary of cleanup operation
    */
-  fullCleanup(): { memoriesCleaned: number; documentsCleaned: number; total: number } {
+  fullCleanup(): { memoriesCleaned: number; documentsCleaned: number; botMemoriesCleaned: number; total: number } {
     const memoriesCleaned = this.cleanupMemories();
     const documentsCleaned = this.cleanupDocuments();
+    const botMemoriesCleaned = this.cleanupBotMemories();
 
     return {
       memoriesCleaned,
       documentsCleaned,
-      total: memoriesCleaned + documentsCleaned
+      botMemoriesCleaned,
+      total: memoriesCleaned + documentsCleaned + botMemoriesCleaned
     };
   }
 
@@ -333,6 +408,27 @@ export async function deleteDocument(id: string): Promise<boolean> {
   return knowledgeStore.deleteDocument(id);
 }
 
+// Bot Memory functions
+export async function saveBotMemory(memory: BotMemory): Promise<void> {
+  knowledgeStore.addBotMemory(memory);
+}
+
+export async function getBotMemory(id: string): Promise<BotMemory | undefined> {
+  return knowledgeStore.getBotMemory(id);
+}
+
+export async function getBotMemories(botId: string): Promise<BotMemory[]> {
+  return knowledgeStore.getBotMemories(botId);
+}
+
+export function searchBotContext(botId: string, query: string): string {
+  return knowledgeStore.searchBotContext(botId, query);
+}
+
+export async function deleteBotMemory(id: string): Promise<boolean> {
+  return knowledgeStore.deleteBotMemory(id);
+}
+
 // Cleanup functions
 export async function cleanupMemories(): Promise<number> {
   return knowledgeStore.cleanupMemories();
@@ -342,7 +438,7 @@ export async function cleanupDocuments(): Promise<number> {
   return knowledgeStore.cleanupDocuments();
 }
 
-export async function fullCleanup(): Promise<{ memoriesCleaned: number; documentsCleaned: number; total: number }> {
+export async function fullCleanup(): Promise<{ memoriesCleaned: number; documentsCleaned: number; botMemoriesCleaned: number; total: number }> {
   return knowledgeStore.fullCleanup();
 }
 

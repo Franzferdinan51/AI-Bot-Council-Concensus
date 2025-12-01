@@ -239,6 +239,22 @@ export interface MemoryEntry {
 }
 
 /**
+ * Bot-specific memory entry
+ */
+export interface BotMemory {
+  /** Unique memory identifier */
+  id: string;
+  /** Bot that owns this memory */
+  botId: string;
+  /** Type of memory */
+  type: 'fact' | 'directive' | 'observation';
+  /** Memory content */
+  content: string;
+  /** Creation timestamp */
+  timestamp: number;
+}
+
+/**
  * Document in knowledge base
  */
 export interface RAGDocument {
@@ -575,16 +591,6 @@ export interface CouncilSession {
 
 export type { Result, Option, Some, None } from './utilities.js';
 export type { MCPRequest, MCPResponse, SuccessResponse, ErrorResponse } from './api.js';
-export type {
-  StrictBotConfig,
-  StrictMessage,
-  StrictVoteData,
-  StrictPredictionData,
-  StrictCouncilSession,
-  StrictCouncilSettings,
-  StrictMemoryEntry,
-  StrictRAGDocument
-} from './enhanced.js';
 
 // ===== EXPORTS FROM CONSTANTS =====
 
@@ -642,16 +648,4 @@ export {
   unwrap,
   unwrapOr
 } from './utilities.js';
-
-// ===== EXPORT ENHANCED =====
-
-export {
-  toStrictBotConfig,
-  toStrictMessage,
-  toStrictVoteData,
-  toStrictCouncilSession,
-  validateBotConfig,
-  validateMessage,
-  validateVoteData
-} from './enhanced.js';
 
