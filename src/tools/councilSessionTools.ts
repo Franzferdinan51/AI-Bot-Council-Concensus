@@ -24,13 +24,17 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
   return [
     {
       name: 'council_proposal',
-      description: 'Run a legislative proposal session - standard parliamentary debate flow with opening, debate, voting, and enactment',
+      description: 'Run a legislative proposal session - standard parliamentary debate flow with opening, debate, voting, and enactment. The controlling bot can participate as "User/Petitioner"',
       inputSchema: {
         type: 'object',
         properties: {
           topic: {
             type: 'string',
             description: 'The topic or motion to be debated'
+          },
+          userPrompt: {
+            type: 'string',
+            description: 'Optional participation message from the controlling bot (acts as User/Petitioner in the council)'
           },
           settings: {
             type: 'object',
@@ -48,7 +52,9 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
               },
               economyMode: { type: 'boolean' },
               maxConcurrentRequests: { type: 'number' },
-              customDirective: { type: 'string' }
+              customDirective: { type: 'string' },
+              verboseLogging: { type: 'boolean', description: 'Enable detailed progress logging (default: true)' },
+              progressDelay: { type: 'number', description: 'Delay between steps in ms (default: 500)' }
             }
           },
           context: {
@@ -61,13 +67,17 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_deliberation',
-      description: 'Run a deliberation session - roundtable discussion without voting',
+      description: 'Run a deliberation session - roundtable discussion without voting. The controlling bot can participate as "User"',
       inputSchema: {
         type: 'object',
         properties: {
           topic: {
             type: 'string',
             description: 'The topic to deliberate on'
+          },
+          userPrompt: {
+            type: 'string',
+            description: 'Optional participation message from the controlling bot (acts as User in the council)'
           },
           settings: {
             type: 'object',
@@ -83,7 +93,9 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
                   }
                 }
               },
-              customDirective: { type: 'string' }
+              customDirective: { type: 'string' },
+              verboseLogging: { type: 'boolean', description: 'Enable detailed progress logging (default: true)' },
+              progressDelay: { type: 'number', description: 'Delay between steps in ms (default: 500)' }
             }
           },
           context: {
@@ -96,13 +108,17 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_inquiry',
-      description: 'Run an inquiry session - Q&A mode where councilors provide direct answers',
+      description: 'Run an inquiry session - Q&A mode where councilors provide direct answers. The controlling bot can participate as "User"',
       inputSchema: {
         type: 'object',
         properties: {
           topic: {
             type: 'string',
             description: 'The question or inquiry'
+          },
+          userPrompt: {
+            type: 'string',
+            description: 'Optional participation message from the controlling bot'
           },
           settings: {
             type: 'object',
@@ -117,7 +133,9 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
                     enabled: { type: 'boolean' }
                   }
                 }
-              }
+              },
+              verboseLogging: { type: 'boolean', description: 'Enable detailed progress logging (default: true)' },
+              progressDelay: { type: 'number', description: 'Delay between steps in ms (default: 500)' }
             }
           },
           context: {
@@ -130,13 +148,17 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_research',
-      description: 'Run a deep research session - multi-phase investigation with gap analysis',
+      description: 'Run a deep research session - multi-phase investigation with gap analysis. The controlling bot can participate as "User"',
       inputSchema: {
         type: 'object',
         properties: {
           topic: {
             type: 'string',
             description: 'The research topic'
+          },
+          userPrompt: {
+            type: 'string',
+            description: 'Optional participation message from the controlling bot'
           },
           settings: {
             type: 'object',
@@ -151,7 +173,9 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
                     enabled: { type: 'boolean' }
                   }
                 }
-              }
+              },
+              verboseLogging: { type: 'boolean', description: 'Enable detailed progress logging (default: true)' },
+              progressDelay: { type: 'number', description: 'Delay between steps in ms (default: 500)' }
             }
           },
           context: {
@@ -164,13 +188,17 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_swarm',
-      description: 'Run a swarm session - dynamic task decomposition with parallel execution',
+      description: 'Run a swarm session - dynamic task decomposition with parallel execution. The controlling bot can participate as "User"',
       inputSchema: {
         type: 'object',
         properties: {
           topic: {
             type: 'string',
             description: 'The topic for swarm processing'
+          },
+          userPrompt: {
+            type: 'string',
+            description: 'Optional participation message from the controlling bot'
           },
           settings: {
             type: 'object',
@@ -185,7 +213,9 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
                     enabled: { type: 'boolean' }
                   }
                 }
-              }
+              },
+              verboseLogging: { type: 'boolean', description: 'Enable detailed progress logging (default: true)' },
+              progressDelay: { type: 'number', description: 'Delay between steps in ms (default: 500)' }
             }
           },
           context: {
@@ -198,13 +228,17 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_swarm_coding',
-      description: 'Run a swarm coding session - software development workflow with code generation',
+      description: 'Run a swarm coding session - software development workflow with code generation. The controlling bot can participate as "User/Product Owner"',
       inputSchema: {
         type: 'object',
         properties: {
           topic: {
             type: 'string',
             description: 'The coding task or feature request'
+          },
+          userPrompt: {
+            type: 'string',
+            description: 'Optional participation message from the controlling bot (acts as Product Owner/Stakeholder)'
           },
           settings: {
             type: 'object',
@@ -219,7 +253,9 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
                     enabled: { type: 'boolean' }
                   }
                 }
-              }
+              },
+              verboseLogging: { type: 'boolean', description: 'Enable detailed progress logging (default: true)' },
+              progressDelay: { type: 'number', description: 'Delay between steps in ms (default: 500)' }
             }
           },
           context: {
@@ -232,13 +268,17 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_prediction',
-      description: 'Run a prediction session - superforecasting with probabilistic analysis',
+      description: 'Run a prediction session - superforecasting with probabilistic analysis. The controlling bot can participate as "User"',
       inputSchema: {
         type: 'object',
         properties: {
           topic: {
             type: 'string',
             description: 'The event or outcome to predict'
+          },
+          userPrompt: {
+            type: 'string',
+            description: 'Optional participation message from the controlling bot'
           },
           settings: {
             type: 'object',
@@ -253,7 +293,9 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
                     enabled: { type: 'boolean' }
                   }
                 }
-              }
+              },
+              verboseLogging: { type: 'boolean', description: 'Enable detailed progress logging (default: true)' },
+              progressDelay: { type: 'number', description: 'Delay between steps in ms (default: 500)' }
             }
           },
           context: {
@@ -406,23 +448,34 @@ async function handleProposal(args: any, orchestrator: CouncilOrchestrator): Pro
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, settings, context } = args;
+  const { topic, userPrompt, settings, context } = args;
+  console.error(`[MCP TOOL] council_proposal called - Topic: "${topic}"`);
+  if (userPrompt) {
+    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+  }
+
   const sessionSettings = buildSessionSettings(settings);
 
   const sessionId = sessionService.createSession(
     topic,
     SessionMode.PROPOSAL,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Created session: ${sessionId}`);
 
   const result = await orchestrator.runCouncilSession(
     sessionId,
     topic,
     SessionMode.PROPOSAL,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
 
   return {
     content: [
@@ -440,23 +493,34 @@ async function handleDeliberation(args: any, orchestrator: CouncilOrchestrator):
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, settings, context } = args;
+  const { topic, userPrompt, settings, context } = args;
+  console.error(`[MCP TOOL] council_deliberation called - Topic: "${topic}"`);
+  if (userPrompt) {
+    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+  }
+
   const sessionSettings = buildSessionSettings(settings);
 
   const sessionId = sessionService.createSession(
     topic,
     SessionMode.DELIBERATION,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Created session: ${sessionId}`);
 
   const result = await orchestrator.runCouncilSession(
     sessionId,
     topic,
     SessionMode.DELIBERATION,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
 
   return {
     content: [
@@ -474,23 +538,34 @@ async function handleInquiry(args: any, orchestrator: CouncilOrchestrator): Prom
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, settings, context } = args;
+  const { topic, userPrompt, settings, context } = args;
+  console.error(`[MCP TOOL] council_inquiry called - Topic: "${topic}"`);
+  if (userPrompt) {
+    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+  }
+
   const sessionSettings = buildSessionSettings(settings);
 
   const sessionId = sessionService.createSession(
     topic,
     SessionMode.INQUIRY,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Created session: ${sessionId}`);
 
   const result = await orchestrator.runCouncilSession(
     sessionId,
     topic,
     SessionMode.INQUIRY,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
 
   return {
     content: [
@@ -508,23 +583,34 @@ async function handleResearch(args: any, orchestrator: CouncilOrchestrator): Pro
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, settings, context } = args;
+  const { topic, userPrompt, settings, context } = args;
+  console.error(`[MCP TOOL] council_research called - Topic: "${topic}"`);
+  if (userPrompt) {
+    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+  }
+
   const sessionSettings = buildSessionSettings(settings);
 
   const sessionId = sessionService.createSession(
     topic,
     SessionMode.RESEARCH,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Created session: ${sessionId}`);
 
   const result = await orchestrator.runCouncilSession(
     sessionId,
     topic,
     SessionMode.RESEARCH,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
 
   return {
     content: [
@@ -542,23 +628,34 @@ async function handleSwarm(args: any, orchestrator: CouncilOrchestrator): Promis
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, settings, context } = args;
+  const { topic, userPrompt, settings, context } = args;
+  console.error(`[MCP TOOL] council_swarm called - Topic: "${topic}"`);
+  if (userPrompt) {
+    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+  }
+
   const sessionSettings = buildSessionSettings(settings);
 
   const sessionId = sessionService.createSession(
     topic,
     SessionMode.SWARM,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Created session: ${sessionId}`);
 
   const result = await orchestrator.runCouncilSession(
     sessionId,
     topic,
     SessionMode.SWARM,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
 
   return {
     content: [
@@ -576,23 +673,34 @@ async function handleSwarmCoding(args: any, orchestrator: CouncilOrchestrator): 
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, settings, context } = args;
+  const { topic, userPrompt, settings, context } = args;
+  console.error(`[MCP TOOL] council_swarm_coding called - Topic: "${topic}"`);
+  if (userPrompt) {
+    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+  }
+
   const sessionSettings = buildSessionSettings(settings);
 
   const sessionId = sessionService.createSession(
     topic,
     SessionMode.SWARM_CODING,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Created session: ${sessionId}`);
 
   const result = await orchestrator.runCouncilSession(
     sessionId,
     topic,
     SessionMode.SWARM_CODING,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
 
   return {
     content: [
@@ -610,23 +718,34 @@ async function handlePrediction(args: any, orchestrator: CouncilOrchestrator): P
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, settings, context } = args;
+  const { topic, userPrompt, settings, context } = args;
+  console.error(`[MCP TOOL] council_prediction called - Topic: "${topic}"`);
+  if (userPrompt) {
+    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+  }
+
   const sessionSettings = buildSessionSettings(settings);
 
   const sessionId = sessionService.createSession(
     topic,
     SessionMode.PREDICTION,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Created session: ${sessionId}`);
 
   const result = await orchestrator.runCouncilSession(
     sessionId,
     topic,
     SessionMode.PREDICTION,
     sessionSettings,
-    context
+    context,
+    userPrompt
   );
+
+  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
 
   return {
     content: [
@@ -1142,7 +1261,9 @@ function buildSessionSettings(overrides?: any): CouncilSettings {
 
   const settings: CouncilSettings = {
     ...DEFAULT_SETTINGS,
-    bots: configuredBots
+    bots: configuredBots,
+    verboseLogging: true,  // Default to true for better visibility
+    progressDelay: 500     // Default 500ms delay for visible progress
   };
 
   if (overrides) {
@@ -1163,6 +1284,14 @@ function buildSessionSettings(overrides?: any): CouncilSettings {
     }
     if (typeof overrides.customDirective === 'string') {
       settings.customDirective = overrides.customDirective;
+    }
+    if (typeof overrides.verboseLogging === 'boolean') {
+      settings.verboseLogging = overrides.verboseLogging;
+      console.error(`[MCP SETTINGS] Verbose logging: ${overrides.verboseLogging ? 'enabled' : 'disabled'}`);
+    }
+    if (typeof overrides.progressDelay === 'number') {
+      settings.progressDelay = overrides.progressDelay;
+      console.error(`[MCP SETTINGS] Progress delay: ${overrides.progressDelay}ms`);
     }
   }
 

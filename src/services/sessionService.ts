@@ -39,27 +39,45 @@ export class SessionService {
     mode: SessionMode,
     settings: any,
     context?: string,
+    userPrompt?: string,
     attachments?: Attachment[]
   ): string {
     this.ensureInitialized();
 
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    const initialMessage: Message = {
+    console.error(`[SessionService] Creating session ${sessionId} - Mode: ${mode}, User Participation: ${userPrompt ? 'Yes' : 'No'}`);
+
+    const messages: Message[] = [];
+
+    // Add user prompt if provided (the controlling bot is participating)
+    if (userPrompt) {
+      console.error(`[SessionService] Adding user prompt to session: "${userPrompt.substring(0, 100)}..."`);
+      messages.push({
+        id: `user-${Date.now()}`,
+        author: 'User',
+        authorType: 'human' as any,
+        content: userPrompt,
+        timestamp: Date.now()
+      });
+    }
+
+    // Add initial message (topic/context)
+    messages.push({
       id: `init-${Date.now()}`,
       author: 'Petitioner',
       authorType: 'human' as any,
       content: context || topic,
       timestamp: Date.now(),
       attachments
-    };
+    });
 
     const session: CouncilSession = {
       id: sessionId,
       topic,
       mode,
       status: SessionStatus.IDLE,
-      messages: [initialMessage],
+      messages,
       settings,
       createdAt: Date.now(),
       updatedAt: Date.now()

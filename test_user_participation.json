@@ -1,0 +1,1 @@
+{"name": "council_deliberation", "arguments": {"topic": "Should we implement a 4-day work week?", "userPrompt": "As a business owner, I want to add that this could reduce operational costs while improving employee satisfaction.", "settings": {"verboseLogging": true, "progressDelay": 600}}}

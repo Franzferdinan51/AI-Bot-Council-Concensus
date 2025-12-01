@@ -308,6 +308,10 @@ export interface CouncilSettings {
   contextPruning?: boolean;
   /** Maximum conversation turns to keep (default: 8) */
   maxContextTurns?: number;
+  /** Enable verbose logging during session execution (default: true) */
+  verboseLogging?: boolean;
+  /** Delay between progress steps in milliseconds (default: 500) */
+  progressDelay?: number;
 }
 
 // ===== MCP TOOL INPUT/OUTPUT TYPES =====

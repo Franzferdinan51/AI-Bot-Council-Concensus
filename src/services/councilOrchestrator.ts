@@ -29,6 +29,7 @@ export class CouncilOrchestrator {
     mode: SessionMode,
     settings: CouncilSettings,
     context?: string,
+    userPrompt?: string,
     attachments?: Attachment[]
   ): Promise<{
     messages: Message[];
@@ -43,6 +44,19 @@ export class CouncilOrchestrator {
 
     const controlSignal = { stop: false, pause: false };
     this.controlSignals.set(sessionId, controlSignal);
+
+    // Enhanced logging
+    const enabledBotCount = settings.bots.filter(b => b.enabled).length;
+    console.error(`[Orchestrator] Starting council session ${sessionId}`);
+    console.error(`[Orchestrator] Mode: ${mode}, Topic: "${topic}"`);
+    console.error(`[Orchestrator] Enabled bots: ${enabledBotCount}/${settings.bots.length}`);
+    console.error(`[Orchestrator] Verbose logging: ${settings.verboseLogging ? 'enabled' : 'disabled'}`);
+    console.error(`[Orchestrator] Progress delay: ${settings.progressDelay || 0}ms`);
+
+    if (settings.verboseLogging) {
+      console.error(`[Orchestrator] Economy mode: ${settings.economyMode ? 'enabled' : 'disabled'}`);
+      console.error(`[Orchestrator] Max concurrent requests: ${settings.maxConcurrentRequests || 2}`);
+    }
 
     sessionService.updateSessionStatus(sessionId, SessionStatus.OPENING);
 
