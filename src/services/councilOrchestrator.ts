@@ -9,7 +9,7 @@ import {
   Attachment,
   CouncilSettings
 } from '../types/index.js';
-import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_BOTS } from '../types/constants.js';
+import { COUNCIL_SYSTEM_INSTRUCTION, getBotsWithCustomConfigs } from '../types/constants.js';
 import { AIService } from './aiService.js';
 import { sessionService } from './sessionService.js';
 import { searchMemories, searchDocuments, saveMemory } from './knowledgeService.js';

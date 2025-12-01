@@ -8,7 +8,7 @@ import { CouncilOrchestrator } from '../services/councilOrchestrator.js';
 import { sessionService } from '../services/sessionService.js';
 import { ValidationService } from '../services/validationService.js';
 import { responseSchema } from '../services/responseSchema.js';
-import { SessionMode, CouncilSettings, DEFAULT_BOTS, DEFAULT_SETTINGS } from '../types/index.js';
+import { SessionMode, CouncilSettings, getBotsWithCustomConfigs, DEFAULT_SETTINGS } from '../types/index.js';
 
 export interface AutoSessionInput {
   topic: string;

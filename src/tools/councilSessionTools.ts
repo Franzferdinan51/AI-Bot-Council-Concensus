@@ -5,7 +5,7 @@ import {
 import { z } from 'zod';
 import { CouncilOrchestrator } from '../services/councilOrchestrator.js';
 import { sessionService } from '../services/sessionService.js';
-import { DEFAULT_BOTS, DEFAULT_SETTINGS } from '../types/constants.js';
+import { getBotsWithCustomConfigs, DEFAULT_SETTINGS } from '../types/constants.js';
 import {
   CouncilToolInput,
   CouncilToolResult,
@@ -1108,7 +1108,13 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
 }
 
 function buildSessionSettings(overrides?: any): CouncilSettings {
-  const settings = { ...DEFAULT_SETTINGS };
+  // Use configured bots with custom models
+  const configuredBots = getBotsWithCustomConfigs();
+
+  const settings: CouncilSettings = {
+    ...DEFAULT_SETTINGS,
+    bots: configuredBots
+  };
 
   if (overrides) {
     if (overrides.bots) {

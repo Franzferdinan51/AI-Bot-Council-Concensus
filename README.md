@@ -214,7 +214,99 @@ set GEMINI_API_KEY=your_key& start.bat
 
 # Or use the interactive menu:
 start.bat
-# Then choose option 1 (Quick Start) or option 2 (Setup Wizard)
+```
+
+### Configuring Custom Models for Bots
+
+Each bot/persona can use a different AI model. This is perfect for:
+- Using Claude for some bots, GPT-4 for others
+- Optimizing costs (use faster models for simple tasks)
+- Experimenting with different models for different personas
+- Supporting multiple AI providers simultaneously
+
+**Option 1: Interactive Configuration (Windows)**
+
+Run the interactive menu:
+```cmd
+start.bat
+# Then choose option 3: "Configure Bot Models"
+```
+
+Choose from:
+1. **Quick Configure** - Set one model for all bots
+2. **Advanced Configure** - Set individual models for each bot
+3. **Reset to defaults** - Remove custom models
+
+**Option 2: Manual Configuration**
+
+Edit your `.env` file directly:
+
+```bash
+# Configure Speaker to use Claude 3.5 Sonnet via OpenRouter
+MODEL_SPEAKER_HIGH_COUNCIL=anthropic/claude-3.5-sonnet
+
+# Configure Technocrat to use GPT-4o
+MODEL_COUNCILOR_TECHNOCRAT=openai/gpt-4o
+
+# Configure Specialist Coder to use Llama
+MODEL_SPECIALIST_CODE=meta-llama/llama-3.1-70b-instruct
+
+# Use different models for different modes
+MODEL_COVNILOR_ETHICIST=anthropic/claude-3-haiku
+```
+
+**Available Models:**
+
+- **Gemini**: `gemini-2.5-flash`, `gemini-1.5-pro`
+- **OpenRouter**: `anthropic/claude-3.5-sonnet`, `anthropic/claude-3-haiku`, `openai/gpt-4o`, `openai/gpt-4o-mini`, `meta-llama/llama-3.1-70b-instruct`
+- **OpenAI**: `gpt-4o`, `gpt-4-turbo`, `gpt-3.5-turbo`
+- **Local**: Any model name for Ollama/LM Studio
+
+**Example Configuration:**
+
+```bash
+# High Council Speaker uses premium model
+MODEL_SPEAKER_HIGH_COUNCIL=anthropic/claude-3.5-sonnet
+AUTHOR_TYPE_SPEAKER_HIGH_COUNCIL=openrouter
+
+# Other bots use faster, cheaper models
+MODEL_COUNCILOR_TECHNOCRAT=openai/gpt-4o-mini
+MODEL_COUNCILOR_ETHICIST=openai/gpt-4o-mini
+MODEL_COUNCILOR_PRAGMATIST=gemini-2.5-flash
+```
+
+**Author Type Configuration (Optional):**
+
+You can also specify which provider to use per bot:
+
+```bash
+# Use OpenRouter for Speaker
+AUTHOR_TYPE_SPEAKER_HIGH_COUNCIL=openrouter
+
+# Use Gemini for Technocrat
+AUTHOR_TYPE_COUNCILOR_TECHNOCRAT=gemini
+
+# Use local Ollama for Specialist
+AUTHOR_TYPE_SPECIALIST_CODE=ollama
+```
+
+**Environment Variable Format:**
+
+- `MODEL_<BOT-ID>` - Set the model for a specific bot
+- `AUTHOR_TYPE_<BOT-ID>` - Set the provider for a specific bot
+
+Bot IDs are uppercase versions of the bot names:
+- `speaker-high-council` → `MODEL_SPEAKER_HIGH_COUNCIL`
+- `councilor-technocrat` → `MODEL_COUNCILOR_TECHNOCRAT`
+- `specialist-code` → `MODEL_SPECIALIST_CODE`
+
+**Changes Take Effect:**
+
+After configuring models, restart the server:
+```bash
+npm start
+# or
+start.bat
 ```
 
 ### Startup Script Options

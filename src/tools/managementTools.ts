@@ -12,7 +12,7 @@ import {
   SearchDocumentsInput,
   SearchDocumentsResult
 } from '../types/index.js';
-import { DEFAULT_BOTS } from '../types/constants.js';
+import { getBotsWithCustomConfigs } from '../types/constants.js';
 import { listMemories, saveMemory, searchMemories } from '../services/knowledgeService.js';
 import { listDocuments, saveDocument, searchDocuments } from '../services/knowledgeService.js';
 import { ValidationService } from '../services/validationService.js';
@@ -191,9 +191,10 @@ export async function handleManagementToolCall(
 }
 
 async function handleListBots(): Promise<CallToolResult> {
+  const configuredBots = getBotsWithCustomConfigs();
   const result: ListBotsResult = {
-    bots: DEFAULT_BOTS,
-    message: `Found ${DEFAULT_BOTS.length} configured bots`
+    bots: configuredBots,
+    message: `Found ${configuredBots.length} configured bots`
   };
 
   return {
@@ -214,7 +215,8 @@ async function handleUpdateBot(args: any): Promise<CallToolResult> {
   }
 
   const { botId, updates } = args;
-  const bot = DEFAULT_BOTS.find(b => b.id === botId);
+  const configuredBots = getBotsWithCustomConfigs();
+  const bot = configuredBots.find(b => b.id === botId);
 
   if (!bot) {
     return {

@@ -26,28 +26,30 @@ echo Welcome! Choose an option:
 echo.
 echo   1. Quick Start (Start Server Now)
 echo   2. Interactive Setup Wizard (Configure AI providers, personas, settings)
-echo   3. Configuration Check (Verify setup)
-echo   4. Development Mode (with auto-reload)
-echo   5. Open Documentation (View README, setup guides)
-echo   6. View .env file
-echo   7. Start HTTP Bridge (/health, /list-tools, /call-tool)
-echo   8. Generate mcp.json from environment
-echo   9. Exit
+echo   3. Configure Bot Models (Set custom models for each persona)
+echo   4. Configuration Check (Verify setup)
+echo   5. Development Mode (with auto-reload)
+echo   6. Open Documentation (View README, setup guides)
+echo   7. View .env file
+echo   8. Start HTTP Bridge (/health, /list-tools, /call-tool)
+echo   9. Generate mcp.json from environment
+echo  10. Exit
 echo.
-set /p MENU_CHOICE="Enter your choice (1-9): "
+set /p MENU_CHOICE="Enter your choice (1-10): "
 
 if "%MENU_CHOICE%"=="1" goto :quick_start
 if "%MENU_CHOICE%"=="2" goto :setup_wizard
-if "%MENU_CHOICE%"=="3" goto :check_config
-if "%MENU_CHOICE%"=="4" goto :dev_mode
-if "%MENU_CHOICE%"=="5" goto :view_docs
-if "%MENU_CHOICE%"=="6" goto :view_env
-if "%MENU_CHOICE%"=="7" goto :http_bridge
-if "%MENU_CHOICE%"=="8" goto :generate_mcp
-if "%MENU_CHOICE%"=="9" goto :exit
+if "%MENU_CHOICE%"=="3" goto :configure_models
+if "%MENU_CHOICE%"=="4" goto :check_config
+if "%MENU_CHOICE%"=="5" goto :dev_mode
+if "%MENU_CHOICE%"=="6" goto :view_docs
+if "%MENU_CHOICE%"=="7" goto :view_env
+if "%MENU_CHOICE%"=="8" goto :http_bridge
+if "%MENU_CHOICE%"=="9" goto :generate_mcp
+if "%MENU_CHOICE%"=="10" goto :exit
 
 echo.
-echo [ERROR] Invalid choice. Please enter a number between 1-9.
+echo [ERROR] Invalid choice. Please enter a number between 1-10.
 echo.
 pause
 goto :interactive_menu
@@ -785,6 +787,446 @@ echo [SUCCESS] Configuration saved to .env
 echo.
 pause
 exit /b 0
+
+:: ============================================
+:: CONFIGURE BOT MODELS
+:: ============================================
+:configure_models
+cls
+echo.
+echo ===============================================
+echo   Configure Bot Models for Personas
+echo ===============================================
+echo.
+echo This allows you to set custom AI models for each persona.
+echo Each bot can use a different model (Claude, GPT-4, Llama, etc.)
+echo.
+echo Current default model: gemini-2.5-flash (for all bots)
+echo.
+echo Press any key to continue...
+pause >nul
+
+:: Load existing .env
+if exist ".env" (
+    call :load_env
+    echo [INFO] Loaded existing .env file
+    echo.
+)
+
+cls
+echo ===============================================
+echo   Configure Bot Models
+echo ===============================================
+echo.
+echo Available bots and their current models:
+echo.
+echo   Speaker (High Council)        - Current: gemini-2.5-flash
+echo   The Facilitator (Moderator)   - Current: gemini-2.5-flash
+echo   The Technocrat                - Current: gemini-2.5-flash
+echo   The Ethicist                  - Current: gemini-2.5-flash
+echo   The Pragmatist                - Current: gemini-2.5-flash
+echo   The Visionary                 - Current: gemini-2.5-flash
+echo   The Sentinel                  - Current: gemini-2.5-flash
+echo   The Historian                 - Current: gemini-2.5-flash
+echo   The Diplomat                  - Current: gemini-2.5-flash
+echo   The Skeptic                   - Current: gemini-2.5-flash
+echo   The Conspiracist              - Current: gemini-2.5-flash
+echo   The Journalist                - Current: gemini-2.5-flash
+echo   The Propagandist              - Current: gemini-2.5-flash
+echo   The Psychologist               - Current: gemini-2.5-flash
+echo   The Libertarian                - Current: gemini-2.5-flash
+echo   The Progressive                - Current: gemini-2.5-flash
+echo   The Conservative               - Current: gemini-2.5-flash
+echo   The Independent                - Current: gemini-2.5-flash
+echo   Specialist Coder              - Current: gemini-2.5-flash
+echo.
+echo Choose configuration mode:
+echo   1. Quick Configure (Set model for all bots at once)
+echo   2. Advanced Configure (Set individual models)
+echo   3. Reset to defaults (Remove all custom models)
+echo   4. Exit without changes
+echo.
+set /p MODEL_CHOICE="Enter your choice (1-4): "
+
+if "%MODEL_CHOICE%"=="1" goto :quick_configure_models
+if "%MODEL_CHOICE%"=="2" goto :advanced_configure_models
+if "%MODEL_CHOICE%"=="3" goto :reset_model_configs
+if "%MODEL_CHOICE%"=="4" goto :interactive_menu
+
+echo Invalid choice.
+pause
+goto :configure_models
+
+:quick_configure_models
+cls
+echo.
+echo ===============================================
+echo   Quick Configure - Set Model for All Bots
+echo ===============================================
+echo.
+echo Choose AI Provider:
+echo   1. Google Gemini (gemini-2.5-flash, gemini-1.5-pro)
+echo   2. OpenRouter (Claude, GPT-4, Llama models)
+echo   3. OpenAI (gpt-4o, gpt-4-turbo)
+echo   4. Custom (Enter model name manually)
+echo.
+set /p PROVIDER_CHOICE="Enter provider (1-4): "
+
+set DEFAULT_MODEL=
+if "%PROVIDER_CHOICE%"=="1" (
+    set DEFAULT_MODEL=gemini-2.5-flash
+    echo Using Google Gemini models
+) else if "%PROVIDER_CHOICE%"=="2" (
+    echo.
+    echo Available OpenRouter models:
+    echo   - anthropic/claude-3.5-sonnet (Recommended)
+    echo   - openai/gpt-4o-mini
+    echo   - meta-llama/llama-3.1-70b-instruct
+    echo   - mistralai/mistral-large
+    echo.
+    set /p DEFAULT_MODEL="Enter OpenRouter model name: "
+) else if "%PROVIDER_CHOICE%"=="3" (
+    echo.
+    echo Available OpenAI models:
+    echo   - gpt-4o (Recommended)
+    echo   - gpt-4o-mini
+    echo   - gpt-4-turbo
+    echo.
+    set /p DEFAULT_MODEL="Enter OpenAI model name: "
+) else if "%PROVIDER_CHOICE%"=="4" (
+    set /p DEFAULT_MODEL="Enter custom model name: "
+) else (
+    echo Invalid choice
+    pause
+    goto :quick_configure_models
+)
+
+if "!DEFAULT_MODEL!"=="" (
+    echo [ERROR] Model name cannot be empty
+    pause
+    goto :quick_configure_models
+)
+
+echo.
+echo Setting all bots to use: !DEFAULT_MODEL!
+echo.
+set /p CONFIRM_SETTING="Proceed with this setting? (y/n) [y]: "
+if "!CONFIRM_SETTING!"=="" set CONFIRM_SETTING=y
+if /i not "!CONFIRM_SETTING!"=="y" goto :configure_models
+
+:: Generate model configuration
+call :generate_model_config "!DEFAULT_MODEL!"
+goto :save_models_and_exit
+
+:advanced_configure_models
+cls
+echo.
+echo ===============================================
+echo   Advanced Configure - Individual Bot Models
+echo ===============================================
+echo.
+echo This will configure each bot individually.
+echo You can skip bots you don't want to change.
+echo.
+set /p CONTINUE_ADVANCED="Continue? (y/n) [y]: "
+if "!CONTINUE_ADVANCED!"=="" set CONTINUE_ADVANCED=y
+if /i not "!CONTINUE_ADVANCED!"=="y" goto :configure_models
+
+:: Configure each bot
+echo.
+echo Configure Speaker (High Council):
+set /p MODEL_speaker_high_council="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Facilitator (Moderator):
+set /p MODEL_moderator_facilitator="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Technocrat:
+set /p MODEL_councilor_technocrat="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Ethicist:
+set /p MODEL_councilor_ethicist="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Pragmatist:
+set /p MODEL_councilor_pragmatist="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Visionary:
+set /p MODEL_councilor_visionary="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Sentinel:
+set /p MODEL_councilor_sentinel="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Historian:
+set /p MODEL_councilor_historian="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Diplomat:
+set /p MODEL_councilor_diplomat="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Skeptic:
+set /p MODEL_councilor_skeptic="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Conspiracist:
+set /p MODEL_councilor_conspiracist="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Journalist:
+set /p MODEL_councilor_journalist="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Propagandist:
+set /p MODEL_councilor_propagandist="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Psychologist:
+set /p MODEL_councilor_psychologist="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Libertarian:
+set /p MODEL_councilor_libertarian="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Progressive:
+set /p MODEL_councilor_progressive="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Conservative:
+set /p MODEL_councilor_conservative="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure The Independent:
+set /p MODEL_councilor_independent="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+echo.
+echo Configure Specialist Coder:
+set /p MODEL_specialist_code="Model (current: gemini-2.5-flash, press Enter to keep): "
+
+:: Generate model configuration from entered values
+call :generate_model_config "" "advanced"
+goto :save_models_and_exit
+
+:generate_model_config
+set DEFAULT_MODEL=%~1
+set CONFIG_MODE=%~2
+
+if "%CONFIG_MODE%"=="advanced" (
+    :: For advanced mode, build the config from individual variables
+    echo.
+    echo Generated configurations:
+    echo.
+
+    if defined MODEL_speaker_high_council (
+        if not "!MODEL_speaker_high_council!"=="" echo MODEL_SPEAKER_HIGH_COUNCIL=!MODEL_speaker_high_council!
+    )
+    if defined MODEL_moderator_facilitator (
+        if not "!MODEL_moderator_facilitator!"=="" echo MODEL_MODERATOR_FACILITATOR=!MODEL_moderator_facilitator!
+    )
+    if defined MODEL_councilor_technocrat (
+        if not "!MODEL_councilor_technocrat!"=="" echo MODEL_COUNCILOR_TECHNOCRAT=!MODEL_councilor_technocrat!
+    )
+    if defined MODEL_councilor_ethicist (
+        if not "!MODEL_councilor_ethicist!"=="" echo MODEL_COUNCILOR_ETHICIST=!MODEL_councilor_ethicist!
+    )
+    if defined MODEL_councilor_pragmatist (
+        if not "!MODEL_councilor_pragmatist!"=="" echo MODEL_COUNCILOR_PRAGMATIST=!MODEL_councilor_pragmatist!
+    )
+    if defined MODEL_councilor_visionary (
+        if not "!MODEL_councilor_visionary!"=="" echo MODEL_COUNCILOR_VISIONARY=!MODEL_councilor_visionary!
+    )
+    if defined MODEL_councilor_sentinel (
+        if not "!MODEL_councilor_sentinel!"=="" echo MODEL_COUNCILOR_SENTINEL=!MODEL_councilor_sentinel!
+    )
+    if defined MODEL_councilor_historian (
+        if not "!MODEL_councilor_historian!"=="" echo MODEL_COUNCILOR_HISTORIAN=!MODEL_councilor_historian!
+    )
+    if defined MODEL_councilor_diplomat (
+        if not "!MODEL_councilor_diplomat!"=="" echo MODEL_COUNCILOR_DIPLOMAT=!MODEL_councilor_diplomat!
+    )
+    if defined MODEL_councilor_skeptic (
+        if not "!MODEL_councilor_skeptic!"=="" echo MODEL_COUNCILOR_SKEPTIC=!MODEL_councilor_skeptic!
+    )
+    if defined MODEL_councilor_conspiracist (
+        if not "!MODEL_councilor_conspiracist!"=="" echo MODEL_COUNCILOR_CONSPIRACIST=!MODEL_councilor_conspiracist!
+    )
+    if defined MODEL_councilor_journalist (
+        if not "!MODEL_councilor_journalist!"=="" echo MODEL_COUNCILOR_JOURNALIST=!MODEL_councilor_journalist!
+    )
+    if defined MODEL_councilor_propagandist (
+        if not "!MODEL_councilor_propagandist!"=="" echo MODEL_COUNCILOR_PROPAGANDIST=!MODEL_councilor_propagandist!
+    )
+    if defined MODEL_councilor_psychologist (
+        if not "!MODEL_councilor_psychologist!"=="" echo MODEL_COUNCILOR_PSYCHOLOGIST=!MODEL_councilor_psychologist!
+    )
+    if defined MODEL_councilor_libertarian (
+        if not "!MODEL_councilor_libertarian!"=="" echo MODEL_COUNCILOR_LIBERTARIAN=!MODEL_councilor_libertarian!
+    )
+    if defined MODEL_councilor_progressive (
+        if not "!MODEL_councilor_progressive!"=="" echo MODEL_COUNCILOR_PROGRESSIVE=!MODEL_councilor_progressive!
+    )
+    if defined MODEL_councilor_conservative (
+        if not "!MODEL_councilor_conservative!"=="" echo MODEL_COUNCILOR_CONSERVATIVE=!MODEL_councilor_conservative!
+    )
+    if defined MODEL_councilor_independent (
+        if not "!MODEL_councilor_independent!"=="" echo MODEL_COUNCILOR_INDEPENDENT=!MODEL_councilor_independent!
+    )
+    if defined MODEL_specialist_code (
+        if not "!MODEL_specialist_code!"=="" echo MODEL_SPECIALIST_CODE=!MODEL_specialist_code!
+    )
+) else (
+    :: For quick mode, set all bots to the same model
+    echo.
+    echo All bots will use: !DEFAULT_MODEL!
+    echo.
+)
+exit /b 0
+
+:reset_model_configs
+cls
+echo.
+echo ===============================================
+echo   Reset Model Configurations
+echo ===============================================
+echo.
+echo This will remove all custom model configurations.
+echo All bots will revert to default model: gemini-2.5-flash
+echo.
+set /p CONFIRM_RESET="Are you sure? (y/n) [n]: "
+if /i not "!CONFIRM_RESET!"=="y" (
+    echo [INFO] Reset cancelled
+    pause
+    goto :configure_models
+)
+
+:: Remove MODEL_ variables from .env
+if exist ".env" (
+    echo [INFO] Removing model configurations from .env...
+    powershell -Command "(Get-Content .env) | Where-Object { $_ -notmatch '^MODEL_' } | Set-Content .env.tmp" 2>nul
+    if exist ".env.tmp" (
+        move /y ".env.tmp" ".env" >nul 2>&1
+    )
+)
+
+echo [SUCCESS] Model configurations reset
+echo.
+pause
+goto :interactive_menu
+
+:save_models_and_exit
+echo.
+set /p SAVE_MODELS="Save these model configurations to .env? (y/n) [y]: "
+if "!SAVE_MODELS!"=="" set SAVE_MODELS=y
+if /i not "!SAVE_MODELS!"=="y" (
+    echo [INFO] Model configurations not saved
+    pause
+    goto :interactive_menu
+)
+
+:: Append model configurations to .env
+echo. >> .env
+echo # ======================================== >> .env
+echo # CUSTOM BOT MODEL CONFIGURATIONS >> .env
+echo # ======================================== >> .env
+echo # Updated: %DATE% %TIME% >> .env
+echo # >> .env
+
+if "%CONFIG_MODE%"=="advanced" (
+    :: Save individual configurations
+    if defined MODEL_speaker_high_council (
+        if not "!MODEL_speaker_high_council!"=="" echo MODEL_SPEAKER_HIGH_COUNCIL=!MODEL_speaker_high_council! >> .env
+    )
+    if defined MODEL_moderator_facilitator (
+        if not "!MODEL_moderator_facilitator!"=="" echo MODEL_MODERATOR_FACILITATOR=!MODEL_moderator_facilitator! >> .env
+    )
+    if defined MODEL_councilor_technocrat (
+        if not "!MODEL_councilor_technocrat!"=="" echo MODEL_COUNCILOR_TECHNOCRAT=!MODEL_councilor_technocrat! >> .env
+    )
+    if defined MODEL_councilor_ethicist (
+        if not "!MODEL_councilor_ethicist!"=="" echo MODEL_COUNCILOR_ETHICIST=!MODEL_councilor_ethicist! >> .env
+    )
+    if defined MODEL_councilor_pragmatist (
+        if not "!MODEL_councilor_pragmatist!"=="" echo MODEL_COUNCILOR_PRAGMATIST=!MODEL_councilor_pragmatist! >> .env
+    )
+    if defined MODEL_councilor_visionary (
+        if not "!MODEL_councilor_visionary!"=="" echo MODEL_COUNCILOR_VISIONARY=!MODEL_councilor_visionary! >> .env
+    )
+    if defined MODEL_councilor_sentinel (
+        if not "!MODEL_councilor_sentinel!"=="" echo MODEL_COUNCILOR_SENTINEL=!MODEL_councilor_sentinel! >> .env
+    )
+    if defined MODEL_councilor_historian (
+        if not "!MODEL_councilor_historian!"=="" echo MODEL_COUNCILOR_HISTORIAN=!MODEL_councilor_historian! >> .env
+    )
+    if defined MODEL_councilor_diplomat (
+        if not "!MODEL_councilor_diplomat!"=="" echo MODEL_COUNCILOR_DIPLOMAT=!MODEL_councilor_diplomat! >> .env
+    )
+    if defined MODEL_councilor_skeptic (
+        if not "!MODEL_councilor_skeptic!"=="" echo MODEL_COUNCILOR_SKEPTIC=!MODEL_councilor_skeptic! >> .env
+    )
+    if defined MODEL_councilor_conspiracist (
+        if not "!MODEL_councilor_conspiracist!"=="" echo MODEL_COUNCILOR_CONSPIRACIST=!MODEL_councilor_conspiracist! >> .env
+    )
+    if defined MODEL_councilor_journalist (
+        if not "!MODEL_councilor_journalist!"=="" echo MODEL_COUNCILOR_JOURNALIST=!MODEL_councilor_journalist! >> .env
+    )
+    if defined MODEL_councilor_propagandist (
+        if not "!MODEL_councilor_propagandist!"=="" echo MODEL_COUNCILOR_PROPAGANDIST=!MODEL_councilor_propagandist! >> .env
+    )
+    if defined MODEL_councilor_psychologist (
+        if not "!MODEL_councilor_psychologist!"=="" echo MODEL_COUNCILOR_PSYCHOLOGIST=!MODEL_councilor_psychologist! >> .env
+    )
+    if defined MODEL_councilor_libertarian (
+        if not "!MODEL_councilor_libertarian!"=="" echo MODEL_COUNCILOR_LIBERTARIAN=!MODEL_councilor_libertarian! >> .env
+    )
+    if defined MODEL_councilor_progressive (
+        if not "!MODEL_councilor_progressive!"=="" echo MODEL_COUNCILOR_PROGRESSIVE=!MODEL_councilor_progressive! >> .env
+    )
+    if defined MODEL_councilor_conservative (
+        if not "!MODEL_councilor_conservative!"=="" echo MODEL_COUNCILOR_CONSERVATIVE=!MODEL_councilor_conservative! >> .env
+    )
+    if defined MODEL_councilor_independent (
+        if not "!MODEL_councilor_independent!"=="" echo MODEL_COUNCILOR_INDEPENDENT=!MODEL_councilor_independent! >> .env
+    )
+    if defined MODEL_specialist_code (
+        if not "!MODEL_specialist_code!"=="" echo MODEL_SPECIALIST_CODE=!MODEL_specialist_code! >> .env
+    )
+) else (
+    :: Save universal configuration
+    echo # All bots using same model: !DEFAULT_MODEL! >> .env
+    echo MODEL_SPEAKER_HIGH_COUNCIL=!DEFAULT_MODEL! >> .env
+    echo MODEL_MODERATOR_FACILITATOR=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_TECHNOCRAT=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_ETHICIST=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_PRAGMATIST=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_VISIONARY=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_SENTINEL=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_HISTORIAN=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_DIPLOMAT=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_SKEPTIC=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_CONSPIRACIST=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_JOURNALIST=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_PROPAGANDIST=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_PSYCHOLOGIST=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_LIBERTARIAN=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_PROGRESSIVE=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_CONSERVATIVE=!DEFAULT_MODEL! >> .env
+    echo MODEL_COUNCILOR_INDEPENDENT=!DEFAULT_MODEL! >> .env
+    echo MODEL_SPECIALIST_CODE=!DEFAULT_MODEL! >> .env
+)
+
+echo. >> .env
+echo [SUCCESS] Model configurations saved to .env
+echo.
+echo Changes will take effect when you restart the server.
+echo.
+pause
+goto :interactive_menu
 
 :: ============================================
 :: UTILITY FUNCTIONS

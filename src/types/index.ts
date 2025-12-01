@@ -584,7 +584,7 @@ export type {
 
 // ===== EXPORTS FROM CONSTANTS =====
 
-export { DEFAULT_BOTS, DEFAULT_SETTINGS } from './constants.js';
+export { DEFAULT_BOTS, DEFAULT_SETTINGS, getBotsWithCustomConfigs } from './constants.js';
 
 // ===== EXPORT GUARDS =====
 

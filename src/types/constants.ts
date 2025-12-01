@@ -1,4 +1,5 @@
 import type { BotConfig, AuthorType, CouncilSettings } from './index.js';
+import { BotConfigService } from '../services/botConfigService.js';
 
 export const OPENROUTER_MODELS = [
   "anthropic/claude-3.5-sonnet",
@@ -583,4 +584,12 @@ export const DEFAULT_SETTINGS: CouncilSettings = {
   economyMode: true,
   contextPruning: true,
   maxContextTurns: 8
+};
+
+// Export configured bots with custom models applied
+export const CONFIGURED_BOTS = BotConfigService.getConfiguredBots();
+
+// Export a function to get bots with custom configs
+export const getBotsWithCustomConfigs = (): BotConfig[] => {
+  return BotConfigService.getConfiguredBots();
 };
