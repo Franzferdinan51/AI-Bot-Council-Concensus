@@ -1,11 +1,11 @@
-# 🏛️ AI Council Chamber
+# 🏛️ High AI Council Chamber
 
 **The Definitive Multi-Agent Governance & Deliberation Engine**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Gemini-blue)](https://ai.google.dev/)
 
-The **AI Council Chamber** is a sophisticated, multi-agent legislative simulator designed to analyze complex problems through the lens of diverse, competing personas. It transforms solitary AI interaction into a parliamentary process, ensuring that every idea is debated, stress-tested, and refined before a conclusion is reached.
+The **High AI Council Chamber** is a sophisticated, multi-agent legislative simulator designed to analyze complex problems through the lens of diverse, competing personas. It transforms solitary AI interaction into a parliamentary process, ensuring that every idea is debated, stress-tested, and refined before a conclusion is reached.
 
 ---
 
@@ -13,7 +13,7 @@ The **AI Council Chamber** is a sophisticated, multi-agent legislative simulator
 
 Standard AI interfaces (like ChatGPT or standard Gemini) often suffer from **"Yes-Man Syndrome"**—they agree with the user's premise to be helpful. This is dangerous for decision-making.
 
-The **AI Council Chamber** solves this by enforcing **Adversarial Collaboration**. By simulating a room full of experts with conflicting priorities (e.g., An Ethicist vs. A Technocrat vs. A Skeptic), the system forces the AI to check its own biases, uncover blind spots, and produce a significantly more balanced and robust output.
+The **High AI Council Chamber** solves this by enforcing **Adversarial Collaboration**. By simulating a room full of experts with conflicting priorities (e.g., An Ethicist vs. A Technocrat vs. A Skeptic), the system forces the AI to check its own biases, uncover blind spots, and produce a significantly more balanced and robust output.
 
 ### Core Philosophy: **"Conflict Creates Clarity"**
 
@@ -30,6 +30,7 @@ The Council operates in distinct modes tailored to your specific needs:
 *   **💻 Swarm Coding**: A dedicated software engineering workflow where the Council transforms into a Dev Team (Architect, Backend, Frontend, SecOps) to write production-ready code with live artifact previews. Includes a dedicated **IDE-Style UI**.
 *   **🗣️ Inquiry**: A rapid-fire Q&A mode where the user asks questions and the Council provides specific answers synthesized by the Speaker.
 *   **🛡️ Deliberation**: A roundtable discussion focused on exploring nuances rather than binary voting.
+*   **🔮 Prediction**: Superforecasting mode for probabilistic analysis with confidence intervals and timeline predictions.
 
 ### 2. The Councilors (Personas)
 The system comes pre-loaded with archetypes designed to cover the full spectrum of human thought:
@@ -43,7 +44,17 @@ The system comes pre-loaded with archetypes designed to cover the full spectrum 
 *   **The Sentinel**: Focuses on security and defense.
 *   ...and many more (Journalist, Psychologist, Conspiracist).
 
-### 3. Advanced Tooling & Integration
+### 3. Multi-Provider AI Support
+Access to multiple AI providers for maximum flexibility:
+*   **Google Gemini** (Primary) - Gemini Pro, Flash, and latest models
+*   **OpenRouter** - Claude, GPT-4, Llama, Mistral, and more
+*   **Z.ai** - Native Z.ai models
+*   **Moonshot AI** - Kimi series models
+*   **Minimax** - Video and text generation
+*   **Local Models** - LM Studio, Ollama, Jan AI support
+
+### 4. Advanced Tooling & Integration
+*   **Web Search & Fetch**: Real-time web search and website content extraction
 *   **Google Search Grounding**: Agents actively verify claims in real-time.
 *   **YouTube Analysis**: Paste a video URL, and agents will find transcripts/summaries to debate the content.
 *   **Direct Consultation**: Click any Councilor to open a private, off-the-record side channel.
@@ -62,8 +73,8 @@ The system comes pre-loaded with archetypes designed to cover the full spectrum 
 ### Installation
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/your-username/ai-council-chamber.git
-    cd ai-council-chamber
+    git clone https://github.com/Franzferdinan51/AI-Bot-Council-Concensus.git
+    cd AI-Bot-Council-Concensus
     ```
 2.  Install dependencies:
     ```bash
@@ -71,7 +82,13 @@ The system comes pre-loaded with archetypes designed to cover the full spectrum 
     ```
 3.  Start the development server:
     ```bash
+    # Windows users can double-click startup.bat
     npm run dev
+    ```
+
+    Or use the included batch file:
+    ```bash
+    startup.bat
     ```
 
 ### Connecting Local Models (LM Studio / Ollama)
@@ -101,7 +118,7 @@ You can save costs or ensure privacy by running Councilors on local hardware.
 
 The application is built on a modern React stack designed for performance and modularity.
 
-*   **Frontend**: React 18, TypeScript, Tailwind CSS.
+*   **Frontend**: React 19, TypeScript, Tailwind CSS.
 *   **AI Orchestration**: Custom `aiService` layer that handles prompt injection, context pruning, and multi-provider routing.
 *   **State Management**: Complex local state orchestration to handle the asynchronous "Turn-Taking" of the debate cycle.
 *   **Streaming**: Real-time token streaming for a responsive, "alive" feel.
