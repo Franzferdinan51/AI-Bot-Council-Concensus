@@ -1,0 +1,41 @@
+{
+  "name": "ai-council-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server providing AI Council Chamber - a multi-agent legislative simulation and deliberation engine",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "check": "./start.sh -c",
+    "mcp": "npm run build && node dist/index.js",
+    "start:dev": "npm run dev",
+    "start:http": "npm run build && node dist/httpBridge.js",
+    "health": "node dist/index.js --health",
+    "gen:mcp": "tsx src/scripts/gen-mcp-config.ts"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-council",
+    "multi-agent",
+    "deliberation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.2",
+    "vite": "^5.0.0"
+  }
+}

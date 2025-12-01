@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "ai-council": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\Ryan\\Desktop\\AI Concensus\\ai-council-mcp-server-standalone\\dist\\index.js"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "test_key_12345",
+        "OPENROUTER_API_KEY": "",
+        "GENERIC_OPENAI_API_KEY": "",
+        "GENERIC_OPENAI_ENDPOINT": "",
+        "LM_STUDIO_ENDPOINT": "",
+        "OLLAMA_ENDPOINT": "",
+        "MAX_CONCURRENT_REQUESTS": "2",
+        "ECONOMY_MODE": "true"
+      }
+    }
+  }
+}
