@@ -103,7 +103,7 @@ start.bat
 
 ### Available MCP Tools
 
-This server provides **13 MCP tools** organized in three categories:
+This server provides **14 MCP tools** organized in three categories:
 
 #### 1. Council Session Tools (8 tools)
 - `council_proposal` - Legislative proposal with voting
@@ -111,16 +111,17 @@ This server provides **13 MCP tools** organized in three categories:
 - `council_inquiry` - Direct Q&A format
 - `council_research` - Deep multi-phase research
 - `council_swarm` - Parallel task execution
-- `council_swarm_coding` - Collaborative code generation
+- `council_swarm_coding` - **Enhanced 12-phase professional development pipeline** ⭐
 - `council_prediction` - Superforecasting with probabilities
 - `council_auto` - Smart mode selection (meta-tool)
 
-#### 2. Session Management Tools (5 tools)
+#### 2. Session Management Tools (6 tools)
 - `council_list_sessions` - List all sessions
 - `council_get_session` - Get session details
 - `council_get_transcript` - Get formatted transcript (text/markdown/json) ⭐
 - `council_stop_session` - Stop a session
 - `council_pause_session` - Pause/resume a session
+- `council_diagnostics` - Server health check and diagnostics ⭐
 
 #### 3. Management Tools (2 tools)
 - `council_list_bots` - List all councilor bots
@@ -731,6 +732,45 @@ session_id = extract_session_id(result)
 transcript = client.call_tool('council_get_transcript', {
     'sessionId': session_id,
     'format': 'markdown'  # or 'text' or 'json'
+})
+
+print(transcript.content[0].text)
+```
+
+### Example 8: Enhanced Swarm Coding ⭐
+
+```python
+# Start a professional-grade development session
+result = client.call_tool('council_swarm_coding', {
+    'topic': 'Build a REST API for a task management system',
+    'settings': {
+        'bots': [
+            {'id': 'speaker-high-council', 'enabled': True},
+            {'id': 'councilor-technocrat', 'enabled': True}
+        ],
+        'economyMode': False  # Full 12-phase pipeline
+    },
+    'context': 'Need authentication, CRUD operations, and PostgreSQL database'
+})
+
+# The system will:
+# 1. Analyze requirements
+# 2. Select tech stack (Python + FastAPI + PostgreSQL)
+# 3. Design system architecture
+# 4. Create task breakdown
+# 5. Generate code files (parallel)
+# 6. Review code quality
+# 7. Generate tests (unit, integration, e2e)
+# 8. Write documentation
+# 9. Create DevOps configs (Docker, CI/CD)
+# 10. Validate integration
+# 11. Perform QA check
+# 12. Present final solution
+
+# Get the complete transcript
+transcript = client.call_tool('council_get_transcript', {
+    'sessionId': extract_session_id(result),
+    'format': 'markdown'
 })
 
 print(transcript.content[0].text)

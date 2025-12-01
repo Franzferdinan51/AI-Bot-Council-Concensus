@@ -309,38 +309,141 @@ export class CouncilOrchestrator {
     maxConcurrency: number,
     controlSignal: { stop: boolean; pause: boolean }
   ) {
-    if (speaker) {
-      const planMsg = this.createSystemMessage("INITIALIZING DEV SWARM. CHIEF ARCHITECT IS PLANNING...");
-      sessionService.addMessage(sessionId, planMsg);
+    if (!speaker) return;
 
-      const planPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.ARCHITECT_PLAN)} Persona: ${speaker.persona}`;
-      const planRes = await this.processBotTurn(sessionId, speaker, history, planPrompt, "CHIEF ARCHITECT", controlSignal);
-      history.push(this.createMessage(speaker.name, speaker.authorType, planRes, speaker.color, "CHIEF ARCHITECT"));
+    const context = history.length > 0 ? history.map(m => `${m.author}: ${m.content}`).join('\n\n') : '';
 
-      const fileMatches = planRes.matchAll(/<file name="(.*?)" assignee="(.*?)" description="(.*?)" \/>/g);
-      const tasks: { file: string; assignee: string; desc: string }[] = [];
-      for (const match of fileMatches) {
-        tasks.push({ file: match[1], assignee: match[2], desc: match[3] });
-      }
+    // Phase 1: Requirements Analysis
+    sessionService.updateSessionStatus(sessionId, SessionStatus.OPENING);
+    const reqMsg = this.createSystemMessage("PHASE 1: REQUIREMENTS ANALYSIS - Analyzing requirements...");
+    sessionService.addMessage(sessionId, reqMsg);
 
-      if (tasks.length > 0) {
-        sessionService.updateSessionStatus(sessionId, SessionStatus.DEBATING);
-        const swarmMsg = this.createSystemMessage(`ARCHITECT DEPLOYING ${tasks.length} DEV AGENTS.`);
-        sessionService.addMessage(sessionId, swarmMsg);
+    const reqPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.REQUIREMENTS_ANALYST)
+      .replace('{{CONTEXT}}', context || 'No previous context');
+    const reqRes = await this.processBotTurn(sessionId, speaker, history, reqPrompt, "REQUIREMENTS ANALYST", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, reqRes, speaker.color, "REQUIREMENTS ANALYST"));
 
-        await this.runBatchWithConcurrency(tasks, async (task) => {
-          let assignedBot = enabledBots.find(b => b.name.includes(task.assignee) || task.assignee.includes(b.name));
-          if (!assignedBot) assignedBot = enabledBots.find(b => b.role === 'councilor') || speaker!;
-          const devPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.DEV_AGENT).replace('{{ROLE}}', task.assignee).replace('{{FILE}}', task.file)} Additional Context: ${task.desc} Persona: ${assignedBot?.persona}`;
-          return await this.processBotTurn(sessionId, assignedBot!, history, devPrompt, `${task.file} (DEV)`, controlSignal);
-        }, maxConcurrency, controlSignal);
-      }
+    // Phase 2: Tech Stack Selection
+    const techMsg = this.createSystemMessage("PHASE 2: TECH STACK SELECTION - Choosing technologies...");
+    sessionService.addMessage(sessionId, techMsg);
 
-      sessionService.updateSessionStatus(sessionId, SessionStatus.RESOLVING);
-      const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.INTEGRATOR)} Persona: ${speaker.persona}`;
-      const finalRes = await this.processBotTurn(sessionId, speaker, history, finalPrompt, "PRODUCT LEAD", controlSignal);
-      history.push(this.createMessage(speaker.name, speaker.authorType, finalRes, speaker.color, "PRODUCT LEAD"));
+    const techPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.TECH_STACK_SELECTOR)
+      .replace('{{CONTEXT}}', reqRes);
+    const techRes = await this.processBotTurn(sessionId, speaker, history, techPrompt, "TECHNOLOGY ARCHITECT", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, techRes, speaker.color, "TECHNOLOGY ARCHITECT"));
+
+    // Phase 3: System Design
+    const designMsg = this.createSystemMessage("PHASE 3: SYSTEM DESIGN - Creating architecture...");
+    sessionService.addMessage(sessionId, designMsg);
+
+    const designPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.SYSTEM_DESIGNER)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}`);
+    const designRes = await this.processBotTurn(sessionId, speaker, history, designPrompt, "SYSTEM DESIGNER", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, designRes, speaker.color, "SYSTEM DESIGNER"));
+
+    // Phase 4: Task Planning
+    const planMsg = this.createSystemMessage("PHASE 4: TASK PLANNING - Breaking down work...");
+    sessionService.addMessage(sessionId, planMsg);
+
+    const taskPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.TASK_PLANNER)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`);
+    const taskRes = await this.processBotTurn(sessionId, speaker, history, taskPrompt, "PROJECT MANAGER", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, taskRes, speaker.color, "PROJECT MANAGER"));
+
+    // Parse file tasks from task plan
+    const fileMatches = taskRes.matchAll(/<file name="(.*?)" role="(.*?)" description="(.*?)" complexity="(.*?)" \/>/g);
+    const tasks: { file: string; role: string; desc: string; complexity: string }[] = [];
+    for (const match of fileMatches) {
+      tasks.push({ file: match[1], role: match[2], desc: match[3], complexity: match[4] });
     }
+
+    if (tasks.length === 0) {
+      const errorMsg = this.createSystemMessage("ERROR: No tasks identified. Using basic file structure.");
+      sessionService.addMessage(sessionId, errorMsg);
+      tasks.push({ file: "main.py", role: "Main Developer", desc: "Main application file", complexity: "M" });
+    }
+
+    // Phase 5: Development (Parallel Execution)
+    sessionService.updateSessionStatus(sessionId, SessionStatus.DEBATING);
+    const devMsg = this.createSystemMessage(`PHASE 5: DEVELOPMENT - Deploying ${tasks.length} developers...`);
+    sessionService.addMessage(sessionId, devMsg);
+
+    await this.runBatchWithConcurrency(tasks, async (task) => {
+      let assignedBot = enabledBots.find(b => b.role === 'councilor') || speaker!;
+      const devPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.DEV_AGENT)
+        .replace('{{ROLE}}', task.role)
+        .replace('{{FILE}}', task.file)
+        .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`)
+        .replace('{{TASK}}', task.desc);
+      return await this.processBotTurn(sessionId, assignedBot, history, devPrompt, `${task.file} (DEV)`, controlSignal);
+    }, maxConcurrency, controlSignal);
+
+    // Phase 6: Code Review
+    const reviewMsg = this.createSystemMessage("PHASE 6: CODE REVIEW - Reviewing code quality...");
+    sessionService.addMessage(sessionId, reviewMsg);
+
+    const reviewPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.CODE_REVIEWER)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`);
+    const reviewRes = await this.processBotTurn(sessionId, speaker, history, reviewPrompt, "CODE REVIEWER", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, reviewRes, speaker.color, "CODE REVIEWER"));
+
+    // Phase 7: Test Generation
+    const testMsg = this.createSystemMessage("PHASE 7: TEST GENERATION - Creating test suite...");
+    sessionService.addMessage(sessionId, testMsg);
+
+    const testPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.TEST_GENERATOR)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`);
+    const testRes = await this.processBotTurn(sessionId, speaker, history, testPrompt, "QA ENGINEER", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, testRes, speaker.color, "QA ENGINEER"));
+
+    // Phase 8: Documentation
+    const docMsg = this.createSystemMessage("PHASE 8: DOCUMENTATION - Writing docs...");
+    sessionService.addMessage(sessionId, docMsg);
+
+    const docPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.DOCUMENTATION_WRITER)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`);
+    const docRes = await this.processBotTurn(sessionId, speaker, history, docPrompt, "TECHNICAL WRITER", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, docRes, speaker.color, "TECHNICAL WRITER"));
+
+    // Phase 9: DevOps Configuration
+    const devopsMsg = this.createSystemMessage("PHASE 9: DEVOPS - Creating deployment configs...");
+    sessionService.addMessage(sessionId, devopsMsg);
+
+    const devopsPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.DEVOPS_ENGINEER)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`);
+    const devopsRes = await this.processBotTurn(sessionId, speaker, history, devopsPrompt, "DEVOPS ENGINEER", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, devopsRes, speaker.color, "DEVOPS ENGINEER"));
+
+    // Phase 10: Integration Check
+    const intMsg = this.createSystemMessage("PHASE 10: INTEGRATION - Validating components...");
+    sessionService.addMessage(sessionId, intMsg);
+
+    const intPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.INTEGRATION_MANAGER)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`);
+    const intRes = await this.processBotTurn(sessionId, speaker, history, intPrompt, "INTEGRATION MANAGER", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, intRes, speaker.color, "INTEGRATION MANAGER"));
+
+    // Phase 11: Quality Assurance
+    sessionService.updateSessionStatus(sessionId, SessionStatus.RESOLVING);
+    const qaMsg = this.createSystemMessage("PHASE 11: QUALITY ASSURANCE - Final validation...");
+    sessionService.addMessage(sessionId, qaMsg);
+
+    const qaPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.QUALITY_ASSURANCE)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`);
+    const qaRes = await this.processBotTurn(sessionId, speaker, history, qaPrompt, "QA LEAD", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, qaRes, speaker.color, "QA LEAD"));
+
+    // Phase 12: Final Presentation
+    const finalMsg = this.createSystemMessage("PHASE 12: FINAL PRESENTATION - Presenting solution...");
+    sessionService.addMessage(sessionId, finalMsg);
+
+    const finalPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.FINAL_PRESENTER)
+      .replace('{{CONTEXT}}', `${reqRes}\n\n${techRes}\n\n${designRes}`);
+    const finalRes = await this.processBotTurn(sessionId, speaker, history, finalPrompt, "PRODUCT MANAGER", controlSignal);
+    history.push(this.createMessage(speaker.name, speaker.authorType, finalRes, speaker.color, "PRODUCT MANAGER"));
+
+    const completeMsg = this.createSystemMessage("✅ SWARM CODING COMPLETE - All phases finished successfully!");
+    sessionService.addMessage(sessionId, completeMsg);
   }
 
   private async runSwarmMode(
