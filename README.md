@@ -1,5 +1,7 @@
 # AI Council Chamber MCP Server
 
+> ⚠️ **COST WARNING**: This server makes multiple AI API calls during sessions. Council sessions can generate 10-50+ API calls, and Enhanced Swarm Coding uses 12+ phases with parallel execution. **Using paid APIs (OpenAI, Claude, OpenRouter) can result in significant costs.** Use economy mode, test with free tiers, or use local models (Ollama, LM Studio) to control expenses.
+
 A **stand-alone** Model Context Protocol (MCP) server that provides multi-agent legislative simulation and deliberation engine. Transform AI interactions into a parliamentary debate process where diverse personas collaborate, challenge, and reach collective decisions.
 
 ## 🚀 What This Is
@@ -308,6 +310,97 @@ npm start
 # or
 start.bat
 ```
+
+### 💰 Cost Management & Optimization
+
+**Important**: Council sessions involve multiple AI models communicating. Costs can add up quickly!
+
+#### **Cost Estimates:**
+
+| Session Type | Typical API Calls | Est. Cost (Claude) | Est. Cost (GPT-4o) |
+|--------------|------------------|-------------------|-------------------|
+| Quick Inquiry | 5-10 calls | $0.10 - $0.30 | $0.05 - $0.15 |
+| Full Proposal | 15-30 calls | $0.30 - $1.00 | $0.15 - $0.50 |
+| Prediction Mode | 20-40 calls | $0.50 - $1.50 | $0.25 - $0.75 |
+| **Enhanced Swarm Coding** | **50-100+ calls** | **$1.00 - $5.00** | **$0.50 - $2.50** |
+
+*Costs vary based on input/output length and model pricing*
+
+#### **How to Control Costs:**
+
+**1. Use Economy Mode (Recommended)**
+```bash
+# In .env or setup wizard
+ECONOMY_MODE=true
+```
+- Reduces API calls by ~50%
+- Limits context length
+- Uses fewer councilors
+
+**2. Use Local Models (Free)**
+```bash
+# Install Ollama (free, local)
+ollama pull llama3:latest
+ollama pull codellama:latest
+
+# Or use LM Studio (free, local)
+# Download from: lmstudio.ai
+```
+- Zero API costs
+- Runs on your machine
+- Good for testing and development
+
+**3. Optimize Model Selection**
+```bash
+# Use cheaper models for most bots
+MODEL_COUNCILOR_TECHNOCRAT=openai/gpt-4o-mini  # $0.15/1M tokens
+MODEL_COUNCILOR_ETHICIST=anthropic/claude-3-haiku  # $0.25/1M tokens
+
+# Use premium only for critical tasks
+MODEL_SPEAKER_HIGH_COUNCIL=anthropic/claude-3.5-sonnet  # $3/1M tokens
+```
+
+**4. Limit Concurrent Requests**
+```bash
+MAX_CONCURRENT_REQUESTS=1  # Sequential instead of parallel
+```
+- Slower but cheaper
+- Better for budget consciousness
+
+**5. Test Before Production**
+- Start with free models (Ollama, LM Studio)
+- Test with economy mode enabled
+- Monitor costs with provider dashboards
+- Gradually upgrade to paid models
+
+**6. Provider Comparison (per 1M tokens)**
+- **Claude 3.5 Sonnet**: $3 (input) / $15 (output)
+- **GPT-4o**: $2.50 (input) / $10 (output)
+- **GPT-4o-mini**: $0.15 (input) / $0.60 (output)
+- **Gemini 2.5 Flash**: $0.35 (input) / $1.05 (output)
+- **Local Models**: FREE (after setup)
+
+**7. Budget-Friendly Setup Example**
+```bash
+# .env configuration for low-cost testing
+ECONOMY_MODE=true
+MAX_CONCURRENT_REQUESTS=1
+MAX_CONTEXT_TURNS=5
+
+# Use free local models
+MODEL_SPEAKER_HIGH_COUNCL=llama3:latest
+AUTHOR_TYPE_SPEAKER_HIGH_COUNCIL=ollama
+MODEL_COUNCILOR_TECHNOCRAT=llama3:latest
+AUTHOR_TYPE_COUNCILOR_TECHNOCRAT=ollama
+MODEL_COUNCILOR_ETHICIST=llama3:latest
+AUTHOR_TYPE_COUNCILOR_ETHICIST=ollama
+```
+
+**8. Monitor Your Usage**
+- OpenAI: https://platform.openai.com/usage
+- Anthropic: https://console.anthropic.com/
+- OpenRouter: https://openrouter.ai/keys
+- Set up usage alerts and limits
 
 ### Startup Script Options
 
