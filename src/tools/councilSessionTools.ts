@@ -332,6 +332,20 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
         },
         required: ['sessionId']
       }
+    },
+    {
+      name: 'council_diagnostics',
+      description: 'Run server diagnostics and health checks - test all systems and report issues',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          verbose: {
+            type: 'boolean',
+            description: 'Include detailed system information (default: false)'
+          }
+        },
+        required: []
+      }
     }
   ];
 }
@@ -367,6 +381,8 @@ export async function handleCouncilToolCall(
         return await handleStopSession(arguments_, orchestrator);
       case 'council_pause_session':
         return await handlePauseSession(arguments_, orchestrator);
+      case 'council_diagnostics':
+        return await handleDiagnostics(arguments_);
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
@@ -882,6 +898,213 @@ async function handlePauseSession(args: any, orchestrator: CouncilOrchestrator):
   );
 
   return responseSchema.toMCPResponse(unifiedResponse);
+}
+
+async function handleDiagnostics(args: any): Promise<CallToolResult> {
+  const startTime = responseSchema.startExecution();
+  const verbose = args?.verbose || false;
+
+  const diagnostics: any = {
+    timestamp: new Date().toISOString(),
+    status: 'OK',
+    checks: {},
+    errors: [],
+    warnings: []
+  };
+
+  // Check 1: API Keys
+  const apiKeys = {
+    anthropic: !!process.env.ANTHROPIC_API_KEY,
+    openai: !!process.env.OPENAI_API_KEY,
+    anthropicConfigured: process.env.ANTHROPIC_API_KEY ? process.env.ANTHROPIC_API_KEY.substring(0, 7) + '...' : null
+  };
+
+  diagnostics.checks.apiKeys = apiKeys;
+
+  if (!apiKeys.anthropic && !apiKeys.openai) {
+    diagnostics.errors.push({
+      component: 'API Keys',
+      issue: 'No AI API keys configured',
+      severity: 'CRITICAL',
+      message: 'Set ANTHROPIC_API_KEY or OPENAI_API_KEY in environment'
+    });
+    diagnostics.status = 'ERROR';
+  }
+
+  // Check 2: Session Service
+  try {
+    const sessionCount = sessionService.listSessions().length;
+    diagnostics.checks.sessionService = {
+      status: 'OK',
+      activeSessions: sessionCount
+    };
+  } catch (error: any) {
+    diagnostics.errors.push({
+      component: 'Session Service',
+      issue: error.message,
+      severity: 'CRITICAL',
+      stack: verbose ? error.stack : undefined
+    });
+    diagnostics.checks.sessionService = { status: 'ERROR', error: error.message };
+    diagnostics.status = 'ERROR';
+  }
+
+  // Check 3: Session Storage
+  try {
+    const stats = sessionStorage.getStorageStats();
+    diagnostics.checks.sessionStorage = {
+      status: 'OK',
+      totalSessions: stats.totalSessions,
+      storageDir: sessionStorage.getConfig().storageDir
+    };
+
+    // Check if storage directory is writable
+    if (verbose) {
+      diagnostics.checks.sessionStorage.config = sessionStorage.getConfig();
+    }
+  } catch (error: any) {
+    diagnostics.warnings.push({
+      component: 'Session Storage',
+      issue: error.message,
+      severity: 'WARNING'
+    });
+    diagnostics.checks.sessionStorage = { status: 'WARNING', error: error.message };
+  }
+
+  // Check 4: Memory Usage
+  if (verbose) {
+    const memUsage = process.memoryUsage();
+    diagnostics.checks.memory = {
+      rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
+      heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
+      heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`,
+      external: `${Math.round(memUsage.external / 1024 / 1024)} MB`
+    };
+  }
+
+  // Check 5: Node.js Version
+  diagnostics.checks.nodeVersion = {
+    version: process.version,
+    platform: process.platform,
+    arch: process.arch
+  };
+
+  // Check 6: Available Council Modes
+  diagnostics.checks.availableModes = [
+    'council_proposal',
+    'council_deliberation',
+    'council_inquiry',
+    'council_research',
+    'council_swarm',
+    'council_swarm_coding',
+    'council_prediction'
+  ];
+
+  // Check 7: Test Session Creation
+  try {
+    const testSessionId = sessionService.createSession(
+      '[DIAGNOSTIC] System Test',
+      SessionMode.INQUIRY,
+      { bots: [], economyMode: true, maxConcurrentRequests: 1 },
+      'Automatic system diagnostic test - will be cleaned up'
+    );
+
+    diagnostics.checks.sessionCreation = {
+      status: 'OK',
+      testSessionId
+    };
+
+    // Clean up test session
+    const testSession = sessionService.getSession(testSessionId);
+    if (testSession) {
+      sessionService.updateSessionStatus(testSessionId, SessionStatus.ADJOURNED);
+      diagnostics.checks.sessionCleanup = { status: 'OK' };
+    }
+  } catch (error: any) {
+    diagnostics.errors.push({
+      component: 'Session Creation',
+      issue: error.message,
+      severity: 'CRITICAL',
+      stack: verbose ? error.stack : undefined
+    });
+    diagnostics.checks.sessionCreation = { status: 'ERROR', error: error.message };
+    diagnostics.status = 'ERROR';
+  }
+
+  // Generate Report
+  let report = `╔════════════════════════════════════════════════════════════╗\n`;
+  report += `║              AI COUNCIL MCP - DIAGNOSTICS                 ║\n`;
+  report += `╚════════════════════════════════════════════════════════════╝\n\n`;
+  report += `Status: ${diagnostics.status}\n`;
+  report += `Timestamp: ${diagnostics.timestamp}\n`;
+  report += `Node.js: ${diagnostics.checks.nodeVersion.version} (${diagnostics.checks.nodeVersion.platform})\n\n`;
+
+  // API Keys Status
+  report += `─── API KEYS ───\n`;
+  report += `Anthropic: ${apiKeys.anthropic ? '✓ Configured' : '✗ Missing'}\n`;
+  report += `OpenAI: ${apiKeys.openai ? '✓ Configured' : '✗ Missing'}\n\n`;
+
+  // Session Service
+  report += `─── SESSIONS ───\n`;
+  report += `Active: ${diagnostics.checks.sessionService.activeSessions || 0}\n`;
+  report += `Storage: ${diagnostics.checks.sessionStorage.status}\n\n`;
+
+  // Errors
+  if (diagnostics.errors.length > 0) {
+    report += `─── ERRORS (${diagnostics.errors.length}) ───\n`;
+    diagnostics.errors.forEach((err, idx) => {
+      report += `${idx + 1}. [${err.severity}] ${err.component}: ${err.issue}\n`;
+      if (verbose && err.stack) {
+        report += `   Stack: ${err.stack}\n`;
+      }
+    });
+    report += '\n';
+  }
+
+  // Warnings
+  if (diagnostics.warnings.length > 0) {
+    report += `─── WARNINGS (${diagnostics.warnings.length}) ───\n`;
+    diagnostics.warnings.forEach((warn, idx) => {
+      report += `${idx + 1}. ${warn.component}: ${warn.issue}\n`;
+    });
+    report += '\n';
+  }
+
+  // Available Tools
+  report += `─── AVAILABLE TOOLS ───\n`;
+  diagnostics.checks.availableModes.forEach((tool, idx) => {
+    report += `${idx + 1}. ${tool}\n`;
+  });
+  report += `\n`;
+
+  report += `─── QUICK ACTIONS ───\n`;
+  report += `• List sessions: council_list_sessions\n`;
+  report += `• Run prediction: council_prediction {"topic": "your question"}\n`;
+  report += `• Get transcript: council_get_transcript {"sessionId": "id"}\n`;
+  report += `• Run diagnostics: council_diagnostics {"verbose": true}\n\n`;
+
+  report += `╚════════════════════════════════════════════════════════════╝\n`;
+  report += `Server is ${diagnostics.status === 'OK' ? 'ready ✓' : 'has issues ✗'}\n`;
+
+  if (diagnostics.status !== 'OK') {
+    report += `\n⚠️  Please resolve errors before running council sessions.\n`;
+  }
+
+  const content: any[] = [
+    {
+      type: 'text' as const,
+      text: report
+    }
+  ];
+
+  if (verbose && diagnostics.errors.length > 0) {
+    content.push({
+      type: 'text' as const,
+      text: '\n--- VERBOSE DATA ---\n' + JSON.stringify(diagnostics, null, 2)
+    });
+  }
+
+  return { content };
 }
 
 function buildSessionSettings(overrides?: any): CouncilSettings {

@@ -115,9 +115,10 @@ This server provides **13 MCP tools** organized in three categories:
 - `council_prediction` - Superforecasting with probabilities
 - `council_auto` - Smart mode selection (meta-tool)
 
-#### 2. Session Management Tools (3 tools)
+#### 2. Session Management Tools (5 tools)
 - `council_list_sessions` - List all sessions
 - `council_get_session` - Get session details
+- `council_get_transcript` - Get formatted transcript (text/markdown/json) ⭐
 - `council_stop_session` - Stop a session
 - `council_pause_session` - Pause/resume a session
 
@@ -141,6 +142,21 @@ This server provides **13 MCP tools** organized in three categories:
 - **Swarm Coding**: Software development workflow with code generation
 - **Memory System**: Persisted precedents and knowledge base
 - **Real-time Streaming**: Live token streaming for responsive sessions
+
+### Latest Improvements (v2.1) ⭐
+
+#### ✨ New Features
+- **Enhanced Session Persistence**: Auto-save interval reduced from 30s to 2s for better data safety
+- **Flexible Input Validation**: Accepts sessionId in multiple formats (string, object, array)
+- **New Transcript Tool**: `council_get_transcript` with text/markdown/json output formats
+- **Built-in Diagnostics**: `council_diagnostics` tool for testing server health and reporting errors
+- **Connection Guide**: Comprehensive `CONNECTION_GUIDE.md` for easier integration
+
+#### 🔧 Integration Improvements
+- **Better Error Messages**: Clear, actionable error reporting for connected bots
+- **Improved MCP Compatibility**: Enhanced compatibility with Claude Code CLI and other MCP clients
+- **Flexible Input Handling**: Tools accept inputs in various formats to reduce client-side complexity
+- **Comprehensive Logging**: Detailed server status and health checks
 
 ### Version 2.0 Improvements
 
@@ -679,6 +695,45 @@ result = client.call_tool('council_search_memories', {
     'query': 'carbon tax policy',
     'limit': 5
 })
+```
+
+### Example 6: Server Diagnostics ⭐
+
+```python
+# Run basic health check
+result = client.call_tool('council_diagnostics', {})
+print(result.content[0].text)
+
+# Run verbose diagnostics with full system info
+result = client.call_tool('council_diagnostics', {
+    'verbose': True
+})
+
+# Extract just the report
+report = result.content[0].text
+# Get detailed JSON data (if verbose)
+if len(result.content) > 1:
+    detailed_data = result.content[1].text
+```
+
+### Example 7: Get Transcript ⭐
+
+```python
+# Start a prediction session
+result = client.call_tool('council_prediction', {
+    'topic': 'Future of the USA'
+})
+
+# Get the session ID from the response
+session_id = extract_session_id(result)
+
+# Get formatted transcript
+transcript = client.call_tool('council_get_transcript', {
+    'sessionId': session_id,
+    'format': 'markdown'  # or 'text' or 'json'
+})
+
+print(transcript.content[0].text)
 ```
 
 ## Response Format
