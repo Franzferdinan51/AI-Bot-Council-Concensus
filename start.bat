@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 :: AI Council Chamber MCP Server Startup Script (Windows)
-set VERSION=1.0.0
+set VERSION=2.2.0
 set NODE_MIN_VERSION=18
 
 :: Check if any arguments provided
@@ -26,7 +26,9 @@ echo Welcome! Choose an option:
 echo.
 echo   1. Quick Start (Start Server Now)
 echo   2. Interactive Setup Wizard (Configure AI providers, personas, settings)
+echo      NEW: Includes Dynamic Persona Selection for topic-specific expertise!
 echo   3. Configure Bot Models (Set custom models for each persona)
+echo      NEW: Dynamic Persona Selection available via API calls
 echo   4. Configuration Check (Verify setup)
 echo   5. Development Mode (with auto-reload)
 echo   6. Open Documentation (View README, setup guides)
@@ -321,8 +323,9 @@ echo   3. INSTALL.md - Installation instructions
 echo   4. SETUP_WIZARD_GUIDE.md - Interactive setup guide
 echo   5. TROUBLESHOOTING.md - Common issues and solutions
 echo   6. STARTUP_GUIDE.md - Startup script options
+echo   7. DYNAMIC_PERSONA_SELECTION.md - NEW: AI-powered persona selection guide
 echo.
-set /p DOC_CHOICE="View which file? (1-6) or 'q' to quit: "
+set /p DOC_CHOICE="View which file? (1-7) or 'q' to quit: "
 
 if "%DOC_CHOICE%"=="q" goto :interactive_menu
 
@@ -348,6 +351,10 @@ if "%DOC_CHOICE%"=="5" (
 )
 if "%DOC_CHOICE%"=="6" (
     type STARTUP_GUIDE.md | more
+    goto :view_docs
+)
+if "%DOC_CHOICE%"=="7" (
+    type DYNAMIC_PERSONA_SELECTION.md | more
     goto :view_docs
 )
 
@@ -504,7 +511,12 @@ echo.
 echo This wizard will help you configure:
 echo   1. AI Providers (Gemini, OpenRouter, etc.)
 echo   2. Council Personas (enable/disable bots)
+echo      NEW: Dynamic Persona Selection for topic-specific expertise!
 echo   3. Server Settings
+echo.
+echo NEW IN v2.2: Bot-Specific Memory System
+echo   - Bots remember context across sessions
+echo   - Persistent facts, observations, and directives
 echo.
 echo Press any key to continue...
 pause >nul
@@ -802,6 +814,11 @@ echo This allows you to set custom AI models for each persona.
 echo Each bot can use a different model (Claude, GPT-4, Llama, etc.)
 echo.
 echo Current default model: gemini-2.5-flash (for all bots)
+echo.
+echo NEW FEATURE: Dynamic Persona Selection
+echo   Use settings.bots parameter in API calls to select topic-specific experts!
+echo   Example: Science topics ^> Enable specialist-science automatically
+echo   See DYNAMIC_PERSONA_SELECTION.md for full guide (Option 7 in Docs)
 echo.
 echo Press any key to continue...
 pause >nul
