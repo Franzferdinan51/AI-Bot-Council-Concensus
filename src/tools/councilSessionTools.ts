@@ -24,7 +24,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
   return [
     {
       name: 'council_proposal',
-      description: 'Run a legislative proposal session - standard parliamentary debate flow with opening, debate, voting, and enactment. The controlling bot can participate as "User/Petitioner"',
+      description: 'Run a legislative proposal session - standard parliamentary debate with opening, debate, voting, and enactment. 🎨 Dynamically select specific council personas via settings.bots for topic-appropriate expertise. Controlling bot can participate as "User/Petitioner".',
       inputSchema: {
         type: 'object',
         properties: {
@@ -38,17 +38,18 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
           },
           settings: {
             type: 'object',
-            description: 'Optional custom settings for the session',
+            description: 'Custom settings - TIP: Use settings.bots to select topic-appropriate personas (e.g., specialist-science for science topics)',
             properties: {
               bots: {
                 type: 'array',
                 items: {
                   type: 'object',
                   properties: {
-                    id: { type: 'string' },
-                    enabled: { type: 'boolean' }
+                    id: { type: 'string', description: 'Bot ID (e.g., "specialist-science", "councilor-technocrat")' },
+                    enabled: { type: 'boolean', description: 'Enable this persona for this session' }
                   }
-                }
+                },
+                description: 'Dynamic persona selection - specify which council members participate. See DYNAMIC_PERSONA_SELECTION.md for examples'
               },
               economyMode: { type: 'boolean' },
               maxConcurrentRequests: { type: 'number' },
@@ -67,7 +68,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_deliberation',
-      description: 'Run a deliberation session - roundtable discussion without voting. The controlling bot can participate as "User"',
+      description: 'Run a deliberation session - roundtable discussion without voting. 🎨 Dynamic persona selection enabled - specify experts via settings.bots for relevant expertise. Controlling bot can participate as "User".',
       inputSchema: {
         type: 'object',
         properties: {
@@ -108,7 +109,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_inquiry',
-      description: 'Run an inquiry session - Q&A mode where councilors provide direct answers. The controlling bot can participate as "User"',
+      description: 'Run an inquiry session - Q&A mode where councilors provide direct answers. 🎨 Select relevant personas via settings.bots for topic-specific expertise. The controlling bot can participate as "User".',
       inputSchema: {
         type: 'object',
         properties: {
@@ -148,7 +149,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_research',
-      description: 'Run a deep research session - multi-phase investigation with gap analysis. The controlling bot can participate as "User"',
+      description: 'Run a deep research session - multi-phase investigation with gap analysis. 🎨 Choose research specialists via settings.bots (e.g., specialist-science, specialist-legal) for domain expertise. The controlling bot can participate as "User".',
       inputSchema: {
         type: 'object',
         properties: {
@@ -188,7 +189,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_swarm',
-      description: 'Run a swarm session - dynamic task decomposition with parallel execution. The controlling bot can participate as "User"',
+      description: 'Run a swarm session - dynamic task decomposition with parallel execution. 🎨 Include diverse specialists via settings.bots for comprehensive analysis. The controlling bot can participate as "User".',
       inputSchema: {
         type: 'object',
         properties: {
@@ -228,7 +229,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_swarm_coding',
-      description: 'Run a swarm coding session - software development workflow with code generation. The controlling bot can participate as "User/Product Owner"',
+      description: 'Run a swarm coding session - software development workflow with code generation. 🎨 Enable specialist-code and technocrat via settings.bots for technical expertise. The controlling bot can participate as "User/Product Owner".',
       inputSchema: {
         type: 'object',
         properties: {
@@ -268,7 +269,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
     },
     {
       name: 'council_prediction',
-      description: 'Run a prediction session - superforecasting with probabilistic analysis. The controlling bot can participate as "User"',
+      description: 'Run a prediction session - superforecasting with probabilistic analysis. 🎨 Include historian (past precedents) and specialist-finance (data analysis) via settings.bots for better forecasting. The controlling bot can participate as "User".',
       inputSchema: {
         type: 'object',
         properties: {

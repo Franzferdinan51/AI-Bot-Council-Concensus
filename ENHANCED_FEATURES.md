@@ -2,7 +2,45 @@
 
 ## New Capabilities
 
-### 1. Bot Participation in Council Sessions
+### 1. 🎨 Dynamic Persona Selection
+
+The controlling AI can now **dynamically select** which council personas participate in each session!
+
+#### Why This Matters:
+**Default Mode**: Uses pre-configured enabled bots (generic expertise)
+**Dynamic Mode**: AI selects optimal personas for specific topics (targeted expertise)
+
+#### Example: Science Topic
+```json
+{
+  "topic": "Should we implement nuclear fusion power?",
+  "settings": {
+    "bots": [
+      { "id": "speaker-high-council", "enabled": true },
+      { "id": "specialist-science", "enabled": true },
+      { "id": "councilor-technocrat", "enabled": true },
+      { "id": "councilor-visionary", "enabled": true },
+      { "id": "councilor-historian", "enabled": true }
+    ]
+  }
+}
+```
+
+**Result**: Deep scientific analysis with historical context, instead of generic responses!
+
+#### Quick Reference - Persona Selection:
+- **Science/Technology** → `specialist-science`, `councilor-technocrat`, `councilor-visionary`
+- **Medicine/Health** → `specialist-medical`, `councilor-ethicist`, `councilor-psychologist`
+- **Legal Issues** → `specialist-legal`, `councilor-diplomat`, `councilor-ethicist`
+- **Economics** → `specialist-finance`, `councilor-pragmatist`, `councilor-progressive`
+- **Defense/Security** → `specialist-military`, `councilor-sentinel`, `councilor-diplomat`
+- **Coding** → `specialist-code`, `councilor-technocrat`, `councilor-sentinel`
+
+**📖 See**: `DYNAMIC_PERSONA_SELECTION.md` for complete guide with 24+ personas and smart selection patterns! 🎯
+
+---
+
+### 2. Bot Participation in Council Sessions
 
 The controlling bot can now **participate** in council sessions as "User" or "Petitioner", not just observe.
 
