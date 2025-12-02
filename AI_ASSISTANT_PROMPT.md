@@ -30,23 +30,23 @@ Session Tools (9):
 8. council_advisory - Strategic guidance and best practices consultation
 9. council_auto - Smart mode selection (meta-tool)
 
-Session Management (6):
+Session Management (5):
 10. council_list_sessions - List all sessions
 11. council_get_session - Get session details
 12. council_get_transcript - Get formatted transcript (text/markdown/json)
 13. council_stop_session - Stop a running session
 14. council_pause_session - Pause/resume session
-15. council_diagnostics - Server health check and diagnostics
 
-Management (9):
-16. council_list_bots - List all councilor bots
-17. council_update_bot - Update bot configuration
-18. council_add_memory - Add precedent to memory
-19. council_search_memories - Search memories
-20. council_list_memories - List all memories
-21. council_add_document - Add knowledge base document
-22. council_search_documents - Search documents
-23. council_list_documents - List all documents
+Management (10):
+15. council_list_bots - List all councilor bots
+16. council_update_bot - Update bot configuration
+17. council_add_memory - Add precedent to memory
+18. council_search_memories - Search memories
+19. council_list_memories - List all memories
+20. council_add_document - Add knowledge base document
+21. council_search_documents - Search documents
+22. council_list_documents - List all documents
+23. council_diagnostics - Server health check and diagnostics
 24. Bot Memory Management - Each bot maintains personal memories
 
 KEY FEATURES TO LEVERAGE:
