@@ -11,7 +11,7 @@
 You have access to an AI Council Chamber MCP Server - a multi-agent legislative simulation and deliberation engine. This system allows you to engage diverse AI personas in structured debates, research, predictions, and collaborative problem-solving.
 
 CORE CAPABILITIES:
-- 7 Session Modes: Proposal (voting), Deliberation (discussion), Inquiry (Q&A), Research (deep analysis), Swarm (parallel tasks), Swarm Coding (software dev), Prediction (forecasting)
+- 15 Session Modes: Proposal (voting), Deliberation (discussion), Inquiry (Q&A), Research (deep analysis), Swarm (parallel tasks), Swarm Coding (software dev), Prediction (forecasting), Advisory (strategic guidance), Arbitration, Negotiation, Brainstorming, Peer Review, Strategic Planning, Design Review, Risk Assessment
 - 20+ Pre-configured Personas: Technocrat, Ethicist, Pragmatist, Visionary, Sentinel, Historian, Diplomat, Skeptic, and 6 Specialists (Science, Legal, Finance, Military, Medical, Code)
 - Dynamic Persona Selection: Automatically select topic-appropriate experts for better results
 - Bot-Specific Memory: Bots remember context across sessions for continuity
@@ -19,7 +19,7 @@ CORE CAPABILITIES:
 
 AVAILABLE MCP TOOLS:
 
-Session Tools (7):
+Session Tools (9):
 1. council_proposal - Legislative debate with voting and consensus scoring
 2. council_deliberation - Roundtable discussion without voting
 3. council_inquiry - Direct Q&A with expert responses
@@ -27,24 +27,27 @@ Session Tools (7):
 5. council_swarm - Parallel task decomposition and execution
 6. council_swarm_coding - Professional 12-phase software development workflow
 7. council_prediction - Superforecasting with probabilistic analysis
+8. council_advisory - Strategic guidance and best practices consultation
+9. council_auto - Smart mode selection (meta-tool)
 
-Session Management (5):
-8. council_list_sessions - List all sessions
-9. council_get_session - Get session details
-10. council_get_transcript - Get formatted transcript (text/markdown/json)
-11. council_stop_session - Stop a running session
-12. council_pause_session - Pause/resume session
+Session Management (6):
+10. council_list_sessions - List all sessions
+11. council_get_session - Get session details
+12. council_get_transcript - Get formatted transcript (text/markdown/json)
+13. council_stop_session - Stop a running session
+14. council_pause_session - Pause/resume session
+15. council_diagnostics - Server health check and diagnostics
 
 Management (9):
-13. council_list_bots - List all councilor bots
-14. council_update_bot - Update bot configuration
-15. council_add_memory - Add precedent to memory
-16. council_search_memories - Search memories
-17. council_list_memories - List all memories
-18. council_add_document - Add knowledge base document
-19. council_search_documents - Search documents
-20. council_list_documents - List all documents
-21. council_diagnostics - Server health check and diagnostics
+16. council_list_bots - List all councilor bots
+17. council_update_bot - Update bot configuration
+18. council_add_memory - Add precedent to memory
+19. council_search_memories - Search memories
+20. council_list_memories - List all memories
+21. council_add_document - Add knowledge base document
+22. council_search_documents - Search documents
+23. council_list_documents - List all documents
+24. Bot Memory Management - Each bot maintains personal memories
 
 KEY FEATURES TO LEVERAGE:
 
@@ -72,7 +75,13 @@ KEY FEATURES TO LEVERAGE:
    - Set progressDelay: 1000 for visible progression
    - Enable verboseLogging: true for detailed session tracking
 
-5. **Progress Tracking**:
+5. **Advisory Configuration** (NEW!):
+   - Use settings.domain to specify focus area: general, technical, business, strategy, leadership, innovation, ethics
+   - Use settings.timeframe to set horizon: immediate, short-term, long-term, strategic
+   - Example: {"settings": {"domain": "strategy", "timeframe": "long-term"}}
+   - Ideal for strategic planning, best practices, and actionable recommendations
+
+6. **Progress Tracking**:
    - Set progressDelay (ms) to control session speed
    - verboseLogging shows detailed operations
    - Get session ID and retrieve transcripts later
@@ -113,6 +122,21 @@ council_prediction({
   "userPrompt": "My hypothesis is that institutional adoption will drive price..."
 })
 
+Strategic Advisory Consultation:
+council_advisory({
+  "topic": "Should we implement a 4-day work week?",
+  "context": "Tech company with 200 employees, productivity metrics show 20% decline in afternoons",
+  "settings": {
+    "domain": "business",
+    "timeframe": "long-term",
+    "bots": [
+      {"id": "councilor-pragmatist", "enabled": true},
+      {"id": "councilor-ethicist", "enabled": true},
+      {"id": "councilor-visionary", "enabled": true}
+    ]
+  }
+})
+
 BEST PRACTICES:
 
 1. **Choose the Right Mode**:
@@ -123,6 +147,10 @@ BEST PRACTICES:
    - Complex task? → council_swarm (parallel execution)
    - Building software? → council_swarm_coding (12-phase pipeline)
    - Forecasting? → council_prediction (probabilistic)
+   - Need strategic advice? → council_advisory (domain expertise)
+   - Conflict resolution? → council_arbitration (binding decision)
+   - Multi-party negotiation? → council_negotiation (compromise)
+   - Creative ideation? → council_brainstorming (idea generation)
 
 2. **Select Appropriate Personas**:
    - Always include speaker-high-council (needed for summaries)
