@@ -20,6 +20,7 @@ import { predictionTrackingService } from '../services/predictionTrackingService
 import { personaSuggestionService } from '../services/personaSuggestionService.js';
 import { costTrackingService } from '../services/costTrackingService.js';
 import { sessionTemplateService } from '../services/sessionTemplateService.js';
+import { exportService } from '../services/exportService.js';
 
 export function createManagementTools(): any[] {
   return [
@@ -360,6 +361,241 @@ export function createManagementTools(): any[] {
         },
         required: ['topic']
       }
+    },
+    {
+      name: 'council_export_report',
+      description: 'Export data in multiple formats (PDF, Markdown, JSON, CSV)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          itemId: {
+            type: 'string',
+            description: 'ID of item to export'
+          },
+          title: {
+            type: 'string',
+            description: 'Title of the export'
+          },
+          description: {
+            type: 'string',
+            description: 'Description of the export'
+          },
+          type: {
+            type: 'string',
+            enum: ['session', 'analytics', 'prediction', 'cost', 'persona', 'learning', 'test_suite'],
+            description: 'Type of data to export'
+          },
+          data: {
+            type: 'object',
+            description: 'Data to export'
+          },
+          format: {
+            type: 'string',
+            enum: ['pdf', 'markdown', 'json', 'csv', 'xml'],
+            description: 'Export format',
+            default: 'pdf'
+          },
+          includeMetadata: {
+            type: 'boolean',
+            description: 'Include metadata in export',
+            default: true
+          },
+          includeCharts: {
+            type: 'boolean',
+            description: 'Include charts in export',
+            default: true
+          }
+        },
+        required: ['itemId', 'title', 'type', 'data', 'format']
+      }
+    },
+    {
+      name: 'council_export_test_suite',
+      description: 'Generate comprehensive test suite report',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          testData: {
+            type: 'object',
+            description: 'Test data to include in report'
+          },
+          format: {
+            type: 'string',
+            enum: ['pdf', 'markdown', 'json'],
+            description: 'Export format',
+            default: 'pdf'
+          }
+        },
+        required: ['testData']
+      }
+    },
+    {
+      name: 'council_export_analytics',
+      description: 'Export analytics dashboard report',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          analyticsData: {
+            type: 'object',
+            description: 'Analytics data to export'
+          },
+          format: {
+            type: 'string',
+            enum: ['pdf', 'markdown', 'json'],
+            description: 'Export format',
+            default: 'pdf'
+          }
+        },
+        required: ['analyticsData']
+      }
+    },
+    {
+      name: 'council_export_session',
+      description: 'Export detailed session report',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          sessionData: {
+            type: 'object',
+            description: 'Session data to export'
+          },
+          format: {
+            type: 'string',
+            enum: ['markdown', 'json', 'pdf'],
+            description: 'Export format',
+            default: 'markdown'
+          }
+        },
+        required: ['sessionData']
+      }
+    },
+    {
+      name: 'council_export_predictions',
+      description: 'Export prediction tracking report',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          predictionData: {
+            type: 'object',
+            description: 'Prediction data to export'
+          },
+          format: {
+            type: 'string',
+            enum: ['json', 'csv', 'markdown'],
+            description: 'Export format',
+            default: 'json'
+          }
+        },
+        required: ['predictionData']
+      }
+    },
+    {
+      name: 'council_export_personas',
+      description: 'Export persona performance report',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          personaData: {
+            type: 'object',
+            description: 'Persona performance data to export'
+          },
+          format: {
+            type: 'string',
+            enum: ['markdown', 'json', 'pdf'],
+            description: 'Export format',
+            default: 'markdown'
+          }
+        },
+        required: ['personaData']
+      }
+    },
+    {
+      name: 'council_export_learning',
+      description: 'Export meta-learning insights report',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          learningData: {
+            type: 'object',
+            description: 'Learning insights data to export'
+          },
+          format: {
+            type: 'string',
+            enum: ['markdown', 'json', 'pdf'],
+            description: 'Export format',
+            default: 'markdown'
+          }
+        },
+        required: ['learningData']
+      }
+    },
+    {
+      name: 'council_export_batch',
+      description: 'Export multiple items in batch',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                title: { type: 'string' },
+                type: { type: 'string' },
+                data: { type: 'object' }
+              }
+            },
+            description: 'Array of items to export'
+          },
+          format: {
+            type: 'string',
+            enum: ['json', 'markdown', 'csv'],
+            description: 'Export format',
+            default: 'json'
+          }
+        },
+        required: ['items']
+      }
+    },
+    {
+      name: 'council_export_custom',
+      description: 'Generate custom formatted report',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          title: {
+            type: 'string',
+            description: 'Report title'
+          },
+          subtitle: {
+            type: 'string',
+            description: 'Report subtitle'
+          },
+          sections: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                title: { type: 'string' },
+                content: { type: 'object' }
+              }
+            },
+            description: 'Report sections'
+          },
+          metadata: {
+            type: 'object',
+            description: 'Additional metadata'
+          },
+          format: {
+            type: 'string',
+            enum: ['pdf', 'markdown', 'json'],
+            description: 'Export format',
+            default: 'pdf'
+          }
+        },
+        required: ['title', 'sections']
+      }
     }
   ];
 }
@@ -410,6 +646,24 @@ export async function handleManagementToolCall(
         return await handleApplyTemplate(arguments_);
       case 'council_suggest_templates':
         return await handleSuggestTemplates(arguments_);
+      case 'council_export_report':
+        return await handleExportReport(arguments_);
+      case 'council_export_test_suite':
+        return await handleExportTestSuite(arguments_);
+      case 'council_export_analytics':
+        return await handleExportAnalytics(arguments_);
+      case 'council_export_session':
+        return await handleExportSession(arguments_);
+      case 'council_export_predictions':
+        return await handleExportPredictions(arguments_);
+      case 'council_export_personas':
+        return await handleExportPersonas(arguments_);
+      case 'council_export_learning':
+        return await handleExportLearning(arguments_);
+      case 'council_export_batch':
+        return await handleExportBatch(arguments_);
+      case 'council_export_custom':
+        return await handleExportCustom(arguments_);
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
@@ -1121,6 +1375,273 @@ async function handleSuggestTemplates(args: any): Promise<CallToolResult> {
         {
           type: 'text',
           text: JSON.stringify(display, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+// ============================================================================
+// Export Service Handlers
+// ============================================================================
+
+async function handleExportReport(args: any): Promise<CallToolResult> {
+  const { itemId, title, description, type, data, format, includeMetadata, includeCharts } = args;
+
+  try {
+    const result = await exportService.exportItem(
+      {
+        id: itemId,
+        title,
+        description,
+        type,
+        data,
+        timestamp: Date.now()
+      },
+      {
+        format,
+        includeMetadata,
+        includeCharts
+      }
+    );
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleExportTestSuite(args: any): Promise<CallToolResult> {
+  const { testData, format } = args;
+
+  try {
+    const result = await exportService.generateTestSuiteReport(testData, format);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleExportAnalytics(args: any): Promise<CallToolResult> {
+  const { analyticsData, format } = args;
+
+  try {
+    const result = await exportService.exportAnalyticsReport(analyticsData, format);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleExportSession(args: any): Promise<CallToolResult> {
+  const { sessionData, format } = args;
+
+  try {
+    const result = await exportService.exportSession(sessionData, format);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleExportPredictions(args: any): Promise<CallToolResult> {
+  const { predictionData, format } = args;
+
+  try {
+    const result = await exportService.exportPredictions(predictionData, format);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleExportPersonas(args: any): Promise<CallToolResult> {
+  const { personaData, format } = args;
+
+  try {
+    const result = await exportService.exportPersonaReport(personaData, format);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleExportLearning(args: any): Promise<CallToolResult> {
+  const { learningData, format } = args;
+
+  try {
+    const result = await exportService.exportLearningReport(learningData, format);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleExportBatch(args: any): Promise<CallToolResult> {
+  const { items, format } = args;
+
+  try {
+    const result = await exportService.exportBatch(items, {
+      format,
+      includeMetadata: true
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleExportCustom(args: any): Promise<CallToolResult> {
+  const { title, subtitle, sections, metadata, format } = args;
+
+  try {
+    const result = await exportService.generateCustomReport(
+      {
+        title,
+        subtitle,
+        sections: sections.map((s: any, i: number) => ({
+          title: s.title,
+          content: s.content,
+          order: i
+        })),
+        metadata: metadata || {}
+      },
+      format
+    );
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
         }
       ]
     };
