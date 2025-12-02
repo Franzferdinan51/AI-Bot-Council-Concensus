@@ -1,10 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BotConfig, AuthorType, Message, ProviderSettings } from '../types/index.js';
 import { costTrackingService } from './costTrackingService.js';
+import { logger } from './logger.js';
 
 export interface StreamingCallback {
   (chunk: string): void;
 }
+
+const DEFAULT_TIMEOUT_MS = 120000; // 120 seconds
 
 export class AIService {
   private providers: Map<AuthorType, any> = new Map();
@@ -91,6 +94,24 @@ export class AIService {
     }
   }
 
+  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number, operationName: string): Promise<T> {
+    let timeoutHandle: NodeJS.Timeout;
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      timeoutHandle = setTimeout(() => {
+        reject(new Error(`${operationName} timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+    });
+
+    try {
+      const result = await Promise.race([promise, timeoutPromise]);
+      clearTimeout(timeoutHandle!);
+      return result;
+    } catch (error) {
+      clearTimeout(timeoutHandle!);
+      throw error;
+    }
+  }
+
   private async getGeminiResponse(
     bot: BotConfig,
     history: Message[],
@@ -107,7 +128,11 @@ export class AIService {
     const messages = this.formatMessagesForGemini(history, systemPrompt);
     let response;
     try {
-      const result = await model.generateContent(messages);
+      const result = await this.withTimeout(
+        model.generateContent(messages),
+        DEFAULT_TIMEOUT_MS,
+        `Gemini.generateContent(${bot.model})`
+      ) as any;
       response = await result.response;
     } catch (error: any) {
       throw new Error(`Gemini API error: ${error.message || error}`);
@@ -120,8 +145,21 @@ export class AIService {
       const completionTokenCount = this.estimateTokenCount(responseText);
       const callId = costTrackingService.startCall(this.currentSessionId, bot.id, bot.name, bot.authorType, bot.model);
       costTrackingService.completeCall(callId, promptTokenCount, completionTokenCount);
-    } catch (error) {
+
+      // Granular logging
+      logger.api(AuthorType.GEMINI, 'generateContent', 'completed', undefined, {
+        botId: bot.id,
+        model: bot.model,
+        promptTokens: promptTokenCount,
+        completionTokens: completionTokenCount,
+        sessionId: this.currentSessionId
+      });
+    } catch (error: any) {
       console.error('[COST TRACKING] Error tracking Gemini call:', error);
+      logger.api(AuthorType.GEMINI, 'generateContent', 'error', undefined, {
+        botId: bot.id,
+        error: error.message
+      });
     }
 
     return response.text();
@@ -144,7 +182,11 @@ export class AIService {
 
     let result;
     try {
-      result = await model.generateContentStream(messages);
+      result = await this.withTimeout(
+        model.generateContentStream(messages),
+        DEFAULT_TIMEOUT_MS,
+        `Gemini.generateContentStream(${bot.model})`
+      );
     } catch (error: any) {
       throw new Error(`Gemini streaming error: ${error.message || error}`);
     }
@@ -153,6 +195,9 @@ export class AIService {
     try {
       const callId = costTrackingService.startCall(this.currentSessionId, bot.id, bot.name, bot.authorType, bot.model);
 
+      // We can't easily timeout the entire stream consumption without abort controller support in the library or wrapping the iterator
+      // But we can at least ensure the initial connection happened.
+      // For stricter stream timeouts, we'd need to wrap the async iterator.
       for await (const chunk of result.stream) {
         const chunkText = chunk.text();
         fullResponse += chunkText;
@@ -185,6 +230,9 @@ export class AIService {
     const callId = costTrackingService.startCall(this.currentSessionId, bot.id, bot.name, bot.authorType, bot.model);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -198,8 +246,11 @@ export class AIService {
           messages: openAIMessages,
           temperature: 0.7,
           stream: false
-        })
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         costTrackingService.completeCall(callId, promptTokenCount, 0, 'error', response.statusText);
@@ -217,8 +268,9 @@ export class AIService {
       costTrackingService.completeCall(callId, data.usage?.prompt_tokens || promptTokenCount, completionTokenCount);
 
       return responseContent;
-    } catch (error) {
-      costTrackingService.completeCall(callId, promptTokenCount, 0, 'error', error instanceof Error ? error.message : 'Unknown error');
+    } catch (error: any) {
+      const errorMessage = error.name === 'AbortError' ? 'Request timed out' : (error instanceof Error ? error.message : 'Unknown error');
+      costTrackingService.completeCall(callId, promptTokenCount, 0, 'error', errorMessage);
       throw error;
     }
   }
@@ -234,61 +286,74 @@ export class AIService {
       throw new Error('OpenRouter API key not provided');
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${settings.openRouterKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://ai-council-mcp-server',
-        'X-Title': 'AI Council MCP Server'
-      },
-      body: JSON.stringify({
-        model: bot.model,
-        messages: this.formatMessagesForOpenAI(history, systemPrompt),
-        temperature: 0.7,
-        stream: true
-      })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-    if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.statusText}`);
-    }
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${settings.openRouterKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://ai-council-mcp-server',
+          'X-Title': 'AI Council MCP Server'
+        },
+        body: JSON.stringify({
+          model: bot.model,
+          messages: this.formatMessagesForOpenAI(history, systemPrompt),
+          temperature: 0.7,
+          stream: true
+        }),
+        signal: controller.signal
+      });
 
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    let fullResponse = '';
+      clearTimeout(timeoutId);
 
-    if (!reader) {
-      throw new Error('No response body');
-    }
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.statusText}`);
+      }
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim() !== '');
+      if (!reader) {
+        throw new Error('No response body');
+      }
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-          try {
-            const parsed = JSON.parse(data) as { choices?: Array<{ delta?: { content?: string } }> };
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              fullResponse += content;
-              onChunk(content);
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data) as { choices?: Array<{ delta?: { content?: string } }> };
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                fullResponse += content;
+                onChunk(content);
+              }
+            } catch (e) {
+              // Ignore parse errors for keep-alive messages
             }
-          } catch (e) {
-            // Ignore parse errors for keep-alive messages
           }
         }
       }
-    }
 
-    return fullResponse;
+      return fullResponse;
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        throw new Error(`OpenRouter streaming request timed out after ${DEFAULT_TIMEOUT_MS}ms`);
+      }
+      throw error;
+    }
   }
 
   private async getGenericOpenAIResponse(
@@ -305,26 +370,39 @@ export class AIService {
 
     const apiKey = this.getApiKeyForAuthorType(bot.authorType, settings);
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: bot.model,
-        messages: this.formatMessagesForOpenAI(history, systemPrompt),
-        temperature: 0.7,
-        stream: false
-      })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-    if (!response.ok) {
-      throw new Error(`${bot.authorType} API error: ${response.statusText}`);
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: bot.model,
+          messages: this.formatMessagesForOpenAI(history, systemPrompt),
+          temperature: 0.7,
+          stream: false
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`${bot.authorType} API error: ${response.statusText}`);
+      }
+
+      const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+      return data.choices?.[0]?.message?.content || '';
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        throw new Error(`${bot.authorType} request timed out after ${DEFAULT_TIMEOUT_MS}ms`);
+      }
+      throw error;
     }
-
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    return data.choices?.[0]?.message?.content || '';
   }
 
   private async streamGenericOpenAIResponse(
@@ -342,59 +420,72 @@ export class AIService {
 
     const apiKey = this.getApiKeyForAuthorType(bot.authorType, settings);
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: bot.model,
-        messages: this.formatMessagesForOpenAI(history, systemPrompt),
-        temperature: 0.7,
-        stream: true
-      })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-    if (!response.ok) {
-      throw new Error(`${bot.authorType} API error: ${response.statusText}`);
-    }
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: bot.model,
+          messages: this.formatMessagesForOpenAI(history, systemPrompt),
+          temperature: 0.7,
+          stream: true
+        }),
+        signal: controller.signal
+      });
 
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    let fullResponse = '';
+      clearTimeout(timeoutId);
 
-    if (!reader) {
-      throw new Error('No response body');
-    }
+      if (!response.ok) {
+        throw new Error(`${bot.authorType} API error: ${response.statusText}`);
+      }
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim() !== '');
+      if (!reader) {
+        throw new Error('No response body');
+      }
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-          try {
-            const parsed = JSON.parse(data) as { choices?: Array<{ delta?: { content?: string } }> };
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              fullResponse += content;
-              onChunk(content);
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data) as { choices?: Array<{ delta?: { content?: string } }> };
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                fullResponse += content;
+                onChunk(content);
+              }
+            } catch (e) {
+              // Ignore parse errors
             }
-          } catch (e) {
-            // Ignore parse errors
           }
         }
       }
-    }
 
-    return fullResponse;
+      return fullResponse;
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        throw new Error(`${bot.authorType} streaming request timed out after ${DEFAULT_TIMEOUT_MS}ms`);
+      }
+      throw error;
+    }
   }
 
   async generateSpeech(text: string, voiceName: string, apiKey?: string): Promise<string | null> {

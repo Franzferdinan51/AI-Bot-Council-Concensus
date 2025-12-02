@@ -1146,6 +1146,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
   const diagnostics: any = {
     timestamp: new Date().toISOString(),
     status: 'OK',
+    uptime: process.uptime(),
     checks: {},
     errors: [],
     warnings: []
@@ -1159,7 +1160,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     openrouter: !!process.env.OPENROUTER_API_KEY,
     lmStudio: !!process.env.LM_STUDIO_ENDPOINT,
     ollama: !!process.env.OLLAMA_ENDPOINT,
-    configured: []
+    configured: [] as string[]
   };
 
   // Track which providers are configured
@@ -1182,8 +1183,8 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
       issue: 'No AI providers configured',
       severity: 'CRITICAL',
       message: 'Configure at least one provider:\n' +
-               '  - Cloud: GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, or OPENROUTER_API_KEY\n' +
-               '  - Local: LM_STUDIO_ENDPOINT or OLLAMA_ENDPOINT'
+        '  - Cloud: GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, or OPENROUTER_API_KEY\n' +
+        '  - Local: LM_STUDIO_ENDPOINT or OLLAMA_ENDPOINT'
     });
     diagnostics.status = 'ERROR';
   } else {
@@ -1192,10 +1193,17 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
 
   // Check 2: Session Service
   try {
-    const sessionCount = sessionService.listSessions().length;
+    const sessions = sessionService.listSessions();
     diagnostics.checks.sessionService = {
       status: 'OK',
-      activeSessions: sessionCount
+      activeSessions: sessions.length,
+      sessions: sessions.map(s => ({
+        id: s.id,
+        topic: s.topic,
+        mode: s.mode,
+        status: s.status,
+        messageCount: s.messages.length
+      }))
     };
   } catch (error: any) {
     diagnostics.errors.push({
@@ -1231,15 +1239,13 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
   }
 
   // Check 4: Memory Usage
-  if (verbose) {
-    const memUsage = process.memoryUsage();
-    diagnostics.checks.memory = {
-      rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
-      heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
-      heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`,
-      external: `${Math.round(memUsage.external / 1024 / 1024)} MB`
-    };
-  }
+  const memUsage = process.memoryUsage();
+  diagnostics.checks.memory = {
+    rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
+    heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
+    heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`,
+    external: `${Math.round(memUsage.external / 1024 / 1024)} MB`
+  };
 
   // Check 5: Node.js Version
   diagnostics.checks.nodeVersion = {
@@ -1248,7 +1254,20 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     arch: process.arch
   };
 
-  // Check 6: Available Council Modes
+  // Check 6: Logs
+  const logStats = logger.getStats();
+  const recentLogs = logger.getLogs(verbose ? 50 : 20);
+  const errorLogs = logger.getLogsByLevel(3); // ERROR level
+
+  diagnostics.checks.logs = {
+    total: logStats.total,
+    errors: logStats.errors,
+    warnings: logStats.warnings,
+    recent: recentLogs.map(l => `[${l.levelName}] ${l.message}`),
+    recentErrors: errorLogs.slice(-5).map(l => `${l.message} ${l.error?.message ? '(' + l.error.message + ')' : ''}`)
+  };
+
+  // Check 7: Available Council Modes
   diagnostics.checks.availableModes = [
     'council_proposal',
     'council_deliberation',
@@ -1259,43 +1278,14 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     'council_prediction'
   ];
 
-  // Check 7: Test Session Creation
-  try {
-    const testSessionId = sessionService.createSession(
-      '[DIAGNOSTIC] System Test',
-      SessionMode.INQUIRY,
-      { bots: [], economyMode: true, maxConcurrentRequests: 1 },
-      'Automatic system diagnostic test - will be cleaned up'
-    );
-
-    diagnostics.checks.sessionCreation = {
-      status: 'OK',
-      testSessionId
-    };
-
-    // Clean up test session
-    const testSession = sessionService.getSession(testSessionId);
-    if (testSession) {
-      sessionService.updateSessionStatus(testSessionId, SessionStatus.ADJOURNED);
-      diagnostics.checks.sessionCleanup = { status: 'OK' };
-    }
-  } catch (error: any) {
-    diagnostics.errors.push({
-      component: 'Session Creation',
-      issue: error.message,
-      severity: 'CRITICAL',
-      stack: verbose ? error.stack : undefined
-    });
-    diagnostics.checks.sessionCreation = { status: 'ERROR', error: error.message };
-    diagnostics.status = 'ERROR';
-  }
-
   // Generate Report
   let report = `╔════════════════════════════════════════════════════════════╗\n`;
   report += `║              AI COUNCIL MCP - DIAGNOSTICS                 ║\n`;
   report += `╚════════════════════════════════════════════════════════════╝\n\n`;
   report += `Status: ${diagnostics.status}\n`;
   report += `Timestamp: ${diagnostics.timestamp}\n`;
+  report += `Uptime: ${Math.floor(diagnostics.uptime / 60)}m ${Math.floor(diagnostics.uptime % 60)}s\n`;
+  report += `Memory: ${diagnostics.checks.memory.heapUsed} used / ${diagnostics.checks.memory.heapTotal} total\n`;
   report += `Node.js: ${diagnostics.checks.nodeVersion.version} (${diagnostics.checks.nodeVersion.platform})\n\n`;
 
   // API Keys Status
@@ -1314,12 +1304,33 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
   // Session Service
   report += `─── SESSIONS ───\n`;
   report += `Active: ${diagnostics.checks.sessionService.activeSessions || 0}\n`;
-  report += `Storage: ${diagnostics.checks.sessionStorage.status}\n\n`;
+  report += `Storage: ${diagnostics.checks.sessionStorage.status}\n`;
+
+  if (diagnostics.checks.sessionService.sessions && diagnostics.checks.sessionService.sessions.length > 0) {
+    report += `\nActive Sessions:\n`;
+    diagnostics.checks.sessionService.sessions.forEach((s: any) => {
+      report += `• [${s.id}] ${s.mode} - ${s.status} (${s.messageCount} msgs)\n  Topic: ${s.topic.substring(0, 50)}${s.topic.length > 50 ? '...' : ''}\n`;
+    });
+  }
+  report += `\n`;
+
+  // Logs
+  report += `─── LOGS ───\n`;
+  report += `Total: ${logStats.total} | Errors: ${logStats.errors} | Warnings: ${logStats.warnings}\n`;
+
+  if (diagnostics.checks.logs.recentErrors.length > 0) {
+    report += `\nRecent Errors:\n`;
+    diagnostics.checks.logs.recentErrors.forEach((err: string) => {
+      report += `• ${err}\n`;
+    });
+  } else {
+    report += `No recent errors.\n`;
+  }
 
   // Errors
   if (diagnostics.errors.length > 0) {
-    report += `─── ERRORS (${diagnostics.errors.length}) ───\n`;
-    diagnostics.errors.forEach((err, idx) => {
+    report += `\n─── DIAGNOSTIC ERRORS (${diagnostics.errors.length}) ───\n`;
+    diagnostics.errors.forEach((err: any, idx: number) => {
       report += `${idx + 1}. [${err.severity}] ${err.component}: ${err.issue}\n`;
       if (verbose && err.stack) {
         report += `   Stack: ${err.stack}\n`;
@@ -1330,27 +1341,14 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
 
   // Warnings
   if (diagnostics.warnings.length > 0) {
-    report += `─── WARNINGS (${diagnostics.warnings.length}) ───\n`;
-    diagnostics.warnings.forEach((warn, idx) => {
+    report += `\n─── DIAGNOSTIC WARNINGS (${diagnostics.warnings.length}) ───\n`;
+    diagnostics.warnings.forEach((warn: any, idx: number) => {
       report += `${idx + 1}. ${warn.component}: ${warn.issue}\n`;
     });
     report += '\n';
   }
 
-  // Available Tools
-  report += `─── AVAILABLE TOOLS ───\n`;
-  diagnostics.checks.availableModes.forEach((tool, idx) => {
-    report += `${idx + 1}. ${tool}\n`;
-  });
-  report += `\n`;
-
-  report += `─── QUICK ACTIONS ───\n`;
-  report += `• List sessions: council_list_sessions\n`;
-  report += `• Run prediction: council_prediction {"topic": "your question"}\n`;
-  report += `• Get transcript: council_get_transcript {"sessionId": "id"}\n`;
-  report += `• Run diagnostics: council_diagnostics {"verbose": true}\n\n`;
-
-  report += `╚════════════════════════════════════════════════════════════╝\n`;
+  report += `\n╚════════════════════════════════════════════════════════════╝\n`;
   report += `Server is ${diagnostics.status === 'OK' ? 'ready ✓' : 'has issues ✗'}\n`;
 
   if (diagnostics.status !== 'OK') {
@@ -1364,10 +1362,15 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     }
   ];
 
-  if (verbose && diagnostics.errors.length > 0) {
+  if (verbose) {
     content.push({
       type: 'text' as const,
-      text: '\n--- VERBOSE DATA ---\n' + JSON.stringify(diagnostics, null, 2)
+      text: '\n--- VERBOSE DIAGNOSTICS ---\n' + JSON.stringify(diagnostics, null, 2)
+    });
+
+    content.push({
+      type: 'text' as const,
+      text: '\n--- RECENT LOGS ---\n' + diagnostics.checks.logs.recent.join('\n')
     });
   }
 

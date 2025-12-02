@@ -332,13 +332,14 @@ export class Logger {
 
     switch (entry.level) {
       case LogLevel.DEBUG:
-        console.debug(logLine);
+        // Use console.error for all logs to avoid interfering with MCP stdout protocol
+        console.error(logLine);
         break;
       case LogLevel.INFO:
-        console.info(logLine);
+        console.error(logLine);
         break;
       case LogLevel.WARN:
-        console.warn(logLine);
+        console.error(logLine);
         break;
       case LogLevel.ERROR:
       case LogLevel.CRITICAL:
@@ -351,10 +352,36 @@ export class Logger {
    * Output log entry to file
    */
   private async outputToFile(entry: LogEntry): Promise<void> {
-    // This would require fs/promises
-    // For now, we'll just format the entry
-    const line = JSON.stringify(entry) + '\n';
-    // TODO: Implement file writing with rotation
+    if (!this.config.outputToFile) return;
+
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+
+      // Ensure log directory exists
+      try {
+        await fs.access(this.config.logDirectory);
+      } catch {
+        await fs.mkdir(this.config.logDirectory, { recursive: true });
+      }
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      const filename = path.join(this.config.logDirectory, `server-${dateStr}.log`);
+      const line = JSON.stringify(entry) + '\n';
+
+      await fs.appendFile(filename, line, 'utf8');
+
+      // Check file size for rotation (simplified)
+      const stats = await fs.stat(filename);
+      if (stats.size > this.config.maxFileSize * 1024 * 1024) {
+        const timestamp = Date.now();
+        const newName = path.join(this.config.logDirectory, `server-${dateStr}-${timestamp}.log`);
+        await fs.rename(filename, newName);
+      }
+    } catch (error) {
+      // Fallback to console error if file writing fails
+      console.error('[Logger] Failed to write to file:', error);
+    }
   }
 
   /**

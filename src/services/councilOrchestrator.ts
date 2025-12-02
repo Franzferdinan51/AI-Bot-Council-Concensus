@@ -16,6 +16,7 @@ import { sessionService } from './sessionService.js';
 import { searchMemories, searchDocuments, saveMemory } from './knowledgeService.js';
 import { protectionService } from './protectionService.js';
 import { predictionTrackingService } from './predictionTrackingService.js';
+import { logger } from './logger.js';
 
 export class CouncilOrchestrator {
   private aiService: AIService;
@@ -59,6 +60,14 @@ export class CouncilOrchestrator {
 
     // Enhanced logging
     const enabledBotCount = settings.bots.filter(b => b.enabled).length;
+
+    logger.session(sessionId, 'started', 'started', {
+      mode,
+      topic,
+      botCount: enabledBotCount,
+      verbose: settings.verboseLogging
+    });
+
     console.error(`[Orchestrator] Starting council session ${sessionId}`);
     console.error(`[Orchestrator] Mode: ${mode}, Topic: "${topic}"`);
     console.error(`[Orchestrator] Enabled bots: ${enabledBotCount}/${settings.bots.length}`);
@@ -123,6 +132,11 @@ export class CouncilOrchestrator {
       // End protection tracking for this session
       protectionService.endSession(sessionId);
 
+      logger.session(sessionId, 'completed', 'completed', {
+        mode,
+        topic
+      });
+
       return this.buildResult(sessionId);
 
     } catch (error: any) {
@@ -137,6 +151,12 @@ export class CouncilOrchestrator {
 
       // End protection tracking even on error
       protectionService.endSession(sessionId);
+
+      logger.session(sessionId, 'failed', 'error', {
+        error: error.message,
+        mode,
+        topic
+      });
 
       return this.buildResult(sessionId);
     }
@@ -745,6 +765,14 @@ export class CouncilOrchestrator {
 
     if (consensusScore < 40 && total > 2) result = 'RECONCILIATION NEEDED';
 
+
+    logger.info(`Vote parsed: ${result} (${finalWeightedYeas} -${finalWeightedNays})`, {
+      topic,
+      consensusScore,
+      consensusLabel,
+      voteCount
+    });
+
     return {
       topic,
       yeas,
@@ -785,7 +813,7 @@ export class CouncilOrchestrator {
     roleLabel?: string
   ): Message {
     return {
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `msg - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `,
       author,
       authorType: authorType as AuthorType,
       content,
@@ -797,7 +825,7 @@ export class CouncilOrchestrator {
 
   private createSystemMessage(content: string): Message {
     return {
-      id: `sys-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `sys - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `,
       author: 'Council Clerk',
       authorType: AuthorType.SYSTEM,
       content,
