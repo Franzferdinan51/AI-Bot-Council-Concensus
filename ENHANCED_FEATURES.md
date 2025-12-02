@@ -319,10 +319,117 @@ Each session now logs:
 }
 ```
 
+---
+
+### 5. 🎯 Comprehensive Server Logging (NEW!)
+
+The MCP server now provides **extensive logging** so you can see everything happening on the server side!
+
+#### Enhanced Startup Logging:
+```
+╔════════════════════════════════════════════════════════════╗
+║         AI Council Chamber MCP Server                      ║
+║         Version 1.0.0 - Standalone Mode                   ║
+╚════════════════════════════════════════════════════════════╝
+
+[SERVER] Starting initialization...
+[SERVER] Node.js: v20.10.0
+[SERVER] Platform: win32 x64
+[SERVER] PID: 12345
+
+[SERVER] ✓ Session service initialized
+[SERVER] ✓ AI service initialized
+[SERVER] ✓ Council orchestrator ready
+
+[SERVER] Tools registered: 21
+[SERVER]   - Council Session Tools: 7
+[SERVER]   - Session Management: 5
+[SERVER]   - Bot Management: 9
+[SERVER]   - System Tools: 2
+
+╔════════════════════════════════════════════════════════════╗
+║                 SERVER READY                                ║
+╚════════════════════════════════════════════════════════════╝
+[SERVER] Initialization complete in 0.245s
+[SERVER] Waiting for MCP requests on STDIO...
+[SERVER] Log level: ERROR (use console.error for output)
+```
+
+#### Tool Call Logging:
+```
+[2025-12-01T19:15:32.145Z] [TOOL CALL #1] council_diagnostics
+[TOOL] Arguments:
+   {
+     "verbose": true
+   }
+
+[2025-12-01T19:15:32.892Z] [TOOL COMPLETE] council_diagnostics
+[TOOL] Total Duration: 747ms
+[TOOL] Result preview:
+   ╔════════════════════════════════════════════════════════════╗
+   ║              AI COUNCIL MCP - DIAGNOSTICS                 ║
+   ╚════════════════════════════════════════════════════════════╝
+   ...
+```
+
+#### Server Heartbeat (Every 60 seconds):
+```
+[7:15:33 PM] [HEARTBEAT] Requests: 5 | Tools: 3 | Sessions: 1 | Memory: 45MB
+[7:16:33 PM] [HEARTBEAT] Requests: 8 | Tools: 6 | Sessions: 2 | Memory: 52MB
+```
+
+#### Request Tracking:
+```
+[2025-12-01T19:15:30.123Z] [SERVER] Request #1: initialize
+[SERVER]   Details: {
+  "clientInfo": {
+    "name": "Claude Desktop",
+    "version": "0.9.0"
+  }
+}
+```
+
+#### Shutdown Logging:
+```
+[SERVER] Received SIGINT, shutting down gracefully...
+[SERVER] Total uptime: 145.67s
+[SERVER] Total requests: 12
+[SERVER] Total tool calls: 8
+```
+
+#### What Gets Logged:
+- ✅ **Server startup** - Version, platform, PID, initialization steps
+- ✅ **Tool registration** - Count of each tool type
+- ✅ **Request tracking** - All MCP requests with timestamps
+- ✅ **Tool calls** - Arguments, duration, results preview
+- ✅ **Heartbeat** - Memory usage, active sessions, request count
+- ✅ **Session events** - Creation, status changes, completion
+- ✅ **Error tracking** - Detailed error messages with context
+- ✅ **Graceful shutdown** - Uptime statistics and summary
+
+#### How to View Logs:
+**For MCP Integration:**
+- Logs appear on stderr (console.error)
+- All server output goes to stderr for MCP compatibility
+- Use your MCP client's log viewer to see server activity
+
+**For Direct Execution:**
+```bash
+node dist/index.js 2>&1 | tee server.log
+# Or just
+node dist/index.js  # Output goes to console
+```
+
+**For Development:**
+```bash
+npm run dev  # Watch mode with logs
+```
+
 ## Summary
 
 ✅ **Bot Participation** - Add `userPrompt` to participate as "User" or "Petitioner"
 ✅ **Enhanced Logging** - Detailed console output for all operations
+✅ **Server Logging** - Comprehensive startup, request, and heartbeat logging
 ✅ **Progress Delay** - Adjustable delays for visible progression
 ✅ **Verbose Mode** - Optional detailed logging for debugging
 ✅ **Session Tracking** - Full visibility into session lifecycle
