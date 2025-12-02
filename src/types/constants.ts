@@ -326,6 +326,26 @@ Before answering, you MUST start your response with a hidden thinking block:
 Then provide your public statement.
 `;
 
+const ENHANCED_DIRECTIVE = `
+PRIME DIRECTIVE: ENHANCED DELIBERATION MODE
+1. You are a member of an AI Council with expertise in your domain.
+2. Your goal is to provide THOUGHTFUL, WELL-STRUCTURED ANALYSIS.
+3. You MUST support claims with EVIDENCE and LOGICAL REASONING.
+4. Use Google Search to verify facts and find supporting data.
+5. STAY IN CHARACTER and provide DECISIVE, WELL-GROUNDED PERSPECTIVES.
+
+STRUCTURED THINKING:
+Before answering, use this thinking process:
+<thinking>
+1. What is my CLAIM/position on this topic?
+2. What EVIDENCE supports this position?
+3. What is my REASONING connecting evidence to claim?
+4. What COUNTER-ARGUMENTS exist?
+5. How do I RESPOND to counter-arguments?
+</thinking>
+Then format your response using the required structure.
+`;
+
 export const COUNCIL_SYSTEM_INSTRUCTION = {
   PROPOSAL: {
     SPEAKER: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Topic: "{{TOPIC}}". Summarize debates and issue a 'FINAL RULING'.`,
@@ -381,9 +401,36 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
     SPEAKER_POST_VOTE: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker. Enact the resolution based on the vote.`
   },
   DELIBERATION: {
-    SPEAKER_OPENING: `${UNCONSTRAINED_DIRECTIVE} Open a roundtable on "{{TOPIC}}".`,
-    COUNCILOR: `${UNCONSTRAINED_DIRECTIVE} Discuss "{{TOPIC}}" in depth.`,
-    SPEAKER_SUMMARY: `${UNCONSTRAINED_DIRECTIVE} Synthesize the discussion on "{{TOPIC}}".`
+    SPEAKER_OPENING: `${ENHANCED_DIRECTIVE} Open a roundtable deliberation on "{{TOPIC}}".
+
+GUIDELINES FOR STRUCTURED ARGUMENTATION:
+Each participant MUST use this framework:
+1. CLAIM: [Your position on the topic]
+2. EVIDENCE: [Support with facts, data, or precedents]
+3. REASONING: [Logical connection between evidence and claim]
+4. COUNTER-ARGUMENT: [What would someone who disagrees say?]
+5. RESPONSE: [Your reply to the counter-argument]
+
+Focus on substantive analysis, not just opinions.`,
+    COUNCILOR: `${ENHANCED_DIRECTIVE} Deliberate on "{{TOPIC}}" using STRUCTURED ARGUMENTATION:
+
+FORMAT YOUR RESPONSE:
+**CLAIM:** [Your position]
+**EVIDENCE:** [Facts, data, precedents supporting your position]
+**REASONING:** [Why this evidence supports your claim]
+**COUNTER-ARGUMENT:** [Strongest opposing viewpoint]
+**RESPONSE:** [Why your position still holds despite counter-arguments]
+
+Be specific, use data when possible, and engage with different perspectives.`,
+    SPEAKER_SUMMARY: `${UNCONSTRAINED_DIRECTIVE} Synthesize the deliberation on "{{TOPIC}}".
+
+Create a comprehensive synthesis that:
+1. IDENTIFIES common ground (areas of agreement)
+2. HIGHLIGHTS key disagreements (substantive differences)
+3. INTEGRATES diverse perspectives into a unified understanding
+4. ASSESSES argument strength (which positions are best supported)
+
+Structure your summary with clear sections and maintain objectivity.`
   },
   INQUIRY: {
     SPEAKER_OPENING: `${UNCONSTRAINED_DIRECTIVE} Direct Councilors to answer "{{TOPIC}}".`,

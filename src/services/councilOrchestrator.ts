@@ -14,6 +14,7 @@ import { AIService } from './aiService.js';
 import { sessionService } from './sessionService.js';
 import { searchMemories, searchDocuments, saveMemory } from './knowledgeService.js';
 import { protectionService } from './protectionService.js';
+import { predictionTrackingService } from './predictionTrackingService.js';
 
 export class CouncilOrchestrator {
   private aiService: AIService;
@@ -171,6 +172,17 @@ export class CouncilOrchestrator {
       const predictionData = this.parsePredictionFromResponse(finalRes);
       if (predictionData) {
         sessionService.setPredictionData(sessionId, predictionData);
+
+        // Track prediction for calibration
+        const predictionId = await predictionTrackingService.storePrediction(
+          sessionId,
+          predictionData,
+          speaker.id,
+          speaker.name
+        );
+
+        console.error(`[PredictionTracking] Stored prediction ${predictionId} for session ${sessionId}`);
+        console.error(`[PredictionTracking] Prediction: ${predictionData.confidence}% confidence`);
       }
 
       history.push(this.createMessage(speaker.name, speaker.authorType, finalRes, speaker.color, "FINAL PREDICTION"));

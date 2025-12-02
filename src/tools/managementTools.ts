@@ -16,6 +16,8 @@ import { getBotsWithCustomConfigs } from '../types/constants.js';
 import { listMemories, saveMemory, searchMemories } from '../services/knowledgeService.js';
 import { listDocuments, saveDocument, searchDocuments } from '../services/knowledgeService.js';
 import { ValidationService } from '../services/validationService.js';
+import { predictionTrackingService } from '../services/predictionTrackingService.js';
+import { personaSuggestionService } from '../services/personaSuggestionService.js';
 
 export function createManagementTools(): any[] {
   return [
@@ -149,6 +151,87 @@ export function createManagementTools(): any[] {
         properties: {},
         required: []
       }
+    },
+    {
+      name: 'council_track_prediction_outcome',
+      description: 'Record the actual outcome of a prediction for tracking and calibration',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          predictionId: {
+            type: 'string',
+            description: 'ID of the prediction to update'
+          },
+          actualOutcome: {
+            type: 'boolean',
+            description: 'Whether the predicted event actually occurred'
+          },
+          actualTimeline: {
+            type: 'string',
+            description: 'Optional: actual timeline if different from prediction',
+            default: ''
+          },
+          notes: {
+            type: 'string',
+            description: 'Optional: additional notes about the outcome',
+            default: ''
+          }
+        },
+        required: ['predictionId', 'actualOutcome']
+      }
+    },
+    {
+      name: 'council_get_prediction_stats',
+      description: 'Get comprehensive prediction tracking statistics and calibration metrics',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: []
+      }
+    },
+    {
+      name: 'council_suggest_personas',
+      description: 'Get AI-powered suggestions for optimal persona combinations based on topic',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          topic: {
+            type: 'string',
+            description: 'The topic to analyze for persona selection'
+          },
+          context: {
+            type: 'string',
+            description: 'Additional context for the topic',
+            default: ''
+          },
+          mode: {
+            type: 'string',
+            description: 'Session mode (proposal, deliberation, research, etc.)',
+            default: 'deliberation'
+          },
+          maxBots: {
+            type: 'number',
+            description: 'Maximum number of personas to suggest (default: 5)',
+            default: 5
+          }
+        },
+        required: ['topic']
+      }
+    },
+    {
+      name: 'council_validate_personas',
+      description: 'Validate a persona selection against best practices and get feedback',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          botIds: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Array of bot IDs to validate'
+          }
+        },
+        required: ['botIds']
+      }
     }
   ];
 }
@@ -175,6 +258,14 @@ export async function handleManagementToolCall(
         return await handleSearchDocuments(arguments_);
       case 'council_list_documents':
         return await handleListDocuments();
+      case 'council_track_prediction_outcome':
+        return await handleTrackPredictionOutcome(arguments_);
+      case 'council_get_prediction_stats':
+        return await handleGetPredictionStats();
+      case 'council_suggest_personas':
+        return await handleSuggestPersonas(arguments_);
+      case 'council_validate_personas':
+        return await handleValidatePersonas(arguments_);
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
@@ -385,4 +476,178 @@ async function handleListDocuments(): Promise<CallToolResult> {
       }
     ]
   };
+}
+
+async function handleTrackPredictionOutcome(args: any): Promise<CallToolResult> {
+  const { predictionId, actualOutcome, actualTimeline, notes } = args;
+
+  if (!predictionId || actualOutcome === undefined) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: predictionId and actualOutcome are required'
+        }
+      ]
+    };
+  }
+
+  try {
+    await predictionTrackingService.recordOutcome(
+      predictionId,
+      actualOutcome,
+      actualTimeline,
+      notes
+    );
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            message: `Outcome recorded for prediction ${predictionId}`,
+            actualOutcome,
+            timestamp: new Date().toISOString()
+          }, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleGetPredictionStats(): Promise<CallToolResult> {
+  try {
+    const report = predictionTrackingService.generateTrackingReport();
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: report
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleSuggestPersonas(args: any): Promise<CallToolResult> {
+  const { topic, context, mode, maxBots } = args;
+
+  if (!topic) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: topic is required'
+        }
+      ]
+    };
+  }
+
+  try {
+    const result = await personaSuggestionService.suggestPersonas({
+      topic,
+      context,
+      mode,
+      maxBots
+    });
+
+    // Format for display
+    const display = {
+      suggestions: result.suggestions.map(s => ({
+        botId: s.botId,
+        name: s.botName,
+        confidence: `${(s.confidence * 100).toFixed(0)}%`,
+        reasoning: s.reasoning
+      })),
+      teamScore: `${(result.score * 100).toFixed(0)}%`,
+      reasoning: result.reasoning,
+      composition: {
+        specialists: result.teamComposition.specialists.map(b => b.name),
+        generalists: result.teamComposition.generalists.map(b => b.name),
+        perspectives: result.teamComposition.perspectives
+      }
+    };
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(display, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleValidatePersonas(args: any): Promise<CallToolResult> {
+  const { botIds } = args;
+
+  if (!botIds || !Array.isArray(botIds)) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: botIds array is required'
+        }
+      ]
+    };
+  }
+
+  try {
+    const validation = personaSuggestionService.validatePersonaSelection(botIds);
+
+    const display = {
+      valid: validation.valid,
+      score: validation.score,
+      percentage: `${validation.score}%`,
+      feedback: validation.feedback
+    };
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(display, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
 }
