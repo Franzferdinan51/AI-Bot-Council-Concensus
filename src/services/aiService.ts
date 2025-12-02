@@ -105,8 +105,13 @@ export class AIService {
     const model = provider.getGenerativeModel({ model: bot.model });
 
     const messages = this.formatMessagesForGemini(history, systemPrompt);
-    const result = await model.generateContent(messages);
-    const response = await result.response;
+    let response;
+    try {
+      const result = await model.generateContent(messages);
+      response = await result.response;
+    } catch (error: any) {
+      throw new Error(`Gemini API error: ${error.message || error}`);
+    }
 
     // Track cost
     try {
@@ -137,7 +142,12 @@ export class AIService {
     const model = provider.getGenerativeModel({ model: bot.model });
     const messages = this.formatMessagesForGemini(history, systemPrompt);
 
-    const result = await model.generateContentStream(messages);
+    let result;
+    try {
+      result = await model.generateContentStream(messages);
+    } catch (error: any) {
+      throw new Error(`Gemini streaming error: ${error.message || error}`);
+    }
 
     let fullResponse = '';
     try {

@@ -26,6 +26,8 @@ export enum AuthorType {
   MINIMAX = 'minimax',
   /** System-generated message */
   SYSTEM = 'system',
+  /** User message */
+  USER = 'user',
 }
 
 /**

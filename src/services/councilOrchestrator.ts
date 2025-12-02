@@ -7,7 +7,8 @@ import {
   PredictionData,
   CodeFile,
   Attachment,
-  CouncilSettings
+  CouncilSettings,
+  AuthorType
 } from '../types/index.js';
 import { COUNCIL_SYSTEM_INSTRUCTION, getBotsWithCustomConfigs } from '../types/constants.js';
 import { AIService } from './aiService.js';
@@ -225,7 +226,7 @@ export class CouncilOrchestrator {
 
       history.push(this.createMessage(speaker.name, speaker.authorType, rawTranscript, speaker.color, "Councilor (Simulated)"));
 
-      const turnRegex = /\*\*([^*]+)\*\*:\s*([\s\S]*?)(?=\*\*|$)/g;
+      const turnRegex = /(?:\*\*|)?([^*:]+)(?:\*\*|)?:\s*([\s\S]*?)(?=(?:\*\*|)?([^*:]+)(?:\*\*|)?:\s*|$)/g;
       const turns = [...rawTranscript.matchAll(turnRegex)];
 
       turns.forEach((match) => {
@@ -242,7 +243,7 @@ export class CouncilOrchestrator {
         const bot = councilors.find(b => b.name === name) || { color: 'from-gray-500 to-gray-600', role: 'councilor' } as BotConfig;
         sessionService.addMessage(sessionId, {
           author: name,
-          authorType: 'gemini' as any,
+          authorType: AuthorType.GEMINI,
           content: content,
           thinking: thinking,
           color: bot.color,
@@ -505,7 +506,7 @@ export class CouncilOrchestrator {
           id,
           name: `Swarm: ${match[1].trim()}`,
           role: 'swarm_agent',
-          authorType: 'gemini' as any,
+          authorType: AuthorType.GEMINI,
           model: 'gemini-2.5-flash',
           persona: "You are a specialized Swarm Agent.",
           color: "from-orange-500 to-red-600",
@@ -695,7 +696,7 @@ export class CouncilOrchestrator {
     let voteCount = 0;
     const votes: any[] = [];
 
-    const voteBlocks = [...response.matchAll(/MEMBER:\s*(?:\*\*)?(.*?)(?:\*\*)?\s*<vote>(.*?)<\/vote>\s*<confidence>(.*?)<\/confidence>\s*<reason>([\s\S]*?)<\/reason>/gi)];
+    const voteBlocks = [...response.matchAll(/(?:MEMBER:\s*)?(?:\*\*)?(.*?)(?:\*\*)?\s*<vote>(.*?)<\/vote>\s*<confidence>(.*?)<\/confidence>\s*<reason>([\s\S]*?)<\/reason>/gi)];
 
     if (voteBlocks.length > 0) {
       voteBlocks.forEach(match => {
@@ -783,7 +784,7 @@ export class CouncilOrchestrator {
     return {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       author,
-      authorType: authorType as any,
+      authorType: authorType as AuthorType,
       content,
       color,
       roleLabel,
@@ -795,7 +796,7 @@ export class CouncilOrchestrator {
     return {
       id: `sys-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       author: 'Council Clerk',
-      authorType: 'system' as any,
+      authorType: AuthorType.SYSTEM,
       content,
       timestamp: Date.now()
     };

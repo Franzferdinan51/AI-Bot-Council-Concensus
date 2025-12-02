@@ -7,7 +7,8 @@ import {
   ListToolsRequestSchema,
   ListToolsResultSchema,
   CallToolRequestSchema,
-  CallToolResultSchema
+  CallToolResultSchema,
+  CallToolResult
 } from '@modelcontextprotocol/sdk/types.js';
 import { AIService } from './services/aiService.js';
 import { CouncilOrchestrator } from './services/councilOrchestrator.js';
@@ -321,8 +322,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest 
   // Wrap tool execution with error handling
   return await errorHandler.wrap(
     async () => {
-      // @ts-ignore - CallToolResult type from MCP SDK
-      let result: any;
+      let result: CallToolResult;
 
       // Route to appropriate tool handler
       if (name.startsWith('council_')) {

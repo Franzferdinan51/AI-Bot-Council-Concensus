@@ -1,4 +1,4 @@
-import { CouncilSession, Message, SessionMode, SessionStatus, VoteData, PredictionData, CodeFile, Attachment } from '../types/index.js';
+import { CouncilSession, Message, SessionMode, SessionStatus, VoteData, PredictionData, CodeFile, Attachment, AuthorType } from '../types/index.js';
 import { sessionStorage } from './sessionStorageService.js';
 
 export class SessionService {
@@ -56,7 +56,7 @@ export class SessionService {
       messages.push({
         id: `user-${Date.now()}`,
         author: 'User',
-        authorType: 'human' as any,
+        authorType: AuthorType.HUMAN,
         content: userPrompt,
         timestamp: Date.now()
       });
@@ -66,7 +66,7 @@ export class SessionService {
     messages.push({
       id: `init-${Date.now()}`,
       author: 'Petitioner',
-      authorType: 'human' as any,
+      authorType: AuthorType.HUMAN,
       content: context || topic,
       timestamp: Date.now(),
       attachments
