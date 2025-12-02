@@ -1,6 +1,14 @@
 # Changelog
 
-## [2.3.0] - 2025-12-02
+## [2.3.1] - 2025-12-02
+ 
+ ### Fixed
+ 
+ - **Tool Routing**:
+   - Fixed an issue where `council_diagnostics` and other session tools were incorrectly routed to the management handler, causing "Unknown tool" errors.
+   - Updated `src/index.ts` to correctly route all council session tools.
+ 
+ ## [2.3.0] - 2025-12-02
  
  ### Fixed
  

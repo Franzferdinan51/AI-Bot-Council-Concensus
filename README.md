@@ -151,7 +151,12 @@ This server provides **14+ MCP tools** organized in three categories:
 - **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
 - **Real-time Streaming**: Live token streaming for responsive sessions
 
-### Latest Improvements (v2.3) ⭐
+### Latest Improvements (v2.3.1) ⭐
+ 
+ #### 🛠️ Fixes
+ - **Tool Routing**: Fixed "Unknown tool" errors for `council_diagnostics` and other session tools.
+ 
+ ### Latest Improvements (v2.3) ⭐
  
  #### 🛠️ Fixes & Stability
  - **Enhanced Type Safety**: Improved TypeScript type definitions and removed `any` casts for better code reliability.

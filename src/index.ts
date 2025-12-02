@@ -334,7 +334,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest 
           'council_research',
           'council_swarm',
           'council_swarm_coding',
-          'council_prediction'
+          'council_prediction',
+          'council_advisory',
+          'council_list_sessions',
+          'council_get_session',
+          'council_get_transcript',
+          'council_stop_session',
+          'council_pause_session',
+          'council_diagnostics'
         ];
 
         // Management tools (everything else council_*)
