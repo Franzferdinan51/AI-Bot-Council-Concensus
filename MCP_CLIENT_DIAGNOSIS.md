@@ -135,7 +135,7 @@ curl http://localhost:4000/health
 # Verify .env has API key
 cat .env | grep GEMINI_API_KEY
 
-# Should show: GEMINI_API_KEY=AIzaSyA65AdhiiwSemCA4DSC_46d5WBhZ-e2Glc
+# Should show: GEMINI_API_KEY=your_actual_api_key_here
 ```
 
 ## Technical Evidence

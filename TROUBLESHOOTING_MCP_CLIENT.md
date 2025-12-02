@@ -91,7 +91,7 @@ cat .env | grep GEMINI_API_KEY
 
 Should show:
 ```
-GEMINI_API_KEY=AIzaSyA65AdhiiwSemCA4DSC_46d5WBhZ-e2Glc
+GEMINI_API_KEY=your_actual_api_key_here
 ```
 
 **Verify the key is valid:**
