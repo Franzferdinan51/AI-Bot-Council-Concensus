@@ -369,7 +369,7 @@ export class MultimodalAnalysisService {
     ];
   }
 
-  private async generateTags(input: MultimodalInput): Promise<string[]>> {
+  private async generateTags(input: MultimodalInput): Promise<string[]> {
     await this.delay(200);
     // Simulated tag generation
     return ['visual', 'digital', 'content'];

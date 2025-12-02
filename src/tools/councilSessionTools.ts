@@ -19,6 +19,7 @@ import {
 } from '../types/index.js';
 import { ValidationService } from '../services/validationService.js';
 import { responseSchema } from '../services/responseSchema.js';
+import { logger } from '../services/logger.js';
 
 export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): Tool[] {
   return [
@@ -502,9 +503,19 @@ async function handleProposal(args: any, orchestrator: CouncilOrchestrator): Pro
   }
 
   const { topic, userPrompt, settings, context } = args;
-  console.error(`[MCP TOOL] council_proposal called - Topic: "${topic}"`);
+
+  // Log to structured logger
+  logger.info('Council session started', {
+    tool: 'council_proposal',
+    topic: topic,
+    hasUserPrompt: !!userPrompt,
+    hasSettings: !!settings,
+    hasContext: !!context
+  }, 'CouncilSessionTools');
+
+  console.error(`[MCP HANDLER] council_proposal - Topic: "${topic}"`);
   if (userPrompt) {
-    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+    console.error(`[MCP HANDLER] User participation: "${userPrompt.substring(0, 100)}..."`);
   }
 
   const sessionSettings = buildSessionSettings(settings);
@@ -528,7 +539,17 @@ async function handleProposal(args: any, orchestrator: CouncilOrchestrator): Pro
     userPrompt
   );
 
-  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
+  console.error(`[MCP HANDLER] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
+
+  // Log to structured logger
+  logger.info('Council session completed', {
+    tool: 'council_proposal',
+    sessionId: sessionId,
+    messageCount: result.messages?.length || 0,
+    hasVoteData: !!result.voteData,
+    hasPredictionData: !!result.predictionData,
+    hasCodeFiles: !!(result.codeFiles && result.codeFiles.length > 0)
+  }, 'CouncilSessionTools');
 
   return {
     content: [

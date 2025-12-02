@@ -18,6 +18,7 @@ import { createManagementTools, handleManagementToolCall } from './tools/managem
 import { createAutoSessionTools, handleAutoSessionToolCall } from './tools/autoSessionTools.js';
 import { DEFAULT_SETTINGS } from './types/constants.js';
 import type { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
+import { logger } from './services/logger.js';
 
 // Lightweight health check flag
 if (process.argv.includes('--health')) {
@@ -89,29 +90,118 @@ const logServer = {
   logToolCall(name: string, args?: any, duration?: number) {
     this.toolCallCount++;
     const timestamp = new Date().toISOString();
+
+    // Enhanced logging with more details
     console.error('');
-    console.error(`[${timestamp}] [TOOL CALL #${this.toolCallCount}] ${name}`);
+    console.error('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
+    console.error(`┃ [TOOL CALL #${this.toolCallCount}] ${name.padEnd(44)} ┃`);
+    console.error('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
+    console.error(`[TOOL] Timestamp: ${timestamp}`);
+    console.error(`[TOOL] Request ID: ${args?.requestId || 'N/A'}`);
+
+    // Log session ID if present
+    if (args?.sessionId) {
+      console.error(`[TOOL] Session ID: ${args.sessionId}`);
+    }
+
+    // Log key arguments based on tool type
+    if (args?.topic) {
+      console.error(`[TOOL] Topic: ${args.topic.substring(0, 100)}${args.topic.length > 100 ? '...' : ''}`);
+    }
+
+    // Log userPrompt if present
+    if (args?.userPrompt) {
+      console.error(`[TOOL] User Prompt: ${args.userPrompt.substring(0, 100)}${args.userPrompt.length > 100 ? '...' : ''}`);
+    }
+
+    // Log settings
+    if (args?.settings) {
+      console.error(`[TOOL] Settings:`);
+      if (args.settings.bots) {
+        const enabledBots = args.settings.bots.filter((b: any) => b.enabled).map((b: any) => b.id);
+        console.error(`[TOOL]   - Enabled Bots: ${enabledBots.length > 0 ? enabledBots.join(', ') : 'default'}`);
+      }
+      if (args.settings.economyMode !== undefined) {
+        console.error(`[TOOL]   - Economy Mode: ${args.settings.economyMode}`);
+      }
+      if (args.settings.maxConcurrentRequests) {
+        console.error(`[TOOL]   - Max Concurrent: ${args.settings.maxConcurrentRequests}`);
+      }
+      if (args.settings.domain) {
+        console.error(`[TOOL]   - Domain: ${args.settings.domain}`);
+      }
+      if (args.settings.timeframe) {
+        console.error(`[TOOL]   - Timeframe: ${args.settings.timeframe}`);
+      }
+    }
+
+    // Log context if present
+    if (args?.context) {
+      console.error(`[TOOL] Context: ${args.context.substring(0, 150)}${args.context.length > 150 ? '...' : ''}`);
+    }
+
     if (duration) {
       console.error(`[TOOL] Duration: ${duration}ms`);
     }
-    if (args && Object.keys(args).length > 0) {
+
+    // Full arguments (if needed, use format from original)
+    if (args && Object.keys(args).length > 0 && !args.topic && !args.userPrompt) {
       const argStr = JSON.stringify(args, null, 2).split('\n').map(l => '   ' + l).join('\n');
       console.error(`[TOOL] Arguments:\n${argStr}`);
     }
+
+    console.error('');
+
+    // Also log to structured logger
+    logger.tool(name, args?.sessionId, 'started', undefined, {
+      requestId: args?.requestId,
+      topic: args?.topic,
+      settings: args?.settings,
+      context: args?.context,
+      userPrompt: args?.userPrompt
+    });
   },
 
   logToolComplete(name: string, result?: any, duration?: number) {
     const timestamp = new Date().toISOString();
-    console.error(`[${timestamp}] [TOOL COMPLETE] ${name}`);
+    console.error('');
+    console.error('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
+    console.error(`┃ [TOOL COMPLETE] ${name.padEnd(41)} ┃`);
+    console.error('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
+    console.error(`[TOOL] Timestamp: ${timestamp}`);
+
     if (duration) {
       console.error(`[TOOL] Total Duration: ${duration}ms`);
     }
+
+    // Log result summary based on content type
     if (result && result.content && result.content[0] && result.content[0].text) {
       const text = result.content[0].text;
-      const preview = text.length > 200 ? text.substring(0, 200) + '...' : text;
-      console.error(`[TOOL] Result preview:\n   ${preview.replace(/\n/g, '\n   ')}`);
+
+      // Check if it's an error
+      if (text.startsWith('Error:')) {
+        console.error(`[TOOL] Status: ❌ FAILED`);
+        console.error(`[TOOL] Error: ${text.substring(0, 300)}${text.length > 300 ? '...' : ''}`);
+      } else {
+        console.error(`[TOOL] Status: ✅ SUCCESS`);
+        const preview = text.length > 400 ? text.substring(0, 400) + '...' : text;
+        console.error(`[TOOL] Result preview:\n   ${preview.replace(/\n/g, '\n   ')}`);
+      }
     }
+
+    // Log structured data if available
+    if (result && result.content && result.content.length > 1) {
+      console.error(`[TOOL] Additional data: ${result.content.length - 1} additional item(s)`);
+    }
+
     console.error('');
+
+    // Also log to structured logger
+    const isError = result && result.content && result.content[0] && result.content[0].text && result.content[0].text.startsWith('Error:');
+    logger.tool(name, result?.content?.[0]?.text?.includes('session-') ? result.content[0].text.match(/session-[0-9]+/)?.[0] : undefined, isError ? 'error' : 'completed', duration, {
+      status: isError ? 'failed' : 'success',
+      resultType: result?.content?.length || 0
+    });
   },
 
   logConnection(status: string) {
@@ -123,7 +213,26 @@ const logServer = {
     const sessions = sessionService.listSessions();
     const timestamp = new Date().toLocaleTimeString();
 
-    console.error(`[${timestamp}] [HEARTBEAT] Requests: ${this.requestCount} | Tools: ${this.toolCallCount} | Sessions: ${sessions.length} | Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+    console.error('');
+    console.error('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
+    console.error('┃ [HEARTBEAT] Server Health Check                            ┃');
+    console.error('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
+    console.error(`[HEARTBEAT] Timestamp: ${timestamp}`);
+    console.error(`[HEARTBEAT] Total Requests: ${this.requestCount}`);
+    console.error(`[HEARTBEAT] Tool Calls: ${this.toolCallCount}`);
+    console.error(`[HEARTBEAT] Active Sessions: ${sessions.length}`);
+    console.error(`[HEARTBEAT] Memory Usage: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+    console.error(`[HEARTBEAT] Uptime: ${((Date.now() - this.startTime) / 1000 / 60).toFixed(1)} minutes`);
+    console.error('');
+
+    // Log to structured logger
+    logger.info('Server heartbeat', {
+      requestCount: this.requestCount,
+      toolCallCount: this.toolCallCount,
+      activeSessions: sessions.length,
+      memoryMB: Math.round(memUsage.heapUsed / 1024 / 1024),
+      uptimeMinutes: ((Date.now() - this.startTime) / 1000 / 60).toFixed(1)
+    }, 'Server');
   },
 
   logSession(sessionId: string, action: string, status?: string) {

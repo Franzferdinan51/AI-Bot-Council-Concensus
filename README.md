@@ -1457,6 +1457,79 @@ This folder includes `mcp.json` for easy configuration:
 
 **Note:** This file is provided for reference. For Claude Code CLI, use the `mcp-config.json` method described above.
 
+## Enhanced Server Logging
+
+The AI Council MCP Server now provides **comprehensive tool call logging** to give you full visibility into server operations:
+
+### Tool Call Logging
+
+When a tool is called, you'll see detailed information including:
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ [TOOL CALL #1] council_proposal                             ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+[TOOL] Timestamp: 2025-01-08T14:30:45.123Z
+[TOOL] Request ID: req_12345
+[TOOL] Session ID: session-1704805845123-abc123
+[TOOL] Topic: Should we implement a universal basic income?
+[TOOL] Settings:
+[TOOL]   - Enabled Bots: speaker-high-council, councilor-technocrat, councilor-ethicist
+[TOOL]   - Economy Mode: true
+[TOOL]   - Max Concurrent: 2
+```
+
+When the tool completes, you'll see:
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ [TOOL COMPLETE] council_proposal                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+[TOOL] Timestamp: 2025-01-08T14:30:52.456Z
+[TOOL] Total Duration: 7233ms
+[TOOL] Status: ✅ SUCCESS
+[TOOL] Result preview:
+   === Council Session session-1704805845123-abc123 Results ===
+
+   --- VOTE DATA ---
+   Result: PASSED
+   Score: 72% (Strong Majority)
+   ...
+```
+
+### Heartbeat Monitoring
+
+Every 60 seconds, the server logs a heartbeat with:
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ [HEARTBEAT] Server Health Check                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+[HEARTBEAT] Timestamp: 2:30:45 PM
+[HEARTBEAT] Total Requests: 15
+[HEARTBEAT] Tool Calls: 12
+[HEARTBEAT] Active Sessions: 3
+[HEARTBEAT] Memory Usage: 145MB
+[HEARTBEAT] Uptime: 12.5 minutes
+```
+
+### Structured Logging
+
+The server uses a structured logging service (`src/services/logger.ts`) that provides:
+
+- **Multiple log levels**: DEBUG, INFO, WARN, ERROR, CRITICAL
+- **Categorized logging**: Session logs, Tool logs, API logs, Protection logs
+- **Context preservation**: Session IDs, tool names, request IDs
+- **Filtering capabilities**: Filter by service, tool, session, or log level
+- **Export functionality**: Export logs to JSON or NDJSON format
+
+### Log Output
+
+All logs use `console.error` (stderr) to distinguish from tool output data sent via stdout. This means:
+- Server logs appear in your terminal
+- Tool results are returned via MCP protocol
+- Easy to separate server activity from tool data
+
 ## Project Structure
 
 ```
