@@ -18,6 +18,8 @@ import { listDocuments, saveDocument, searchDocuments } from '../services/knowle
 import { ValidationService } from '../services/validationService.js';
 import { predictionTrackingService } from '../services/predictionTrackingService.js';
 import { personaSuggestionService } from '../services/personaSuggestionService.js';
+import { costTrackingService } from '../services/costTrackingService.js';
+import { sessionTemplateService } from '../services/sessionTemplateService.js';
 
 export function createManagementTools(): any[] {
   return [
@@ -232,6 +234,132 @@ export function createManagementTools(): any[] {
         },
         required: ['botIds']
       }
+    },
+    {
+      name: 'council_get_cost_report',
+      description: 'Get comprehensive cost tracking report and analytics',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          days: {
+            type: 'number',
+            description: 'Number of days to include in report (default: 30)',
+            default: 30
+          }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'council_get_session_cost',
+      description: 'Get cost breakdown for a specific session',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          sessionId: {
+            type: 'string',
+            description: 'Session ID to get cost breakdown for'
+          }
+        },
+        required: ['sessionId']
+      }
+    },
+    {
+      name: 'council_set_budget_alert',
+      description: 'Set a budget alert threshold with automatic notifications',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          alertId: {
+            type: 'string',
+            description: 'Unique identifier for the alert'
+          },
+          threshold: {
+            type: 'number',
+            description: 'Budget threshold amount in USD'
+          }
+        },
+        required: ['alertId', 'threshold']
+      }
+    },
+    {
+      name: 'council_get_current_spend',
+      description: 'Get current total spend and usage statistics',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: []
+      }
+    },
+    {
+      name: 'council_list_templates',
+      description: 'List all available session templates with categories and descriptions',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          category: {
+            type: 'string',
+            description: 'Filter by category (proposal, analysis, research, prediction, creative, decision, custom)'
+          },
+          search: {
+            type: 'string',
+            description: 'Search templates by name or tags'
+          }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'council_get_template',
+      description: 'Get detailed information about a specific template',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          templateId: {
+            type: 'string',
+            description: 'Template ID to retrieve'
+          }
+        },
+        required: ['templateId']
+      }
+    },
+    {
+      name: 'council_apply_template',
+      description: 'Apply a template to create pre-configured session settings',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          templateId: {
+            type: 'string',
+            description: 'Template ID to apply'
+          },
+          customizations: {
+            type: 'object',
+            description: 'Optional customizations to apply to the template',
+            properties: {
+              maxConcurrentRequests: { type: 'number' },
+              economyMode: { type: 'boolean' },
+              verboseLogging: { type: 'boolean' },
+              progressDelay: { type: 'number' }
+            }
+          }
+        },
+        required: ['templateId']
+      }
+    },
+    {
+      name: 'council_suggest_templates',
+      description: 'Get template suggestions for a specific topic',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          topic: {
+            type: 'string',
+            description: 'Topic to get template suggestions for'
+          }
+        },
+        required: ['topic']
+      }
     }
   ];
 }
@@ -266,6 +394,22 @@ export async function handleManagementToolCall(
         return await handleSuggestPersonas(arguments_);
       case 'council_validate_personas':
         return await handleValidatePersonas(arguments_);
+      case 'council_get_cost_report':
+        return await handleGetCostReport(arguments_);
+      case 'council_get_session_cost':
+        return await handleGetSessionCost(arguments_);
+      case 'council_set_budget_alert':
+        return await handleSetBudgetAlert(arguments_);
+      case 'council_get_current_spend':
+        return await handleGetCurrentSpend();
+      case 'council_list_templates':
+        return await handleListTemplates(arguments_);
+      case 'council_get_template':
+        return await handleGetTemplate(arguments_);
+      case 'council_apply_template':
+        return await handleApplyTemplate(arguments_);
+      case 'council_suggest_templates':
+        return await handleSuggestTemplates(arguments_);
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
@@ -630,6 +774,346 @@ async function handleValidatePersonas(args: any): Promise<CallToolResult> {
       score: validation.score,
       percentage: `${validation.score}%`,
       feedback: validation.feedback
+    };
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(display, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleGetCostReport(args: any): Promise<CallToolResult> {
+  const { days = 30 } = args;
+
+  try {
+    const report = costTrackingService.generateCostReport(days);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(report, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleGetSessionCost(args: any): Promise<CallToolResult> {
+  const { sessionId } = args;
+
+  if (!sessionId) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: sessionId is required'
+        }
+      ]
+    };
+  }
+
+  try {
+    const summary = costTrackingService.getSessionCostSummary(sessionId);
+
+    if (!summary) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `No cost data found for session ${sessionId}`
+          }
+        ]
+      };
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(summary, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleSetBudgetAlert(args: any): Promise<CallToolResult> {
+  const { alertId, threshold } = args;
+
+  if (!alertId || threshold === undefined) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: alertId and threshold are required'
+        }
+      ]
+    };
+  }
+
+  try {
+    costTrackingService.setBudgetAlert(alertId, threshold);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            alertId,
+            threshold,
+            message: `Budget alert "${alertId}" set to $${threshold}`
+          }, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleGetCurrentSpend(): Promise<CallToolResult> {
+  try {
+    const totalCost = costTrackingService.getCurrentTotalCost();
+    const totalTokens = costTrackingService.getCurrentTotalTokens();
+
+    const trends = costTrackingService.getCostTrends(7);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            totalCost: `$${totalCost.toFixed(4)}`,
+            totalTokens,
+            dailyUsage: trends,
+            timestamp: new Date().toISOString()
+          }, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleListTemplates(args: any): Promise<CallToolResult> {
+  const { category, search } = args;
+
+  try {
+    let templates;
+
+    if (search) {
+      templates = sessionTemplateService.searchTemplates(search);
+    } else if (category) {
+      templates = sessionTemplateService.getTemplatesByCategory(category as any);
+    } else {
+      templates = sessionTemplateService.getAllTemplates();
+    }
+
+    const categories = sessionTemplateService.getCategories();
+
+    const display = {
+      templates: templates.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        category: t.category,
+        mode: t.mode,
+        tags: t.tags,
+        icon: t.icon,
+        recommendedTopics: t.recommendedTopics.slice(0, 3) // Show first 3
+      })),
+      categories,
+      count: templates.length
+    };
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(display, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleGetTemplate(args: any): Promise<CallToolResult> {
+  const { templateId } = args;
+
+  if (!templateId) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: templateId is required'
+        }
+      ]
+    };
+  }
+
+  try {
+    const template = sessionTemplateService.getTemplate(templateId);
+
+    if (!template) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Template ${templateId} not found`
+          }
+        ]
+      };
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(template, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleApplyTemplate(args: any): Promise<CallToolResult> {
+  const { templateId, customizations } = args;
+
+  if (!templateId) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: templateId is required'
+        }
+      ]
+    };
+  }
+
+  try {
+    const settings = sessionTemplateService.applyTemplate(templateId, customizations);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            templateId,
+            settings,
+            message: `Template "${templateId}" applied successfully`
+          }, null, 2)
+        }
+      ]
+    };
+  } catch (error: any) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
+}
+
+async function handleSuggestTemplates(args: any): Promise<CallToolResult> {
+  const { topic } = args;
+
+  if (!topic) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Error: topic is required'
+        }
+      ]
+    };
+  }
+
+  try {
+    const suggestions = sessionTemplateService.suggestTemplatesForTopic(topic);
+
+    const display = {
+      topic,
+      suggestions: suggestions.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        category: t.category,
+        mode: t.mode,
+        relevance: 'Recommended',
+        icon: t.icon
+      })),
+      count: suggestions.length
     };
 
     return {

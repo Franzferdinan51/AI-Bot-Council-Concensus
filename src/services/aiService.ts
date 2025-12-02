@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BotConfig, AuthorType, Message, ProviderSettings } from '../types/index.js';
+import { costTrackingService } from './costTrackingService.js';
 
 export interface StreamingCallback {
   (chunk: string): void;
@@ -8,10 +9,18 @@ export interface StreamingCallback {
 export class AIService {
   private providers: Map<AuthorType, any> = new Map();
   private settings: ProviderSettings;
+  private currentSessionId?: string;
 
   constructor(settings: ProviderSettings) {
     this.settings = settings;
     this.initializeProviders();
+  }
+
+  /**
+   * Set the current session context for cost tracking
+   */
+  setSessionContext(sessionId?: string): void {
+    this.currentSessionId = sessionId;
   }
 
   private initializeProviders() {
@@ -99,6 +108,17 @@ export class AIService {
     const result = await model.generateContent(messages);
     const response = await result.response;
 
+    // Track cost
+    try {
+      const promptTokenCount = this.estimateTokenCount(messages.map(m => JSON.stringify(m)).join(' '));
+      const responseText = response.text();
+      const completionTokenCount = this.estimateTokenCount(responseText);
+      const callId = costTrackingService.startCall(this.currentSessionId, bot.id, bot.name, bot.authorType, bot.model);
+      costTrackingService.completeCall(callId, promptTokenCount, completionTokenCount);
+    } catch (error) {
+      console.error('[COST TRACKING] Error tracking Gemini call:', error);
+    }
+
     return response.text();
   }
 
@@ -120,10 +140,20 @@ export class AIService {
     const result = await model.generateContentStream(messages);
 
     let fullResponse = '';
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      fullResponse += chunkText;
-      onChunk(chunkText);
+    try {
+      const callId = costTrackingService.startCall(this.currentSessionId, bot.id, bot.name, bot.authorType, bot.model);
+
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        fullResponse += chunkText;
+        onChunk(chunkText);
+      }
+
+      const promptTokenCount = this.estimateTokenCount(messages.map(m => JSON.stringify(m)).join(' '));
+      const completionTokenCount = this.estimateTokenCount(fullResponse);
+      costTrackingService.completeCall(callId, promptTokenCount, completionTokenCount);
+    } catch (error) {
+      console.error('[COST TRACKING] Error tracking Gemini streaming call:', error);
     }
 
     return fullResponse;
@@ -139,28 +169,48 @@ export class AIService {
       throw new Error('OpenRouter API key not provided');
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${settings.openRouterKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://ai-council-mcp-server',
-        'X-Title': 'AI Council MCP Server'
-      },
-      body: JSON.stringify({
-        model: bot.model,
-        messages: this.formatMessagesForOpenAI(history, systemPrompt),
-        temperature: 0.7,
-        stream: false
-      })
-    });
+    const openAIMessages = this.formatMessagesForOpenAI(history, systemPrompt);
+    const promptTokenCount = this.estimateTokenCount(openAIMessages.map(m => m.content || '').join(' '));
 
-    if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.statusText}`);
+    const callId = costTrackingService.startCall(this.currentSessionId, bot.id, bot.name, bot.authorType, bot.model);
+
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${settings.openRouterKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://ai-council-mcp-server',
+          'X-Title': 'AI Council MCP Server'
+        },
+        body: JSON.stringify({
+          model: bot.model,
+          messages: openAIMessages,
+          temperature: 0.7,
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        costTrackingService.completeCall(callId, promptTokenCount, 0, 'error', response.statusText);
+        throw new Error(`OpenRouter API error: ${response.statusText}`);
+      }
+
+      const data = await response.json() as {
+        choices?: Array<{ message?: { content?: string } }>;
+        usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+      };
+
+      const responseContent = data.choices?.[0]?.message?.content || '';
+      const completionTokenCount = data.usage?.completion_tokens || this.estimateTokenCount(responseContent);
+
+      costTrackingService.completeCall(callId, data.usage?.prompt_tokens || promptTokenCount, completionTokenCount);
+
+      return responseContent;
+    } catch (error) {
+      costTrackingService.completeCall(callId, promptTokenCount, 0, 'error', error instanceof Error ? error.message : 'Unknown error');
+      throw error;
     }
-
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    return data.choices?.[0]?.message?.content || '';
   }
 
   private async streamOpenRouterResponse(
@@ -431,5 +481,15 @@ export class AIService {
   updateSettings(settings: ProviderSettings) {
     this.settings = settings;
     this.initializeProviders();
+  }
+
+  /**
+   * Estimate token count for a text string
+   * Rough approximation: 1 token ≈ 3.5 characters for English text
+   */
+  private estimateTokenCount(text: string): number {
+    if (!text) return 0;
+    // Use more conservative estimate: 1 token ≈ 3.5 characters
+    return Math.ceil(text.length / 3.5);
   }
 }

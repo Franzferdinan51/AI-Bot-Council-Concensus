@@ -1,4 +1,5 @@
 import { MemoryEntry, RAGDocument, BotMemory } from '../types/index.js';
+import { semanticMemoryService } from './semanticMemoryService.js';
 
 export interface CleanupConfig {
   maxMemories: number;
@@ -372,10 +373,78 @@ export const knowledgeStore = new KnowledgeStore();
 
 export async function saveMemory(memory: MemoryEntry): Promise<void> {
   knowledgeStore.addMemory(memory);
+
+  // Also store in semantic memory
+  try {
+    await semanticMemoryService.storeMemory(memory);
+  } catch (error) {
+    console.error('[SemanticMemory] Error storing memory:', error);
+  }
 }
 
 export async function searchMemories(query: string, limit?: number): Promise<MemoryEntry[]> {
   return knowledgeStore.searchMemories(query, limit);
+}
+
+export async function semanticSearchMemories(query: string, limit?: number, threshold?: number): Promise<any[]> {
+  try {
+    const results = await semanticMemoryService.semanticSearch(query, limit, threshold);
+    return results.map(result => ({
+      memory: result.memory,
+      similarity: result.similarity,
+      explanation: result.explanation
+    }));
+  } catch (error) {
+    console.error('[SemanticMemory] Error in semantic search:', error);
+    return knowledgeStore.searchMemories(query, limit);
+  }
+}
+
+export async function getRelatedMemories(memoryId: string, limit?: number): Promise<any[]> {
+  try {
+    const results = await semanticMemoryService.findRelatedMemories(memoryId, limit);
+    return results.map(result => ({
+      memory: result.memory,
+      similarity: result.similarity,
+      explanation: result.explanation
+    }));
+  } catch (error) {
+    console.error('[SemanticMemory] Error finding related memories:', error);
+    return [];
+  }
+}
+
+export function getMemoryClusters(): any[] {
+  try {
+    return semanticMemoryService.getMemoryClusters();
+  } catch (error) {
+    console.error('[SemanticMemory] Error getting clusters:', error);
+    return [];
+  }
+}
+
+export function generateMemoryInsights(): any[] {
+  try {
+    return semanticMemoryService.generateMemoryInsights();
+  } catch (error) {
+    console.error('[SemanticMemory] Error generating insights:', error);
+    return [];
+  }
+}
+
+export function getMemoryStatistics(): any {
+  try {
+    return semanticMemoryService.getMemoryStats();
+  } catch (error) {
+    console.error('[SemanticMemory] Error getting stats:', error);
+    return {
+      total: knowledgeStore.listMemories().length,
+      byCategory: new Map(),
+      averageImportance: 0,
+      clusters: 0,
+      recentActivity: 0
+    };
+  }
 }
 
 export async function listMemories(): Promise<MemoryEntry[]> {

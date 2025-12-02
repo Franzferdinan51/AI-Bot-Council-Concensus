@@ -24,6 +24,13 @@ export class CouncilOrchestrator {
     this.aiService = aiService;
   }
 
+  /**
+   * Set the current session context for cost tracking
+   */
+  setSessionContext(sessionId: string): void {
+    this.aiService.setSessionContext(sessionId);
+  }
+
   async runCouncilSession(
     sessionId: string,
     topic: string,
@@ -42,6 +49,9 @@ export class CouncilOrchestrator {
   }> {
     // Start protection tracking for this session
     protectionService.startSession(sessionId);
+
+    // Set session context for cost tracking
+    this.setSessionContext(sessionId);
 
     const controlSignal = { stop: false, pause: false };
     this.controlSignals.set(sessionId, controlSignal);
