@@ -324,8 +324,9 @@ echo   4. SETUP_WIZARD_GUIDE.md - Interactive setup guide
 echo   5. TROUBLESHOOTING.md - Common issues and solutions
 echo   6. STARTUP_GUIDE.md - Startup script options
 echo   7. DYNAMIC_PERSONA_SELECTION.md - NEW: AI-powered persona selection guide
+echo   8. AI_ASSISTANT_PROMPT.md - NEW: Copy-paste prompt for your AI assistant
 echo.
-set /p DOC_CHOICE="View which file? (1-7) or 'q' to quit: "
+set /p DOC_CHOICE="View which file? (1-8) or 'q' to quit: "
 
 if "%DOC_CHOICE%"=="q" goto :interactive_menu
 
@@ -355,6 +356,10 @@ if "%DOC_CHOICE%"=="6" (
 )
 if "%DOC_CHOICE%"=="7" (
     type DYNAMIC_PERSONA_SELECTION.md | more
+    goto :view_docs
+)
+if "%DOC_CHOICE%"=="8" (
+    type AI_ASSISTANT_PROMPT.md | more
     goto :view_docs
 )
 
