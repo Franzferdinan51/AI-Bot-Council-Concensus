@@ -88,20 +88,28 @@ async function bootstrap() {
 
         const result = await errorHandler.wrap(
           async () => {
-            if (name === 'council_list_bots' ||
-                name === 'council_update_bot' ||
-                name === 'council_add_memory' ||
-                name === 'council_search_memories' ||
-                name === 'council_list_memories' ||
-                name === 'council_add_document' ||
-                name === 'council_search_documents' ||
-                name === 'council_list_documents') {
-              return await handleManagementToolCall(name, args);
-            }
+            // Define session tool patterns
+            const sessionToolPatterns = [
+              'council_proposal',
+              'council_deliberation',
+              'council_inquiry',
+              'council_research',
+              'council_swarm',
+              'council_swarm_coding',
+              'council_prediction'
+            ];
+
+            // Route based on tool name patterns
             if (name === 'council_auto') {
               return await handleAutoSessionToolCall(name, args, orchestrator);
             }
-            return await handleCouncilToolCall(name, args, orchestrator);
+            else if (sessionToolPatterns.includes(name)) {
+              return await handleCouncilToolCall(name, args, orchestrator);
+            }
+            else {
+              // All other council_ tools are management tools
+              return await handleManagementToolCall(name, args);
+            }
           },
           {
             toolName: name,
