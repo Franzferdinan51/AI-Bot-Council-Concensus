@@ -149,6 +149,87 @@ This server provides **13+ MCP tools** organized in three categories:
 - **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
 - **Real-time Streaming**: Live token streaming for responsive sessions
 
+### Latest Improvements (v3.0) ⭐⭐⭐
+
+#### ✨ Major Enhancement - 16 New AI Services
+
+**PHASE 1 SERVICES (5 services):**
+- **Prediction Tracking Service**: Brier score calculation, outcome tracking, calibration metrics, and probabilistic forecasting with confidence intervals
+- **Persona Suggestion Service**: AI-driven persona selection across 15 topic categories, team composition optimization, and expertise detection
+- **Cost Tracking Service**: Multi-provider cost tracking, budget alerts, spending analytics, and cost-per-outcome optimization
+- **Session Template Service**: 11 pre-configured workflows, template suggestions by topic, and custom template creation
+- **Enhanced Argumentation Framework**: Structured CLAIM-EVIDENCE-REASONING prompting and directive enhancement
+
+**PHASE 2 SERVICES (5 services):**
+- **Semantic Memory Service**: Vector embeddings, semantic clustering, related memory discovery, and intelligent retrieval
+- **Persona Optimization Service**: Performance analysis, team composition optimization, collaboration scoring, and effectiveness metrics
+- **Dialectical Deliberation Service**: Thesis-antithesis-synthesis engine, dialectical reasoning, and consensus building
+- **Ensemble Prediction Service**: Statistical aggregation, confidence intervals, prediction consensus, and uncertainty quantification
+- **Adaptive Orchestration Service**: Real-time session optimization, adaptive decision making, and orchestration strategies
+
+**PHASE 3 SERVICES (5 services):**
+- **RAG Service**: Vector database integration, document ingestion, semantic search, and hybrid retrieval
+- **Multi-Modal Service**: Image/document/code analysis, multi-modal synthesis, and code execution
+- **Federation Service**: Multi-council collaboration, federated consensus, and inter-council communication
+- **Meta-Learning Service**: Automatic learning from sessions, pattern mining, and performance optimization
+- **Analytics Service**: Comprehensive KPIs, anomaly detection, and dashboard reporting
+
+**EXPORT SYSTEM (1 service):**
+- **Export Service**: Multi-format export (PDF, Markdown, JSON, CSV, XML) with 10 new MCP tools:
+  - `council_export_report` - Generic report export
+  - `council_export_test_suite` - Test suite reports
+  - `council_export_analytics` - Analytics dashboard reports
+  - `council_export_session` - Session transcripts
+  - `council_export_predictions` - Prediction tracking reports
+  - `council_export_personas` - Persona performance reports
+  - `council_export_learning` - Meta-learning insights
+  - `council_export_batch` - Batch export multiple items
+  - `council_export_custom` - Custom formatted reports
+  - **Plus prediction/cost/persona validation tools**
+
+#### 🧠 Enhanced AI Capabilities
+- **Structured Argumentation**: CLAIM-EVIDENCE-REASONING framework for better reasoning
+- **Semantic Memory**: Vector-based memory with embeddings and clustering
+- **Ensemble Forecasting**: Statistical prediction aggregation with confidence intervals
+- **Adaptive Orchestration**: Real-time session optimization based on quality metrics
+- **Meta-Learning**: Automatic improvement from historical session data
+
+#### 📊 Analytics & Insights
+- **Prediction Analytics**: Brier score, calibration metrics, and accuracy tracking
+- **Persona Performance**: Effectiveness scoring and team optimization
+- **Cost Analytics**: Multi-provider breakdown and budget utilization
+- **Session Analytics**: Quality, efficiency, and consensus metrics
+- **Anomaly Detection**: Automatic detection of performance issues
+
+#### 📥 Export Capabilities
+Generate comprehensive reports in multiple formats:
+- **PDF**: Documentation-ready reports with charts and metadata
+- **Markdown**: Wiki and internal documentation format
+- **JSON**: Automated systems integration
+- **CSV**: Data analysis and spreadsheet import
+- **XML**: Enterprise integration
+
+Export report types:
+- Test suite reports
+- Analytics dashboard
+- Session transcripts
+- Prediction tracking
+- Persona performance
+- Meta-learning insights
+- Custom formatted reports
+
+#### 🛠️ New MCP Tools (10+ tools)
+- `council_track_prediction_outcome` - Record prediction outcomes
+- `council_get_prediction_stats` - Get prediction analytics
+- `council_suggest_personas` - AI-powered persona selection
+- `council_validate_personas` - Validate persona combinations
+- `council_get_cost_report` - Cost tracking reports
+- `council_set_budget_alert` - Budget threshold alerts
+- `council_list_templates` - Browse session templates
+- `council_apply_template` - Apply pre-configured settings
+- `council_suggest_templates` - Get template suggestions
+- All export tools (see above)
+
 ### Latest Improvements (v2.2) ⭐
 
 #### ✨ New Features
@@ -1360,7 +1441,60 @@ The codebase is organized into clear modules:
 
 ## Changelog
 
-### Version 2.0.0 (Current)
+### Version 3.0.0 (Current)
+
+#### ✨ Major Enhancement - 16 New AI Services
+- **Prediction Tracking Service**: Brier score calculation, calibration metrics, outcome tracking
+- **Persona Suggestion Service**: AI-driven selection across 15 topic categories
+- **Cost Tracking Service**: Multi-provider tracking, budget alerts, analytics
+- **Session Template Service**: 11 pre-configured workflows, template suggestions
+- **Enhanced Argumentation Framework**: CLAIM-EVIDENCE-REASONING structured prompting
+- **Semantic Memory Service**: Vector embeddings, clustering, intelligent retrieval
+- **Persona Optimization Service**: Performance analysis, team composition optimization
+- **Dialectical Deliberation Service**: Thesis-antithesis-synthesis reasoning engine
+- **Ensemble Prediction Service**: Statistical aggregation, confidence intervals
+- **Adaptive Orchestration Service**: Real-time session optimization
+- **RAG Service**: Vector database, semantic search, hybrid retrieval
+- **Multi-Modal Service**: Image/document/code analysis and synthesis
+- **Federation Service**: Multi-council collaboration and consensus
+- **Meta-Learning Service**: Automatic learning, pattern mining, optimization
+- **Analytics Service**: KPIs, anomaly detection, dashboard reporting
+- **Export Service**: Multi-format export (PDF/Markdown/JSON/CSV/XML) with 10+ tools
+
+#### 🧠 Enhanced AI Capabilities
+- Structured argumentation with evidence-based reasoning
+- Semantic memory with vector embeddings
+- Ensemble forecasting with statistical aggregation
+- Adaptive orchestration based on real-time metrics
+- Meta-learning from historical session data
+
+#### 📊 Analytics & Insights
+- Prediction analytics with Brier score and calibration
+- Persona performance tracking and optimization
+- Cost analytics with multi-provider breakdown
+- Session quality, efficiency, and consensus metrics
+- Automated anomaly detection
+
+#### 📥 Export System
+- Multi-format export: PDF, Markdown, JSON, CSV, XML
+- 10+ new export MCP tools
+- Report types: test suites, analytics, sessions, predictions, personas, learning
+- Custom formatted reports with batch export capability
+
+#### 🛠️ New MCP Tools (20+ tools)
+- Prediction tracking and analytics tools
+- Persona suggestion and validation tools
+- Cost tracking and budget management tools
+- Session template management tools
+- All export tools (council_export_*)
+
+#### 🏗️ Architecture Enhancements
+- 16 new service modules (all singleton pattern)
+- Enhanced type safety with comprehensive interfaces
+- Service integration with existing MCP protocol
+- Backward compatible with all existing features
+
+### Version 2.0.0
 
 #### ✨ New Features
 - **Meta-Tool (council_auto)**: Smart session mode selection
@@ -1430,8 +1564,9 @@ MIT License
 
 ---
 
-**Version**: 2.0.0
-**Last Updated**: November 2025
-**MCP Tools**: 13 tools
+**Version**: 3.0.0
+**Last Updated**: December 2025
+**MCP Tools**: 33+ tools (20+ new tools in v3.0)
 **Session Modes**: 7 modes
 **Councilors**: 20+ personas
+**AI Services**: 16 new services (v3.0)
