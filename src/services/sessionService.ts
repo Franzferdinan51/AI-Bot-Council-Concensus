@@ -1,5 +1,5 @@
 import { CouncilSession, Message, SessionMode, SessionStatus, VoteData, PredictionData, CodeFile, Attachment, AuthorType } from '../types/index.js';
-import { sessionStorage } from './sessionStorageService.js';
+import { sqliteStorage } from './sqliteStorageService.js';
 
 export class SessionService {
   private sessions: Map<string, CouncilSession> = new Map();
@@ -13,8 +13,8 @@ export class SessionService {
       return;
     }
 
-    await sessionStorage.initialize();
-    const persistedSessions = await sessionStorage.loadAllSessions();
+    await sqliteStorage.initialize();
+    const persistedSessions = await sqliteStorage.loadAllSessions();
 
     // Add persisted sessions to in-memory cache
     for (const session of persistedSessions) {
@@ -22,7 +22,7 @@ export class SessionService {
     }
 
     this.initialized = true;
-    console.log(`[SessionService] Initialized with ${persistedSessions.length} persisted sessions`);
+    console.log(`[SessionService] Initialized with ${persistedSessions.length} persisted sessions (SQLite)`);
   }
 
   /**
@@ -86,7 +86,7 @@ export class SessionService {
     this.sessions.set(sessionId, session);
 
     // Persist immediately
-    sessionStorage.saveSession(session).catch(err => {
+    sqliteStorage.saveSession(session).catch(err => {
       console.error(`[SessionService] Failed to save new session:`, err);
     });
 
@@ -107,7 +107,7 @@ export class SessionService {
 
       console.error(`[AI Council MCP] [SESSION] ${sessionId} status -> ${status}`);
       // Schedule auto-save
-      sessionStorage.scheduleSave(sessionId, session);
+      sqliteStorage.scheduleSave(sessionId, session);
     }
   }
 
@@ -130,7 +130,7 @@ export class SessionService {
 
     console.error(`[AI Council MCP] [MESSAGE] ${sessionId} author=${fullMessage.author} type=${fullMessage.authorType}`);
     // Schedule auto-save
-    sessionStorage.scheduleSave(sessionId, session);
+    sqliteStorage.scheduleSave(sessionId, session);
 
     return fullMessage;
   }
@@ -153,7 +153,7 @@ export class SessionService {
 
       console.error(`[AI Council MCP] [MESSAGE-UPDATE] ${sessionId} message=${messageId}`);
       // Schedule auto-save
-      sessionStorage.scheduleSave(sessionId, session);
+      sqliteStorage.scheduleSave(sessionId, session);
     }
   }
 
@@ -166,7 +166,7 @@ export class SessionService {
       session.updatedAt = Date.now();
 
       // Schedule auto-save
-      sessionStorage.scheduleSave(sessionId, session);
+      sqliteStorage.scheduleSave(sessionId, session);
     }
   }
 
@@ -179,7 +179,7 @@ export class SessionService {
       session.updatedAt = Date.now();
 
       // Schedule auto-save
-      sessionStorage.scheduleSave(sessionId, session);
+      sqliteStorage.scheduleSave(sessionId, session);
     }
   }
 
@@ -192,7 +192,7 @@ export class SessionService {
       session.updatedAt = Date.now();
 
       // Schedule auto-save
-      sessionStorage.scheduleSave(sessionId, session);
+      sqliteStorage.scheduleSave(sessionId, session);
     }
   }
 
@@ -210,7 +210,7 @@ export class SessionService {
     const deleted = this.sessions.delete(sessionId);
     if (deleted) {
       // Also delete from disk
-      sessionStorage.deleteSession(sessionId).catch(err => {
+      sqliteStorage.deleteSession(sessionId).catch(err => {
         console.error(`[SessionService] Failed to delete session from disk:`, err);
       });
     }
@@ -277,7 +277,7 @@ export class SessionService {
    */
   async shutdown(): Promise<void> {
     console.log('[SessionService] Shutting down...');
-    await sessionStorage.shutdown();
+    await sqliteStorage.shutdown();
     this.sessions.clear();
     this.initialized = false;
     console.log('[SessionService] Shutdown complete');

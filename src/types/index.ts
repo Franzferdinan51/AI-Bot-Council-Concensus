@@ -167,6 +167,8 @@ export interface VoteData {
   yeas: number;
   /** Number of no votes */
   nays: number;
+  /** Number of abstentions (optional) */
+  abstains?: number;
   /** Vote outcome */
   result: 'PASSED' | 'REJECTED' | 'RECONCILIATION NEEDED';
   /** Average confidence level (0-10) */
@@ -180,7 +182,7 @@ export interface VoteData {
     /** Voter name */
     voter: string;
     /** Vote choice */
-    choice: 'YEA' | 'NAY';
+    choice: 'YEA' | 'NAY' | 'ABSTAIN';
     /** Confidence level (0-10) */
     confidence: number;
     /** Reason for vote */
@@ -210,6 +212,8 @@ export interface PredictionData {
   timeline: string;
   /** Reasoning and supporting evidence */
   reasoning: string;
+  /** Contributing factors (optional) */
+  factors?: string[];
 }
 
 /**

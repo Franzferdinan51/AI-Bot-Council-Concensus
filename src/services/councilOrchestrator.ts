@@ -18,12 +18,16 @@ import { protectionService } from './protectionService.js';
 import { predictionTrackingService } from './predictionTrackingService.js';
 import { logger } from './logger.js';
 
+import { registerAgentTools } from '../tools/agentTools/index.js';
+import { toolRegistry } from '../tools/agentTools/registry.js';
+
 export class CouncilOrchestrator {
   private aiService: AIService;
   private controlSignals: Map<string, { stop: boolean; pause: boolean }> = new Map();
 
   constructor(aiService: AIService) {
     this.aiService = aiService;
+    registerAgentTools();
   }
 
   /**
@@ -634,8 +638,19 @@ export class CouncilOrchestrator {
   ): Promise<string> {
     this.checkControlSignal(controlSignal);
 
+    // Inject tool definitions
+    const toolDefs = toolRegistry.getToolDefinitions();
+    const promptWithTools = `${systemPrompt}
+
+[AVAILABLE TOOLS]
+You have access to the following tools. To use a tool, output a JSON object wrapped in <tool_call> tags.
+Example: <tool_call>{"name": "web_search", "arguments": {"query": "latest AI news"}}</tool_call>
+
+${toolDefs}
+`;
+
     // Estimate tokens for this AI call
-    const estimatedTokens = this.estimateTokenCount(systemPrompt) + this.estimateTokenCount(history.map(m => m.content).join(' '));
+    const estimatedTokens = this.estimateTokenCount(promptWithTools) + this.estimateTokenCount(history.map(m => m.content).join(' '));
 
     // Check if call is allowed by protection service
     const protectionCheck = protectionService.checkCallAllowed(
@@ -665,7 +680,7 @@ export class CouncilOrchestrator {
       const fullResponse = await this.aiService.streamBotResponse(
         bot,
         history,
-        systemPrompt,
+        promptWithTools,
         (chunk) => {
           // Update the message with streaming content
           currentContent += chunk;
@@ -683,7 +698,7 @@ export class CouncilOrchestrator {
       // Complete the call (decrement depth)
       protectionService.completeCall(sessionId);
 
-      return fullResponse;
+      return await this.handleToolCalls(sessionId, fullResponse, storedMsg);
     } catch (e: any) {
       sessionService.updateMessage(sessionId, storedMsg.id, { content: `(Error: ${e.message})` });
       // Complete the call even on error
@@ -874,6 +889,50 @@ export class CouncilOrchestrator {
     if (session) {
       sessionService.updateSessionStatus(sessionId, session.status === SessionStatus.PAUSED ? SessionStatus.DEBATING : SessionStatus.PAUSED);
     }
+  }
+
+  /**
+   * Handle tool calls in the response
+   */
+  private async handleToolCalls(sessionId: string, response: string, message: Message): Promise<string> {
+    const toolCallRegex = /<tool_call>([\s\S]*?)<\/tool_call>/g;
+    const matches = [...response.matchAll(toolCallRegex)];
+
+    if (matches.length === 0) {
+      return response;
+    }
+
+    let updatedResponse = response;
+
+    for (const match of matches) {
+      const toolCallJson = match[1];
+      try {
+        const toolCall = JSON.parse(toolCallJson);
+        const toolName = toolCall.name;
+        const toolArgs = toolCall.arguments;
+
+        const tool = toolRegistry.getTool(toolName);
+        if (tool) {
+          console.log(`[Orchestrator] Executing tool ${toolName} for session ${sessionId}`);
+          const result = await tool.execute(toolArgs);
+
+          const toolOutput = `\n\n[TOOL OUTPUT: ${toolName}]\n${result}\n`;
+          updatedResponse += toolOutput;
+
+          // Update the message with tool output
+          sessionService.updateMessage(sessionId, message.id, { content: updatedResponse });
+        } else {
+          updatedResponse += `\n\n[TOOL ERROR] Tool '${toolName}' not found.\n`;
+          sessionService.updateMessage(sessionId, message.id, { content: updatedResponse });
+        }
+      } catch (e: any) {
+        console.error(`[Orchestrator] Failed to parse tool call:`, e);
+        updatedResponse += `\n\n[TOOL ERROR] Failed to parse tool call: ${e.message}\n`;
+        sessionService.updateMessage(sessionId, message.id, { content: updatedResponse });
+      }
+    }
+
+    return updatedResponse;
   }
 
   /**
