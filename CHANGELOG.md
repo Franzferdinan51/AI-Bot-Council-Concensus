@@ -1,6 +1,22 @@
 # Changelog
 
-## [1.0.0] - 2024-11-30
+## [2.3.0] - 2025-12-02
+ 
+ ### Fixed
+ 
+ - **Type Safety**:
+   - Fixed `@ts-ignore` usage in `src/index.ts` by adding proper `CallToolResult` type.
+   - Updated `AuthorType` enum to include `SYSTEM` and `USER` types.
+   - Removed `as any` casts in `src/services/councilOrchestrator.ts` and `src/services/sessionService.ts`.
+ 
+ - **Error Handling**:
+   - Improved error handling in `src/services/aiService.ts` with specific try-catch blocks for Gemini API calls.
+   - Added more descriptive error messages for API failures.
+ 
+ - **Robustness**:
+   - Enhanced regex patterns in `src/services/councilOrchestrator.ts` to be more flexible with LLM output variations (bolding, whitespace, prefixes).
+ 
+ ## [1.0.0] - 2024-11-30
 
 ### Added
 

@@ -151,7 +151,14 @@ This server provides **14+ MCP tools** organized in three categories:
 - **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
 - **Real-time Streaming**: Live token streaming for responsive sessions
 
-### Latest Improvements (v2.2) ⭐
+### Latest Improvements (v2.3) ⭐
+ 
+ #### 🛠️ Fixes & Stability
+ - **Enhanced Type Safety**: Improved TypeScript type definitions and removed `any` casts for better code reliability.
+ - **Robust Error Handling**: Added detailed error reporting for AI service failures and streaming issues.
+ - **Resilient Parsing**: Improved regex patterns to handle varied LLM outputs in council debates and voting.
+ 
+ ### Latest Improvements (v2.2) ⭐
 
 #### ✨ New Features
 - **Bot-Specific Memory System**: Each council bot now maintains persistent, personalized memories across sessions! Bots can remember facts, directives, and observations from previous interactions, enabling continuity-aware conversations. Directives are always included in context, while facts/observations are intelligently matched to current topics.
