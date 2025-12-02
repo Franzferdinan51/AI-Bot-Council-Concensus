@@ -50,7 +50,21 @@ export enum SessionMode {
   /** Swarm coding - collaborative code generation */
   SWARM_CODING = 'swarm_coding',
   /** Prediction mode - forecasting and probability */
-  PREDICTION = 'prediction'
+  PREDICTION = 'prediction',
+  /** Arbitration mode - conflict resolution between parties */
+  ARBITRATION = 'arbitration',
+  /** Negotiation mode - multi-party bargaining and compromise */
+  NEGOTIATION = 'negotiation',
+  /** Brainstorming mode - creative ideation with voting */
+  BRAINSTORMING = 'brainstorming',
+  /** Peer review mode - scientific/academic review process */
+  PEER_REVIEW = 'peer_review',
+  /** Strategic planning mode - long-term planning and roadmaps */
+  STRATEGIC_PLANNING = 'strategic_planning',
+  /** Design review mode - UX/UI critique and feedback */
+  DESIGN_REVIEW = 'design_review',
+  /** Risk assessment mode - security and risk analysis */
+  RISK_ASSESSMENT = 'risk_assessment'
 }
 
 /**
