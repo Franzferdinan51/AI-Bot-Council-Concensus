@@ -64,7 +64,9 @@ export enum SessionMode {
   /** Design review mode - UX/UI critique and feedback */
   DESIGN_REVIEW = 'design_review',
   /** Risk assessment mode - security and risk analysis */
-  RISK_ASSESSMENT = 'risk_assessment'
+  RISK_ASSESSMENT = 'risk_assessment',
+  /** Advisory mode - strategic guidance and best practices consultation */
+  ADVISORY = 'advisory'
 }
 
 /**

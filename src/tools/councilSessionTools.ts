@@ -308,6 +308,56 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
       }
     },
     {
+      name: 'council_advisory',
+      description: 'Run an advisory consultation session - strategic guidance and best practices with domain expertise. 🎨 Select relevant councilors via settings.bots (councilor-ethicist for ethical guidance, councilor-pragmatist for feasibility). The controlling bot can participate as "User/Client" seeking advice.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          topic: {
+            type: 'string',
+            description: 'The strategic question or decision requiring advisory guidance'
+          },
+          userPrompt: {
+            type: 'string',
+            description: 'Optional participation message from the controlling bot (acts as User/Client seeking advice)'
+          },
+          settings: {
+            type: 'object',
+            description: 'Optional custom settings',
+            properties: {
+              bots: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    enabled: { type: 'boolean' }
+                  }
+                }
+              },
+              domain: {
+                type: 'string',
+                enum: ['general', 'technical', 'business', 'strategy', 'leadership', 'innovation', 'ethics'],
+                description: 'Domain focus for advisory (general, technical, business, strategy, leadership, innovation, ethics)'
+              },
+              timeframe: {
+                type: 'string',
+                enum: ['immediate', 'short-term', 'long-term', 'strategic'],
+                description: 'Time horizon for recommendations (immediate, short-term, long-term, strategic)'
+              },
+              verboseLogging: { type: 'boolean', description: 'Enable detailed progress logging (default: true)' },
+              progressDelay: { type: 'number', description: 'Delay between steps in ms (default: 500)' }
+            }
+          },
+          context: {
+            type: 'string',
+            description: 'Additional context for the advisory request (constraints, objectives, background)'
+          }
+        },
+        required: ['topic']
+      }
+    },
+    {
       name: 'council_list_sessions',
       description: 'List all council sessions',
       inputSchema: {
@@ -415,6 +465,8 @@ export async function handleCouncilToolCall(
         return await handleSwarmCoding(arguments_, orchestrator);
       case 'council_prediction':
         return await handlePrediction(arguments_, orchestrator);
+      case 'council_advisory':
+        return await handleAdvisory(arguments_, orchestrator);
       case 'council_list_sessions':
         return await handleListSessions();
       case 'council_get_session':
@@ -741,6 +793,51 @@ async function handlePrediction(args: any, orchestrator: CouncilOrchestrator): P
     sessionId,
     topic,
     SessionMode.PREDICTION,
+    sessionSettings,
+    context,
+    userPrompt
+  );
+
+  console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: formatCouncilResult(sessionId, result)
+      }
+    ]
+  };
+}
+
+async function handleAdvisory(args: any, orchestrator: CouncilOrchestrator): Promise<CallToolResult> {
+  const validation = ValidationService.validateCouncilInput(args);
+  if (!validation.isValid) {
+    return ValidationService.createErrorResponse(validation.errors);
+  }
+
+  const { topic, userPrompt, settings, context } = args;
+  console.error(`[MCP TOOL] council_advisory called - Topic: "${topic}"`);
+  if (userPrompt) {
+    console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
+  }
+
+  const sessionSettings = buildSessionSettings(settings);
+
+  const sessionId = sessionService.createSession(
+    topic,
+    SessionMode.ADVISORY,
+    sessionSettings,
+    context,
+    userPrompt
+  );
+
+  console.error(`[MCP TOOL] Created session: ${sessionId}`);
+
+  const result = await orchestrator.runCouncilSession(
+    sessionId,
+    topic,
+    SessionMode.ADVISORY,
     sessionSettings,
     context,
     userPrompt
