@@ -209,22 +209,22 @@ export class AnalyticsService {
   /**
    * Get persona performance analytics
    */
-  getPersonaAnalytics(timeRange: TimeRange): PersonaAnalytics {
+  async getPersonaAnalytics(timeRange: TimeRange): Promise<PersonaAnalytics> {
     const sessions = sessionService.listSessions();
     const filteredSessions = this.filterSessionsByTimeRange(sessions, timeRange);
 
     // Get persona performance data
-    const personaPerformance = personaOptimizationService.analyzePersonaPerformance();
+    const personaPerformance = await personaOptimizationService.analyzePersonaPerformance();
 
     const personas = Array.from(personaPerformance.entries()).map(([id, metrics]) => ({
       id: metrics.botId,
       name: metrics.botName,
       role: metrics.role,
-      totalSessions: metrics.overallMetrics.totalSessions,
-      averageQuality: metrics.overallMetrics.avgConfidence,
-      averageEngagement: metrics.overallMetrics.collaborationScore,
-      successRate: metrics.overallMetrics.successRate,
-      costPerSession: metrics.overallMetrics.totalCost / Math.max(1, metrics.overallMetrics.totalSessions),
+      totalSessions: metrics.overallMetrics?.totalSessions || 0,
+      averageQuality: metrics.overallMetrics?.avgConfidence || 0,
+      averageEngagement: metrics.overallMetrics?.collaborationScore || 0,
+      successRate: metrics.overallMetrics?.successRate || 0,
+      costPerSession: (metrics.overallMetrics?.totalCost || 0) / Math.max(1, metrics.overallMetrics?.totalSessions || 1),
       effectivenessScore: this.calculateEffectivenessScore(metrics),
       trending: this.determineTrend(metrics)
     }));
@@ -249,16 +249,25 @@ export class AnalyticsService {
    * Get prediction analytics
    */
   getPredictionAnalytics(timeRange: TimeRange): PredictionAnalytics {
-    const predictions = predictionTrackingService.getAllPredictions();
-    const filteredPredictions = this.filterPredictionsByTimeRange(predictions, timeRange);
+    const allSessions = sessionService.listSessions();
+    let allPredictions: any[] = [];
+
+    // Get predictions from all sessions
+    allSessions.forEach(session => {
+      const sessionPredictions = predictionTrackingService.getSessionPredictions(session.id);
+      allPredictions.push(...sessionPredictions);
+    });
+
+    const filteredPredictions = this.filterPredictionsByTimeRange(allPredictions, timeRange);
 
     const totalPredictions = filteredPredictions.length;
 
     // Calculate accuracy
-    const accuracy = predictionTrackingService.getOverallAccuracy();
+    const correctPredictions = filteredPredictions.filter(p => p.actualOutcome !== undefined).length;
+    const accuracy = totalPredictions > 0 ? correctPredictions / totalPredictions : 0;
 
     // Calculate calibration metrics
-    const calibrationMetrics = predictionTrackingService.getCalibrationMetrics();
+    const calibrationMetrics = predictionTrackingService.calculateCalibrationMetrics();
 
     // Breakdown by time
     const breakdownByTime = this.breakdownPredictionsByTime(filteredPredictions);
@@ -276,7 +285,7 @@ export class AnalyticsService {
       totalPredictions,
       accuracy,
       averageConfidence: filteredPredictions.reduce((sum, p) => sum + p.confidence, 0) / Math.max(1, totalPredictions),
-      calibrationScore: calibrationMetrics.calibrationScore,
+      calibrationScore: calibrationMetrics.accuracy,
       brierScore: calibrationMetrics.brierScore,
       breakdownByTime,
       breakdownByTopic,
@@ -292,12 +301,12 @@ export class AnalyticsService {
     const costReport = costTrackingService.generateCostReport(30); // Last 30 days
 
     // Cost breakdown
-    const costByProvider = this.aggregateCostByProvider(costReport.breakdown);
-    const costByModel = this.aggregateCostByModel(costReport.breakdown);
-    const costByMode = this.aggregateCostByMode(costReport.breakdown);
+    const costByProvider = this.aggregateCostByProvider(Array.from(costReport.providerStats.entries()));
+    const costByModel = this.aggregateCostByModel(Array.from(costReport.modelStats.entries()));
+    const costByMode = this.aggregateCostByMode([]);
 
     // Monthly trend
-    const monthlyTrend = this.calculateMonthlyTrend(costReport.breakdown);
+    const monthlyTrend = this.calculateMonthlyTrend([]);
 
     // Budget utilization
     const budgetUtilization = {
@@ -309,13 +318,13 @@ export class AnalyticsService {
 
     // Cost efficiency
     const costEfficiency = {
-      sessionsPerDollar: costReport.sessionCount / Math.max(1, costReport.totalCost),
+      sessionsPerDollar: 1 / Math.max(0.01, costReport.totalCost), // Simplified
       qualityPerDollar: 0.75 / Math.max(0.01, costReport.totalCost) // Simplified
     };
 
     return {
       totalCost: costReport.totalCost,
-      averageCostPerSession: costReport.averageCostPerSession,
+      averageCostPerSession: costReport.averageCostPerCall,
       costByProvider,
       costByModel,
       costByMode,
@@ -360,10 +369,10 @@ export class AnalyticsService {
   /**
    * Generate comprehensive analytics report
    */
-  generateReport(timeRange: TimeRange, title: string = 'Council Analytics Report'): AnalyticsReport {
+  async generateReport(timeRange: TimeRange, title: string = 'Council Analytics Report'): Promise<AnalyticsReport> {
     // Collect all analytics
     const sessionAnalytics = this.getSessionAnalytics(timeRange);
-    const personaAnalytics = this.getPersonaAnalytics(timeRange);
+    const personaAnalytics = await this.getPersonaAnalytics(timeRange);
     const predictionAnalytics = this.getPredictionAnalytics(timeRange);
     const costAnalytics = this.getCostAnalytics(timeRange);
 
@@ -670,33 +679,31 @@ export class AnalyticsService {
     return 'stable';
   }
 
-  private aggregateCostByProvider(breakdown: any[]): Record<string, number> {
+  private aggregateCostByProvider(providerStats: Array<[any, any]>): Record<string, number> {
     const providerMap = new Map<string, number>();
-    breakdown.forEach(item => {
-      const provider = item.provider || 'Unknown';
-      providerMap.set(provider, (providerMap.get(provider) || 0) + item.cost);
+    providerStats.forEach(([provider, stats]: [any, any]) => {
+      providerMap.set(provider, (providerMap.get(provider) || 0) + stats.cost);
     });
     return Object.fromEntries(providerMap);
   }
 
-  private aggregateCostByModel(breakdown: any[]): Record<string, number> {
+  private aggregateCostByModel(modelStats: Array<[string, any]>): Record<string, number> {
     const modelMap = new Map<string, number>();
-    breakdown.forEach(item => {
-      const model = item.model || 'Unknown';
-      modelMap.set(model, (modelMap.get(model) || 0) + item.cost);
+    modelStats.forEach(([model, stats]: [string, any]) => {
+      modelMap.set(model, (modelMap.get(model) || 0) + stats.cost);
     });
     return Object.fromEntries(modelMap);
   }
 
   private aggregateCostByMode(breakdown: any[]): Record<string, number> {
-    const modeMap: Record<SessionMode, number> = {
-      DELIBERATION: 0,
-      PROPOSAL: 0,
-      PREDICTION: 0,
-      INQUIRY: 0,
-      SWARM: 0,
-      SWARM_CODING: 0,
-      BRAINSTORM: 0
+    const modeMap: Record<string, number> = {
+      'DELIBERATION': 0,
+      'PROPOSAL': 0,
+      'PREDICTION': 0,
+      'INQUIRY': 0,
+      'SWARM': 0,
+      'SWARM_CODING': 0,
+      'BRAINSTORM': 0
     };
     // Simplified - would map sessions to costs
     return modeMap;

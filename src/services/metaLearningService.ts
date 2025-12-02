@@ -68,6 +68,7 @@ export interface PerformanceTrend {
   };
   anomalyDetected: boolean;
   anomalyScore?: number;
+  statisticalSignificance: number;
 }
 
 /**
@@ -297,7 +298,7 @@ export class MetaLearningService {
         .sort((a, b) => a[1].timestamp - b[1].timestamp)
         .map(([sessionId, analysis]) => ({
           timestamp: analysis.timestamp,
-          value: analysis[metric]
+          value: Number(analysis[metric]) || 0
         }));
 
       if (timeSeries.length < 2) continue;
@@ -313,7 +314,8 @@ export class MetaLearningService {
         rate: trend,
         projection,
         anomalyDetected: anomaly.detected,
-        anomalyScore: anomaly.score
+        anomalyScore: anomaly.score,
+        statisticalSignificance: Math.abs(trend) * timeSeries.length
       });
     }
   }

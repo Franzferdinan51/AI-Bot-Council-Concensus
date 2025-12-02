@@ -217,19 +217,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest 
 
       // Route to appropriate tool handler
       if (name.startsWith('council_')) {
-        if (name === 'council_list_bots' ||
-            name === 'council_update_bot' ||
-            name === 'council_add_memory' ||
-            name === 'council_search_memories' ||
-            name === 'council_list_memories' ||
-            name === 'council_add_document' ||
-            name === 'council_search_documents' ||
-            name === 'council_list_documents') {
-          result = await handleManagementToolCall(name, typedArgs);
-        } else if (name === 'council_auto') {
+        // Session tools (council_proposal, council_deliberation, etc.)
+        const sessionToolPatterns = [
+          'council_proposal',
+          'council_deliberation',
+          'council_inquiry',
+          'council_research',
+          'council_swarm',
+          'council_swarm_coding',
+          'council_prediction'
+        ];
+
+        // Management tools (everything else council_*)
+        if (name === 'council_auto') {
           result = await handleAutoSessionToolCall(name, typedArgs, orchestrator);
-        } else {
+        } else if (sessionToolPatterns.includes(name)) {
           result = await handleCouncilToolCall(name, typedArgs, orchestrator);
+        } else {
+          // All other council_ tools are management tools
+          result = await handleManagementToolCall(name, typedArgs);
         }
       } else {
         throw new Error(`Unknown tool: ${name}`);

@@ -468,8 +468,8 @@ export class MultiModalService {
 
     // Check for consistency across inputs
     const types = analyses.map(a => a.type);
-    if (types.includes('image') && types.includes('text')) {
-      insights.push('Image and text content show alignment');
+    if (types.includes('image') && types.includes('document')) {
+      insights.push('Image and document content show alignment');
     }
 
     if (types.includes('code') && types.includes('visualization')) {

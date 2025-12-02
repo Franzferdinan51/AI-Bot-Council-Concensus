@@ -264,10 +264,14 @@ export interface RAGDocument {
   title: string;
   /** Document content */
   content: string;
+  /** Document type */
+  type?: string;
   /** Whether document is active */
   active: boolean;
   /** Creation timestamp */
   createdAt?: number;
+  /** Additional metadata */
+  metadata?: Record<string, any>;
 }
 
 /**
