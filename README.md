@@ -1230,6 +1230,140 @@ Add to your Claude Desktop config:
 }
 ```
 
+### Claude Code CLI
+
+Claude Code CLI supports MCP servers through a configuration file. Here's how to set it up:
+
+#### Step 1: Locate Claude Code Config Directory
+
+**Find your Claude Code config directory:**
+
+- **macOS**: `~/Library/Application Support/ClaudeCode/`
+- **Windows**: `%APPDATA%\ClaudeCode\`
+- **Linux**: `~/.config/claude-code/`
+
+If the directory doesn't exist, create it:
+```bash
+mkdir -p ~/.config/claude-code/
+```
+
+#### Step 2: Create MCP Configuration
+
+Create or edit `mcp-config.json` in the config directory:
+
+```bash
+touch ~/.config/claude-code/mcp-config.json
+```
+
+Add the following configuration:
+
+```json
+{
+  "mcpServers": {
+    "ai-council": {
+      "command": "node",
+      "args": ["/full/path/to/ai-council-mcp-server/dist/index.js"],
+      "env": {
+        "GEMINI_API_KEY": "your_api_key_here",
+        "MAX_CONCURRENT_REQUESTS": "2",
+        "ECONOMY_MODE": "true"
+      }
+    }
+  }
+}
+```
+
+**Important:** Replace `/full/path/to/ai-council-mcp-server/dist/index.js` with the actual absolute path to your server's `index.js` file.
+
+**Example paths:**
+- **macOS**: `/Users/username/ai-council-mcp-server/dist/index.js`
+- **Windows**: `C:\Users\YourName\ai-council-mcp-server\dist\index.js`
+- **Linux**: `/home/username/ai-council-mcp-server/dist/index.js`
+
+#### Step 3: Set Your API Key
+
+You can set your API key in the config file as shown above, or use environment variables:
+
+```bash
+export GEMINI_API_KEY=your_api_key_here
+```
+
+#### Step 4: Verify Installation
+
+Test that Claude Code can see the server:
+
+```bash
+# List MCP servers
+claude mcp
+
+# Should show: ai-council (or similar)
+```
+
+#### Step 5: Use in Claude Code
+
+Once configured, you can use AI Council tools directly in Claude Code:
+
+**Example: Start a council deliberation**
+```
+/council_deliberation topic="Should we implement a 4-day work week?"
+```
+
+**Example: Get a proposal with voting**
+```
+/council_proposal topic="Should AI-generated content be labeled?"
+```
+
+**Example: Use the smart auto-tool**
+```
+/council_auto topic="Build a REST API for task management"
+```
+
+#### Quick Reference: Available Tools in Claude Code
+
+| Command | Description |
+|---------|-------------|
+| `/council_proposal` | Legislative proposal with voting |
+| `/council_deliberation` | Roundtable discussion |
+| `/council_inquiry` | Direct Q&A format |
+| `/council_research` | Deep research analysis |
+| `/council_swarm` | Parallel task execution |
+| `/council_swarm_coding` | Software development |
+| `/council_prediction` | Superforecasting |
+| `/council_auto` | Smart mode selection |
+| `/council_list_sessions` | List all sessions |
+| `/council_diagnostics` | Server health check |
+
+#### Troubleshooting Claude Code Integration
+
+**Server not showing up:**
+```bash
+claude mcp list
+# Check if ai-council appears
+```
+
+**Permission denied:**
+```bash
+# Make sure index.js is executable (Unix systems)
+chmod +x /path/to/ai-council-mcp-server/dist/index.js
+```
+
+**Command not found:**
+```bash
+# Verify Node.js is installed
+node --version
+
+# Verify the path to index.js is correct
+ls -l /path/to/ai-council-mcp-server/dist/index.js
+```
+
+**API key issues:**
+```bash
+# Test the server directly
+node /path/to/ai-council-mcp-server/dist/index.js
+
+# Should show initialization messages without errors
+```
+
 ### Using mcp.json
 
 This folder includes `mcp.json` for easy configuration:
@@ -1250,6 +1384,8 @@ This folder includes `mcp.json` for easy configuration:
   }
 }
 ```
+
+**Note:** This file is provided for reference. For Claude Code CLI, use the `mcp-config.json` method described above.
 
 ## Project Structure
 
