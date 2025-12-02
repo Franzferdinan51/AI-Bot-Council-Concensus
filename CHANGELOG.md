@@ -1,6 +1,23 @@
 # Changelog
 
-## [2.3.2] - 2025-12-02
+## [2.3.3] - 2025-12-02
+ 
+ ### Added
+ 
+ - **Enhanced Logging**:
+   - Implemented file-based logging with rotation in `src/services/logger.ts`.
+   - Added granular logging for AI API calls, session lifecycle, and tool execution.
+   - Enabled `stderr` output for all logs to provide real-time terminal visibility without breaking MCP protocol.
+ 
+ - **Enhanced Diagnostics**:
+   - Updated `council_diagnostics` tool to provide server health metrics (uptime, memory), active session summaries, and recent log entries.
+ 
+ ### Fixed
+ 
+ - **Stability**:
+   - Added 120-second timeout to all AI service calls (`aiService.ts`) to prevent server hanging on unresponsive API requests.
+ 
+ ## [2.3.2] - 2025-12-02
  
  ### Fixed
  
