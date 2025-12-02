@@ -634,9 +634,12 @@ export class CouncilOrchestrator {
     // Record this call for protection tracking
     protectionService.recordCall(sessionId, 'ai_generation', { botId: bot.id });
 
-    const thinkingMsg = this.createMessage(bot.name, bot.authorType, "...", bot.color, roleLabel);
-    thinkingMsg.thinking = "Processing...";
-    sessionService.addMessage(sessionId, thinkingMsg);
+    const initialMsg = this.createMessage(bot.name, bot.authorType, "...", bot.color, roleLabel);
+    initialMsg.thinking = "Processing...";
+
+    // IMPORTANT: Capture the returned message which has the correct ID
+    const storedMsg = sessionService.addMessage(sessionId, initialMsg);
+    let currentContent = "...";
 
     try {
       const fullResponse = await this.aiService.streamBotResponse(
@@ -645,8 +648,8 @@ export class CouncilOrchestrator {
         systemPrompt,
         (chunk) => {
           // Update the message with streaming content
-          const updatedContent = thinkingMsg.content + chunk;
-          sessionService.updateMessage(sessionId, thinkingMsg.id, { content: updatedContent });
+          currentContent += chunk;
+          sessionService.updateMessage(sessionId, storedMsg.id, { content: currentContent });
         }
       );
 
@@ -655,14 +658,14 @@ export class CouncilOrchestrator {
       protectionService.updateTokenCount(sessionId, actualTokens);
 
       const cleanSpeech = fullResponse.replace(/<thinking>[\s\S]*?<\/thinking>/, '').replace(/<vote>[\s\S]*?<\/vote>/g, '').replace(/```[\s\S]*?```/g, '').trim();
-      sessionService.updateMessage(sessionId, thinkingMsg.id, { content: fullResponse });
+      sessionService.updateMessage(sessionId, storedMsg.id, { content: fullResponse });
 
       // Complete the call (decrement depth)
       protectionService.completeCall(sessionId);
 
       return fullResponse;
     } catch (e: any) {
-      sessionService.updateMessage(sessionId, thinkingMsg.id, { content: `(Error: ${e.message})` });
+      sessionService.updateMessage(sessionId, storedMsg.id, { content: `(Error: ${e.message})` });
       // Complete the call even on error
       protectionService.completeCall(sessionId);
       return "";

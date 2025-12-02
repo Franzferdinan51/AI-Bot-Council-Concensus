@@ -1,6 +1,14 @@
 # Changelog
 
-## [2.3.1] - 2025-12-02
+## [2.3.2] - 2025-12-02
+ 
+ ### Fixed
+ 
+ - **Bot Responses**:
+   - Fixed a critical bug where bot responses were stuck at `...` due to a message ID mismatch during updates.
+   - Fixed a streaming concatenation issue that would have caused garbled output.
+ 
+ ## [2.3.1] - 2025-12-02
  
  ### Fixed
  
