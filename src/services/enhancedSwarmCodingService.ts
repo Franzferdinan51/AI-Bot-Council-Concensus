@@ -298,20 +298,25 @@ export class EnhancedSwarmCodingService {
       }
     };
 
-    console.log(`[EnhancedSwarmCoding] Starting 24-phase execution for session ${sessionId}`);
+    // Determine which phases to run based on configuration
+    const pipelineMode = settings.pipelineMode || 'standard'; // 'quick', 'standard', 'comprehensive'
+    const phasesToExecute = this.getPhasesForMode(pipelineMode);
+    const totalPhases = phasesToExecute.length;
+
+    console.log(`[EnhancedSwarmCoding] Starting ${pipelineMode} mode (${totalPhases} phases) for session ${sessionId}`);
 
     // Notify via WebSocket
     websocketService.sendToSession(sessionId, {
       type: 'status',
-      data: { message: 'Starting Enhanced Swarm Coding with 24 phases', phase: 0, totalPhases: 24 }
+      data: { message: `Starting Enhanced Swarm Coding (${pipelineMode} mode, ${totalPhases} phases)`, phase: 0, totalPhases }
     });
 
     const enabledBots = settings.bots || councilors;
     const maxConcurrency = Math.min(settings.maxConcurrentRequests || 2, 4);
 
     // Execute phases sequentially for dependencies
-    for (let i = 0; i < this.phases.length; i++) {
-      const phase = this.phases[i];
+    for (let i = 0; i < phasesToExecute.length; i++) {
+      const phase = phasesToExecute[i];
 
       try {
         console.log(`[EnhancedSwarmCoding] Executing Phase ${phase.id}: ${phase.name}`);
@@ -543,6 +548,34 @@ export class EnhancedSwarmCodingService {
       'Testing & Quality': this.phases.filter(p => p.id >= 15 && p.id <= 19),
       'Deployment & DevOps': this.phases.filter(p => p.id >= 20)
     };
+  }
+
+  /**
+   * Get phases based on pipeline mode
+   * - quick: 6 phases (essentials)
+   * - standard: 12 phases (recommended)
+   * - comprehensive: 24 phases (full enterprise pipeline)
+   */
+  getPhasesForMode(mode: 'quick' | 'standard' | 'comprehensive'): SwarmCodingPhase[] {
+    switch (mode) {
+      case 'quick':
+        // 6 phases: Requirements, Tech Stack, Design, Core Dev, Basic Tests, Documentation
+        return this.phases.filter(p => [1, 2, 3, 9, 15, 20].includes(p.id));
+
+      case 'standard':
+        // 12 phases: Planning + Core Dev + Testing + Documentation
+        return this.phases.filter(p => [
+          1, 2, 3, 4, 8,  // Requirements & Planning
+          9, 10, 11,       // Core Development
+          15, 16,          // Testing
+          20               // Documentation
+        ].includes(p.id));
+
+      case 'comprehensive':
+      default:
+        // 24 phases: Full pipeline
+        return [...this.phases];
+    }
   }
 }
 

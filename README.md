@@ -94,12 +94,12 @@ start.bat
 
 ### Core Features
 
-- **7 Session Modes**: Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction
+- **14 Session Modes**: Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction, Arbitration, Negotiation, Brainstorming, Peer Review, Strategic Planning, Design Review, Risk Assessment
 - **20+ Pre-configured Personas**: Technocrat, Ethicist, Pragmatist, Visionary, Sentinel, Historian, Diplomat, Skeptic, and more
 - **Multi-Provider AI Support**: Google Gemini, OpenRouter, LM Studio, Ollama, Z.ai, Moonshot, Minimax, and OpenAI-compatible APIs
 - **Voting & Consensus System**: Structured voting with weighted voting and consensus scores
 - **Prediction Mode**: Superforecasting with probabilistic outcomes
-- **Swarm Coding**: Software development workflow with code generation
+- **Swarm Coding**: Software development workflow with configurable pipeline modes (6/12/24 phases)
 - **Memory System**: Persisted precedents and knowledge base
 - **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
 - **Real-time Streaming**: Live token streaming for responsive sessions
@@ -139,12 +139,12 @@ This server provides **13+ MCP tools** organized in three categories:
 
 ### Core Features
 
-- **7 Session Modes**: Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction
+- **14 Session Modes**: Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction, Arbitration, Negotiation, Brainstorming, Peer Review, Strategic Planning, Design Review, Risk Assessment
 - **20+ Pre-configured Personas**: Technocrat, Ethicist, Pragmatist, Visionary, Sentinel, Historian, Diplomat, Skeptic, and more
 - **Multi-Provider AI Support**: Google Gemini, OpenRouter, LM Studio, Ollama, Z.ai, Moonshot, Minimax, and OpenAI-compatible APIs
 - **Voting & Consensus System**: Structured voting with weighted voting and consensus scores
 - **Prediction Mode**: Superforecasting with probabilistic outcomes
-- **Swarm Coding**: Software development workflow with code generation
+- **Swarm Coding**: Software development workflow with configurable pipeline modes (6/12/24 phases)
 - **Memory System**: Persisted precedents and knowledge base
 - **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
 - **Real-time Streaming**: Live token streaming for responsive sessions
@@ -604,12 +604,20 @@ Dynamic task decomposition with parallel execution.
 
 #### 6. `council_swarm_coding`
 
-Software development workflow with code generation.
+Software development workflow with code generation. **Configurable pipeline modes**:
+
+**Pipeline Modes:**
+- **quick** (6 phases): Essentials only - Requirements → Tech Stack → Design → Core Dev → Basic Tests → Docs
+- **standard** (12 phases): Balanced workflow - Requirements → Planning → Core Dev → Testing → Documentation
+- **comprehensive** (24 phases): Full enterprise pipeline - Complete 24-phase development lifecycle
 
 **Example:**
 ```json
 {
-  "topic": "Build a REST API for a task management application with authentication"
+  "topic": "Build a REST API for a task management application with authentication",
+  "settings": {
+    "pipelineMode": "standard"  // "quick" | "standard" | "comprehensive"
+  }
 }
 ```
 
@@ -934,7 +942,7 @@ print(transcript.content[0].text)
 ### Example 8: Enhanced Swarm Coding ⭐
 
 ```python
-# Start a professional-grade development session
+# Start a development session with configurable pipeline mode
 result = client.call_tool('council_swarm_coding', {
     'topic': 'Build a REST API for a task management system',
     'settings': {
@@ -942,24 +950,26 @@ result = client.call_tool('council_swarm_coding', {
             {'id': 'speaker-high-council', 'enabled': True},
             {'id': 'councilor-technocrat', 'enabled': True}
         ],
-        'economyMode': False  # Full 12-phase pipeline
+        'pipelineMode': 'standard'  # "quick" (6), "standard" (12), "comprehensive" (24)
     },
     'context': 'Need authentication, CRUD operations, and PostgreSQL database'
 })
 
-# The system will:
-# 1. Analyze requirements
-# 2. Select tech stack (Python + FastAPI + PostgreSQL)
-# 3. Design system architecture
-# 4. Create task breakdown
-# 5. Generate code files (parallel)
-# 6. Review code quality
-# 7. Generate tests (unit, integration, e2e)
-# 8. Write documentation
-# 9. Create DevOps configs (Docker, CI/CD)
-# 10. Validate integration
-# 11. Perform QA check
-# 12. Present final solution
+# Standard mode (12 phases) includes:
+# 1. Requirements Analysis
+# 2. Tech Stack Selection
+# 3. System Design
+# 4. Security Analysis
+# 5. Task Breakdown
+# 6-8. Backend Development (Core/API/Database)
+# 9-10. Testing (Unit/Integration)
+# 11. Documentation
+# 12. Final Review
+
+# Comprehensive mode (24 phases) adds:
+# - Frontend Development, UI Design, Integration
+# - E2E Testing, Security Testing, Performance Optimization
+# - Docker, CI/CD Pipeline, Monitoring Setup, Code Review
 
 # Get the complete transcript
 transcript = client.call_tool('council_get_transcript', {
