@@ -1189,6 +1189,55 @@ Several features help control API costs:
 - Speaker issues final prediction
 - **Output**: Prediction with confidence %
 
+### 8. ARBITRATION ⭐ NEW
+**Flow**: Issue Presentation → Party Arguments → Evidence Review → Arbitration Decision
+- Neutral councilors hear opposing viewpoints
+- Fact-finding and evidence evaluation
+- Impartial decision based on merits
+- **Output**: Binding arbitration decision
+
+### 9. NEGOTIATION ⭐ NEW
+**Flow**: Opening Positions → Counter-Offers → Compromise Exploration → Agreement
+- Multi-party bargaining sessions
+- Identify common ground and trade-offs
+- Facilitate mutually acceptable solutions
+- **Output**: Negotiated agreement with terms
+
+### 10. BRAINSTORMING ⭐ NEW
+**Flow**: Topic Introduction → Idea Generation → Grouping → Voting → Selection
+- Creative ideation sessions
+- Generate diverse solutions rapidly
+- Collaborative filtering and voting
+- **Output**: Ranked list of ideas with consensus
+
+### 11. PEER REVIEW ⭐ NEW
+**Flow**: Submission → Review Assignment → Expert Evaluation → Revision → Approval
+- Academic/scientific review process
+- Anonymous peer evaluation
+- Quality assessment and feedback
+- **Output**: Peer-reviewed assessment
+
+### 12. STRATEGIC PLANNING ⭐ NEW
+**Flow**: Situation Analysis → Goal Setting → Strategy Development → Roadmap Creation
+- Long-term strategic planning
+- SWOT analysis and scenario planning
+- Resource allocation and prioritization
+- **Output**: Strategic plan with roadmap
+
+### 13. DESIGN REVIEW ⭐ NEW
+**Flow**: Design Presentation → Expert Review → Critique → Recommendations → Approval
+- UX/UI design evaluation
+- Usability and accessibility review
+- Best practices assessment
+- **Output**: Design recommendations
+
+### 14. RISK ASSESSMENT ⭐ NEW
+**Flow**: Threat Identification → Impact Analysis → Likelihood Assessment → Mitigation
+- Comprehensive risk analysis
+- Security and vulnerability assessment
+- Mitigation strategy development
+- **Output**: Risk register with mitigation plans
+
 ## Troubleshooting
 
 ### API Key Issues
@@ -1512,7 +1561,7 @@ The codebase is organized into clear modules:
 - **WebSocket Service**: Real-time session updates and live streaming
 - **Vector Database Service**: In-memory vector database with semantic search and clustering
 - **Live Code Execution Service**: Secure sandbox with security scanning and auto-testing
-- **Enhanced Swarm Coding**: Expanded to 24-phase professional development pipeline
+- **Enhanced Swarm Coding**: Configurable pipeline (6/12/24 phases) - default 12 phases
 - **7 New Session Modes**: Arbitration, Negotiation, Brainstorming, Peer Review, Strategic Planning, Design Review, Risk Assessment
 - **Deployment Automation Service**: Multi-cloud deployment (Docker, Kubernetes, AWS, Heroku)
 - **Conversation Intelligence Service**: Sentiment analysis, entity extraction, conflict detection
@@ -1567,6 +1616,14 @@ The codebase is organized into clear modules:
 - Enhanced type safety with comprehensive interfaces
 - Service integration with existing MCP protocol
 - Backward compatible with all existing features
+
+#### ⚙️ Pipeline Mode Improvements (v3.0.1)
+- **Enhanced Swarm Coding**: Now configurable with 3 pipeline modes
+  - **quick** (6 phases): Essentials only
+  - **standard** (12 phases): Balanced workflow (default)
+  - **comprehensive** (24 phases): Full enterprise pipeline
+- Better cost control and faster execution for typical use cases
+- Configurable via `settings.pipelineMode` parameter
 
 ### Version 2.0.0
 
@@ -1641,6 +1698,6 @@ MIT License
 **Version**: 3.0.0
 **Last Updated**: December 2025
 **MCP Tools**: 33+ tools (20+ new tools in v3.0)
-**Session Modes**: 7 modes
+**Session Modes**: 14 modes (7 new in v3.0)
 **Councilors**: 20+ personas
-**AI Services**: 16 new services (v3.0)
+**AI Services**: 23 new services (v3.0)
