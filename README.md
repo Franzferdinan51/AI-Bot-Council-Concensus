@@ -94,11 +94,12 @@ start.bat
 
 ### Core Features
 
-- **14 Session Modes**: Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction, Arbitration, Negotiation, Brainstorming, Peer Review, Strategic Planning, Design Review, Risk Assessment
+- **15 Session Modes**: Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction, Advisory, Arbitration, Negotiation, Brainstorming, Peer Review, Strategic Planning, Design Review, Risk Assessment
 - **20+ Pre-configured Personas**: Technocrat, Ethicist, Pragmatist, Visionary, Sentinel, Historian, Diplomat, Skeptic, and more
 - **Multi-Provider AI Support**: Google Gemini, OpenRouter, LM Studio, Ollama, Z.ai, Moonshot, Minimax, and OpenAI-compatible APIs
 - **Voting & Consensus System**: Structured voting with weighted voting and consensus scores
 - **Prediction Mode**: Superforecasting with probabilistic outcomes
+- **Advisory Mode**: Strategic guidance and best practices consultation across 6 domains
 - **Swarm Coding**: Software development workflow with configurable pipeline modes (6/12/24 phases)
 - **Memory System**: Persisted precedents and knowledge base
 - **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
@@ -106,9 +107,9 @@ start.bat
 
 ### Available MCP Tools
 
-This server provides **13+ MCP tools** organized in three categories:
+This server provides **14+ MCP tools** organized in three categories:
 
-#### 1. Council Session Tools (8 tools)
+#### 1. Council Session Tools (9 tools)
 - `council_proposal` - Legislative proposal with voting
 - `council_deliberation` - Open roundtable discussion
 - `council_inquiry` - Direct Q&A format
@@ -116,6 +117,7 @@ This server provides **13+ MCP tools** organized in three categories:
 - `council_swarm` - Parallel task execution
 - `council_swarm_coding` - **Enhanced 12-phase professional development pipeline** ⭐
 - `council_prediction` - Superforecasting with probabilities
+- `council_advisory` - Strategic guidance and best practices consultation ⭐
 - `council_auto` - Smart mode selection (meta-tool)
 
 #### 2. Session Management Tools (6 tools)
@@ -1189,7 +1191,16 @@ Several features help control API costs:
 - Speaker issues final prediction
 - **Output**: Prediction with confidence %
 
-### 8. ARBITRATION ⭐ NEW
+### 8. ADVISORY ⭐ NEW
+**Flow**: Issue Presentation → Expert Analysis → Recommendation Development → Advisory Report
+- Strategic guidance and best practices consultation
+- Domain expertise across technical, business, strategy, leadership, innovation, and ethics
+- Structured advisory reports with actionable recommendations
+- Risk assessment and mitigation strategies
+- Action plans with timelines and priorities
+- **Output**: Comprehensive advisory report with recommendations
+
+### 9. ARBITRATION ⭐ NEW
 **Flow**: Issue Presentation → Party Arguments → Evidence Review → Arbitration Decision
 - Neutral councilors hear opposing viewpoints
 - Fact-finding and evidence evaluation
