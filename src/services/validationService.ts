@@ -274,7 +274,7 @@ export class ValidationService {
     const rules: ValidationRule[] = [
       {
         field: 'topic',
-        required: true,
+        required: false,
         type: 'string',
         minLength: 3,
         maxLength: 5000,
@@ -533,6 +533,35 @@ export class ValidationService {
           if (!Number.isInteger(value)) return 'Limit must be an integer';
           return true;
         }
+      }
+    ];
+    return this.validate(input, rules);
+  }
+
+  /**
+   * Validate diagnostics input
+   */
+  static validateDiagnosticsInput(input: any): ValidationResult {
+    const rules: ValidationRule[] = [
+      {
+        field: 'verbose',
+        type: 'boolean'
+      },
+      {
+        field: 'preset',
+        type: 'string',
+        custom: (value) => {
+          if (value === undefined || value === null) return true;
+          const validPresets = ['quick', 'full', 'connectivity', 'config'];
+          if (!validPresets.includes(value)) {
+            return `Preset must be one of: ${validPresets.join(', ')}`;
+          }
+          return true;
+        }
+      },
+      {
+        field: 'includeTests',
+        type: 'boolean'
       }
     ];
 

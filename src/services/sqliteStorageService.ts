@@ -73,7 +73,7 @@ export class SQLiteStorageService {
                 createdAt: session.createdAt,
                 updatedAt: session.updatedAt,
                 settings: JSON.stringify(session.settings),
-                context: (session as any).context || null // Assuming context might be added to type later or handled elsewhere
+                context: typeof (session as any).context === 'object' ? JSON.stringify((session as any).context) : ((session as any).context || null)
             });
 
             // Save Messages (Optimized: only new or updated ones ideally, but REPLACE handles it)

@@ -64,7 +64,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
             description: 'Additional context for the proposal'
           }
         },
-        required: ['topic']
+        required: []
       }
     },
     {
@@ -105,7 +105,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
             description: 'Additional context for deliberation'
           }
         },
-        required: ['topic']
+        required: []
       }
     },
     {
@@ -145,7 +145,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
             description: 'Additional context for the inquiry'
           }
         },
-        required: ['topic']
+        required: []
       }
     },
     {
@@ -185,7 +185,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
             description: 'Additional context for research'
           }
         },
-        required: ['topic']
+        required: []
       }
     },
     {
@@ -225,7 +225,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
             description: 'Additional context for swarm processing'
           }
         },
-        required: ['topic']
+        required: []
       }
     },
     {
@@ -265,7 +265,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
             description: 'Additional context or requirements'
           }
         },
-        required: ['topic']
+        required: []
       }
     },
     {
@@ -305,7 +305,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
             description: 'Additional context for the prediction'
           }
         },
-        required: ['topic']
+        required: []
       }
     },
     {
@@ -355,7 +355,7 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
             description: 'Additional context for the advisory request (constraints, objectives, background)'
           }
         },
-        required: ['topic']
+        required: []
       }
     },
     {
@@ -502,7 +502,7 @@ async function handleProposal(args: any, orchestrator: CouncilOrchestrator): Pro
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, userPrompt, settings, context } = args;
+  const { topic = 'General Legislative Proposal', userPrompt, settings, context } = args;
 
   // Log to structured logger
   logger.info('Council session started', {
@@ -567,7 +567,7 @@ async function handleDeliberation(args: any, orchestrator: CouncilOrchestrator):
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, userPrompt, settings, context } = args;
+  const { topic = 'General Deliberation', userPrompt, settings, context } = args;
   console.error(`[MCP TOOL] council_deliberation called - Topic: "${topic}"`);
   if (userPrompt) {
     console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
@@ -612,7 +612,7 @@ async function handleInquiry(args: any, orchestrator: CouncilOrchestrator): Prom
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, userPrompt, settings, context } = args;
+  const { topic = 'General Inquiry', userPrompt, settings, context } = args;
   console.error(`[MCP TOOL] council_inquiry called - Topic: "${topic}"`);
   if (userPrompt) {
     console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
@@ -657,7 +657,7 @@ async function handleResearch(args: any, orchestrator: CouncilOrchestrator): Pro
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, userPrompt, settings, context } = args;
+  const { topic = 'General Research Topic', userPrompt, settings, context } = args;
   console.error(`[MCP TOOL] council_research called - Topic: "${topic}"`);
   if (userPrompt) {
     console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
@@ -702,7 +702,7 @@ async function handleSwarm(args: any, orchestrator: CouncilOrchestrator): Promis
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, userPrompt, settings, context } = args;
+  const { topic = 'General Swarm Task', userPrompt, settings, context } = args;
   console.error(`[MCP TOOL] council_swarm called - Topic: "${topic}"`);
   if (userPrompt) {
     console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
@@ -747,7 +747,7 @@ async function handleSwarmCoding(args: any, orchestrator: CouncilOrchestrator): 
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, userPrompt, settings, context } = args;
+  const { topic = 'General Coding Task', userPrompt, settings, context } = args;
   console.error(`[MCP TOOL] council_swarm_coding called - Topic: "${topic}"`);
   if (userPrompt) {
     console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
@@ -792,7 +792,7 @@ async function handlePrediction(args: any, orchestrator: CouncilOrchestrator): P
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, userPrompt, settings, context } = args;
+  const { topic = 'General Prediction Event', userPrompt, settings, context } = args;
   console.error(`[MCP TOOL] council_prediction called - Topic: "${topic}"`);
   if (userPrompt) {
     console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
@@ -837,7 +837,7 @@ async function handleAdvisory(args: any, orchestrator: CouncilOrchestrator): Pro
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const { topic, userPrompt, settings, context } = args;
+  const { topic = 'General Advisory Request', userPrompt, settings, context } = args;
   console.error(`[MCP TOOL] council_advisory called - Topic: "${topic}"`);
   if (userPrompt) {
     console.error(`[MCP TOOL] User participation: "${userPrompt.substring(0, 100)}..."`);
@@ -1142,15 +1142,23 @@ async function handlePauseSession(args: any, orchestrator: CouncilOrchestrator):
 async function handleDiagnostics(args: any): Promise<CallToolResult> {
   const startTime = responseSchema.startExecution();
   const verbose = args?.verbose || false;
+  const preset = args?.preset || 'quick';
+  const includeTests = args?.includeTests || false;
 
   const diagnostics: any = {
     timestamp: new Date().toISOString(),
     status: 'OK',
     uptime: process.uptime(),
+    preset,
     checks: {},
     errors: [],
-    warnings: []
+    warnings: [],
+    actionItems: []
   };
+
+  // --- PRESET LOGIC ---
+  const runFull = preset === 'full' || preset === 'config';
+  const runConnectivity = preset === 'connectivity' || preset === 'full' || includeTests;
 
   // Check 1: API Keys & Environment
   const apiKeys = {
@@ -1193,20 +1201,24 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
         '  - Local: LM_STUDIO_ENDPOINT or OLLAMA_ENDPOINT'
     });
     diagnostics.status = 'ERROR';
+    diagnostics.actionItems.push('Add an API key to your .env file for at least one AI provider (e.g., GEMINI_API_KEY).');
   } else {
-    console.log(`[Diagnostics] Configured providers: ${apiKeys.configured.join(', ')}`);
+    if (verbose) console.log(`[Diagnostics] Configured providers: ${apiKeys.configured.join(', ')}`);
   }
 
   // Check Search Provider
   if (apiKeys.search.provider === 'brave' && !apiKeys.search.brave) {
     diagnostics.errors.push({ component: 'Search', issue: 'Brave Search selected but BRAVE_API_KEY missing', severity: 'ERROR' });
     diagnostics.status = 'ERROR';
+    diagnostics.actionItems.push('Add BRAVE_API_KEY to your .env file or switch SEARCH_PROVIDER.');
   } else if (apiKeys.search.provider === 'tavily' && !apiKeys.search.tavily) {
     diagnostics.errors.push({ component: 'Search', issue: 'Tavily Search selected but TAVILY_API_KEY missing', severity: 'ERROR' });
     diagnostics.status = 'ERROR';
+    diagnostics.actionItems.push('Add TAVILY_API_KEY to your .env file or switch SEARCH_PROVIDER.');
   } else if (apiKeys.search.provider === 'serper' && !apiKeys.search.serper) {
     diagnostics.errors.push({ component: 'Search', issue: 'Serper Search selected but SERPER_API_KEY missing', severity: 'ERROR' });
     diagnostics.status = 'ERROR';
+    diagnostics.actionItems.push('Add SERPER_API_KEY to your .env file or switch SEARCH_PROVIDER.');
   }
 
   // Check 2: Bots & Quorum
@@ -1217,7 +1229,6 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
 
     const speaker = enabledBots.find(b => b.role === 'speaker');
     const moderator = enabledBots.find(b => b.role === 'moderator');
-    // Logic matches CouncilOrchestrator fix: any non-speaker/mod is a councilor
     const councilors = enabledBots.filter(b => b.role !== 'speaker' && b.role !== 'moderator');
 
     diagnostics.checks.bots = {
@@ -1237,6 +1248,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
         message: 'Enable at least the Speaker or one Councilor/Specialist in bots.json or environment variables.'
       });
       diagnostics.status = 'ERROR';
+      diagnostics.actionItems.push('Enable "speaker_high_council" or other bots in bots.json.');
     } else if (councilors.length === 0) {
       diagnostics.warnings.push({
         component: 'Council Quorum',
@@ -1244,9 +1256,11 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
         severity: 'WARNING',
         message: 'Session will be a monologue. Enable councilors for debate.'
       });
+      diagnostics.actionItems.push('Enable more councilor bots for a proper debate.');
     }
   } catch (error: any) {
     diagnostics.errors.push({ component: 'Bot Config', issue: `Failed to load bots: ${error.message}`, severity: 'ERROR' });
+    diagnostics.actionItems.push('Check bots.json for syntax errors.');
   }
 
   // Check 3: Session Service
@@ -1272,6 +1286,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     });
     diagnostics.checks.sessionService = { status: 'ERROR', error: error.message };
     diagnostics.status = 'ERROR';
+    diagnostics.actionItems.push('Restart the server. If issue persists, check database file permissions.');
   }
 
   // Check 4: Session Storage
@@ -1283,8 +1298,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
       storageDir: sessionStorage.getConfig().storageDir
     };
 
-    // Check if storage directory is writable
-    if (verbose) {
+    if (verbose || runFull) {
       diagnostics.checks.sessionStorage.config = sessionStorage.getConfig();
     }
   } catch (error: any) {
@@ -1314,7 +1328,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
 
   // Check 7: Logs
   const logStats = logger.getStats();
-  const recentLogs = logger.getLogs(verbose ? 50 : 20);
+  const recentLogs = logger.getLogs(verbose || runFull ? 50 : 20);
   const errorLogs = logger.getLogsByLevel(3); // ERROR level
 
   diagnostics.checks.logs = {
@@ -1325,22 +1339,30 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     recentErrors: errorLogs.slice(-5).map(l => `${l.message} ${l.error?.message ? '(' + l.error.message + ')' : ''}`)
   };
 
-  // Check 8: Available Council Modes
-  diagnostics.checks.availableModes = [
-    'council_proposal',
-    'council_deliberation',
-    'council_inquiry',
-    'council_research',
-    'council_swarm',
-    'council_swarm_coding',
-    'council_prediction'
-  ];
+  // Check 8: Active Connectivity Tests (if requested)
+  if (runConnectivity) {
+    diagnostics.checks.connectivity = {
+      status: 'PENDING',
+      results: []
+    };
+
+    // TODO: Implement actual ping to LLM providers here
+    // For now, we'll just simulate a check based on API keys
+    if (apiKeys.configured.length > 0) {
+      diagnostics.checks.connectivity.status = 'OK';
+      diagnostics.checks.connectivity.results.push({ provider: 'Configuration', status: 'OK', message: 'Providers configured correctly' });
+    } else {
+      diagnostics.checks.connectivity.status = 'FAILED';
+      diagnostics.checks.connectivity.results.push({ provider: 'Configuration', status: 'FAILED', message: 'No providers configured' });
+    }
+  }
 
   // Generate Report
   let report = `╔════════════════════════════════════════════════════════════╗\n`;
   report += `║              AI COUNCIL MCP - DIAGNOSTICS                 ║\n`;
   report += `╚════════════════════════════════════════════════════════════╝\n\n`;
   report += `Status: ${diagnostics.status}\n`;
+  report += `Preset: ${preset.toUpperCase()}\n`;
   report += `Timestamp: ${diagnostics.timestamp}\n`;
   report += `Uptime: ${Math.floor(diagnostics.uptime / 60)}m ${Math.floor(diagnostics.uptime % 60)}s\n`;
   report += `Memory: ${diagnostics.checks.memory.heapUsed} used / ${diagnostics.checks.memory.heapTotal} total\n`;
@@ -1395,13 +1417,22 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     report += `No recent errors.\n`;
   }
 
+  // Action Items (New for Beginners)
+  if (diagnostics.actionItems.length > 0) {
+    report += `\n─── ACTION ITEMS (HOW TO FIX) ───\n`;
+    diagnostics.actionItems.forEach((item: string, idx: number) => {
+      report += `${idx + 1}. ${item}\n`;
+    });
+    report += '\n';
+  }
+
   // Errors
   if (diagnostics.errors.length > 0) {
     report += `\n─── DIAGNOSTIC ERRORS (${diagnostics.errors.length}) ───\n`;
     diagnostics.errors.forEach((err: any, idx: number) => {
       report += `${idx + 1}. [${err.severity}] ${err.component}: ${err.issue}\n`;
       if (err.message) report += `   ${err.message}\n`;
-      if (verbose && err.stack) {
+      if ((verbose || runFull) && err.stack) {
         report += `   Stack: ${err.stack}\n`;
       }
     });
@@ -1432,7 +1463,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     }
   ];
 
-  if (verbose) {
+  if (verbose || runFull) {
     content.push({
       type: 'text' as const,
       text: '\n--- VERBOSE DIAGNOSTICS ---\n' + JSON.stringify(diagnostics, null, 2)

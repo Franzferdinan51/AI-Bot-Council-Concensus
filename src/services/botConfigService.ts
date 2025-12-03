@@ -5,6 +5,8 @@
 
 import { BotConfig } from '../types/index.js';
 import { DEFAULT_BOTS } from '../types/constants.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 export interface BotModelConfig {
   [botId: string]: {
