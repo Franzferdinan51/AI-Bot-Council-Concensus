@@ -35,7 +35,13 @@
   - **Dual Mode Support**:
     - Integrated HTTP Server into main process (`index.ts`).
     - **All startup modes** (Quick Start, Dev Mode, etc.) now support the Web UI and n8n integration simultaneously with standard MCP operation.
+    - Integrated HTTP Server into main process (`index.ts`).
+    - **All startup modes** (Quick Start, Dev Mode, etc.) now support the Web UI and n8n integration simultaneously with standard MCP operation.
     - Updated `start.bat` to ensure `HTTP_PORT` is set globally.
+
+  - **Configuration Saving**:
+    - Implemented `POST /api/config` endpoint to persist provider settings to `.env` file.
+    - Web UI configuration changes are now saved and applied immediately.
 
 ### Fixed
 

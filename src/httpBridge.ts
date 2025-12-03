@@ -98,6 +98,36 @@ export async function startHttpServer(
           res.end(JSON.stringify(currentSettings));
           return;
         }
+
+        if (req.method === 'POST' && pathname === '/api/config') {
+          const body = await readJsonBody(req);
+          const providers = body.providers || {};
+
+          try {
+            // Map frontend keys to env vars
+            const envUpdates: Record<string, string> = {};
+            if (providers.geminiApiKey) envUpdates.GEMINI_API_KEY = providers.geminiApiKey;
+            if (providers.openRouterKey) envUpdates.OPENROUTER_API_KEY = providers.openRouterKey;
+            if (providers.searchProvider) envUpdates.SEARCH_PROVIDER = providers.searchProvider;
+            if (providers.braveApiKey) envUpdates.BRAVE_API_KEY = providers.braveApiKey;
+            if (providers.tavilyApiKey) envUpdates.TAVILY_API_KEY = providers.tavilyApiKey;
+            if (providers.serperApiKey) envUpdates.SERPER_API_KEY = providers.serperApiKey;
+
+            // Update .env file
+            await updateEnvFile(envUpdates);
+
+            // Reload local process.env for immediate effect
+            Object.assign(process.env, envUpdates);
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, message: 'Configuration saved' }));
+          } catch (err: any) {
+            console.error('Failed to save config:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to save configuration' }));
+          }
+          return;
+        }
       }
 
       // Existing Tool Routes
@@ -249,6 +279,43 @@ function readJsonBody(req: http.IncomingMessage): Promise<any> {
     });
     req.on('error', reject);
   });
+}
+
+async function updateEnvFile(updates: Record<string, string>) {
+  const envPath = path.join(process.cwd(), '.env');
+  let content = '';
+
+  if (fs.existsSync(envPath)) {
+    content = fs.readFileSync(envPath, 'utf8');
+  }
+
+  const lines = content.split('\n');
+  const newLines: string[] = [];
+  const updatedKeys = new Set<string>();
+
+  for (const line of lines) {
+    const match = line.match(/^([^=]+)=(.*)$/);
+    if (match) {
+      const key = match[1].trim();
+      if (updates[key] !== undefined) {
+        newLines.push(`${key}=${updates[key]}`);
+        updatedKeys.add(key);
+      } else {
+        newLines.push(line);
+      }
+    } else {
+      newLines.push(line);
+    }
+  }
+
+  // Add new keys
+  for (const [key, value] of Object.entries(updates)) {
+    if (!updatedKeys.has(key)) {
+      newLines.push(`${key}=${value}`);
+    }
+  }
+
+  fs.writeFileSync(envPath, newLines.join('\n'));
 }
 
 bootstrap().catch(err => {
