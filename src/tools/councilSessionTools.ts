@@ -363,7 +363,23 @@ export function createCouncilSessionTools(orchestrator: CouncilOrchestrator): To
       description: 'List all council sessions',
       inputSchema: {
         type: 'object',
-        properties: {},
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['created', 'running', 'completed', 'failed', 'adjourned'],
+            description: 'Filter by session status'
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of sessions to return (default: 20)',
+            default: 20
+          },
+          offset: {
+            type: 'number',
+            description: 'Number of sessions to skip (default: 0)',
+            default: 0
+          }
+        },
         required: []
       }
     },
@@ -876,12 +892,26 @@ async function handleAdvisory(args: any, orchestrator: CouncilOrchestrator): Pro
   };
 }
 
-async function handleListSessions(): Promise<CallToolResult> {
+async function handleListSessions(args?: any): Promise<CallToolResult> {
   const startTime = responseSchema.startExecution();
 
-  const sessions = sessionService.listSessions();
+  let sessions = sessionService.listSessions();
+  const totalCount = sessions.length;
+
+  // Apply status filter
+  if (args?.status) {
+    sessions = sessions.filter(s => s.status === args.status);
+  }
+
+  // Apply pagination
+  const limit = args?.limit || 20;
+  const offset = args?.offset || 0;
+  const paginatedSessions = sessions.slice(offset, offset + limit);
+
+  logger.info('Listed sessions', { count: paginatedSessions.length, total: totalCount, filters: args }, 'CouncilSessionTools');
+
   const result: ListSessionsResult = {
-    sessions: sessions.map(s => ({
+    sessions: paginatedSessions.map(s => ({
       sessionId: s.id,
       topic: s.topic,
       mode: s.mode,
@@ -897,7 +927,10 @@ async function handleListSessions(): Promise<CallToolResult> {
     {
       executionTime: Date.now() - startTime,
       metadata: {
-        totalCount: result.sessions.length
+        totalCount: totalCount,
+        filteredCount: sessions.length,
+        limit,
+        offset
       }
     }
   );

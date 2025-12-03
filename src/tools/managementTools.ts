@@ -1,6 +1,7 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import {
   ListBotsResult,
+  ListBotsInput,
   UpdateBotInput,
   UpdateBotResult,
   AddMemoryInput,
@@ -10,8 +11,10 @@ import {
   AddDocumentInput,
   AddDocumentResult,
   SearchDocumentsInput,
-  SearchDocumentsResult
+  SearchDocumentsResult,
+  BotRole
 } from '../types/index.js';
+import { logger } from '../services/logger.js';
 import { getBotsWithCustomConfigs } from '../types/constants.js';
 import { listMemories, saveMemory, searchMemories } from '../services/knowledgeService.js';
 import { listDocuments, saveDocument, searchDocuments } from '../services/knowledgeService.js';
@@ -29,7 +32,12 @@ export function createManagementTools(): any[] {
       description: 'List all available councilor bots and their configuration',
       inputSchema: {
         type: 'object',
-        properties: {},
+        properties: {
+          role: { type: 'string', description: 'Filter by bot role' },
+          enabled: { type: 'boolean', description: 'Filter by enabled status' },
+          model: { type: 'string', description: 'Filter by model' },
+          sortBy: { type: 'string', enum: ['name', 'role', 'model'], description: 'Sort results by field' }
+        },
         required: []
       }
     },
@@ -95,6 +103,19 @@ export function createManagementTools(): any[] {
             type: 'number',
             description: 'Maximum number of results (default: 10)',
             default: 10
+          },
+          tags: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Filter by tags'
+          },
+          dateRange: {
+            type: 'object',
+            properties: {
+              start: { type: 'string' },
+              end: { type: 'string' }
+            },
+            description: 'Filter by date range'
           }
         },
         required: ['query']
@@ -607,7 +628,7 @@ export async function handleManagementToolCall(
   try {
     switch (toolName) {
       case 'council_list_bots':
-        return await handleListBots();
+        return await handleListBots(arguments_);
       case 'council_update_bot':
         return await handleUpdateBot(arguments_);
       case 'council_add_memory':
@@ -679,12 +700,37 @@ export async function handleManagementToolCall(
   }
 }
 
-async function handleListBots(): Promise<CallToolResult> {
-  const configuredBots = getBotsWithCustomConfigs();
+async function handleListBots(args?: ListBotsInput): Promise<CallToolResult> {
+  let configuredBots = getBotsWithCustomConfigs();
+
+  // Apply filters
+  if (args) {
+    if (args.role) {
+      configuredBots = configuredBots.filter(b => b.role === args.role);
+    }
+    if (args.enabled !== undefined) {
+      configuredBots = configuredBots.filter(b => b.enabled === args.enabled);
+    }
+    if (args.model) {
+      configuredBots = configuredBots.filter(b => b.model.includes(args.model!));
+    }
+
+    // Apply sorting
+    if (args.sortBy) {
+      configuredBots.sort((a, b) => {
+        const valA = String(a[args.sortBy!] || '');
+        const valB = String(b[args.sortBy!] || '');
+        return valA.localeCompare(valB);
+      });
+    }
+  }
+
   const result: ListBotsResult = {
     bots: configuredBots,
     message: `Found ${configuredBots.length} configured bots`
   };
+
+  logger.info('Listed bots', { count: configuredBots.length, filters: args }, 'ManagementTools');
 
   return {
     content: [
@@ -743,15 +789,34 @@ async function handleAddMemory(args: AddMemoryInput): Promise<CallToolResult> {
     return ValidationService.createErrorResponse(validation.errors);
   }
 
+  // Duplicate detection
+  const existing = await searchMemories(args.content, 1);
+  if (existing.length > 0 && existing[0].content === args.content) {
+    logger.warn('Duplicate memory detected', { topic: args.topic }, 'ManagementTools');
+    return {
+      content: [{ type: 'text', text: `Warning: Duplicate memory detected (ID: ${existing[0].id})` }],
+      isError: true
+    };
+  }
+
+  // Auto-tagging if no tags provided
+  const tags = args.tags || [];
+  if (tags.length === 0) {
+    if (args.content.toLowerCase().includes('error')) tags.push('error');
+    if (args.content.toLowerCase().includes('fix')) tags.push('fix');
+    if (args.content.toLowerCase().includes('decision')) tags.push('decision');
+  }
+
   const memory = {
     id: `mem-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     topic: args.topic,
     content: args.content,
     date: new Date().toISOString(),
-    tags: args.tags || []
+    tags: tags
   };
 
   await saveMemory(memory);
+  logger.info('Added memory', { id: memory.id, topic: memory.topic }, 'ManagementTools');
 
   const result: AddMemoryResult = {
     success: true,
@@ -776,7 +841,23 @@ async function handleSearchMemories(args: SearchMemoryInput): Promise<CallToolRe
     return ValidationService.createErrorResponse(validation.errors);
   }
 
-  const memories = await searchMemories(args.query, args.limit);
+  let memories = await searchMemories(args.query, args.limit);
+
+  // Apply post-search filters
+  if (args.tags && args.tags.length > 0) {
+    memories = memories.filter(m => args.tags!.every(t => m.tags.includes(t)));
+  }
+
+  if (args.dateRange) {
+    const start = args.dateRange.start ? new Date(args.dateRange.start).getTime() : 0;
+    const end = args.dateRange.end ? new Date(args.dateRange.end).getTime() : Infinity;
+    memories = memories.filter(m => {
+      const date = new Date(m.date).getTime();
+      return date >= start && date <= end;
+    });
+  }
+
+  logger.info('Searched memories', { query: args.query, results: memories.length }, 'ManagementTools');
 
   const result: SearchMemoryResult = {
     memories,

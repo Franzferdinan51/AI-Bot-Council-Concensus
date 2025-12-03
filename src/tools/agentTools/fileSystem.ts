@@ -14,15 +14,22 @@ export const fileSystemTool: AgentTool = {
     schema: z.object({
         operation: z.enum(['read', 'write', 'list']).describe('The operation to perform'),
         path: z.string().describe('The file path relative to workspace (e.g., "code.py")').optional(),
-        content: z.string().describe('The content to write (required for write operation)').optional()
+        content: z.string().describe('The content to write (required for write operation)').optional(),
+        lineStart: z.number().describe('Start line for partial read (1-indexed)').optional(),
+        lineEnd: z.number().describe('End line for partial read (1-indexed)').optional()
     }),
     execute: async (args: any) => {
-        const { operation, path: filePath, content } = args;
+        const { operation, path: filePath, content, lineStart, lineEnd } = args;
 
         try {
             if (operation === 'list') {
                 const files = await fs.readdir(SANDBOX_DIR);
-                return `Files in workspace:\n${files.join('\n')}`;
+                const fileDetails = await Promise.all(files.map(async (file) => {
+                    const stats = await fs.stat(path.join(SANDBOX_DIR, file));
+                    return `${file} (${stats.isDirectory() ? 'DIR' : 'FILE'}, ${stats.size} bytes, ${stats.mtime.toISOString()})`;
+                }));
+                console.error(`[FileSystem] Listed ${files.length} files`);
+                return `Files in workspace:\n${fileDetails.join('\n')}`;
             }
 
             if (!filePath) {
@@ -39,6 +46,17 @@ export const fileSystemTool: AgentTool = {
 
             if (operation === 'read') {
                 const data = await fs.readFile(fullPath, 'utf-8');
+
+                if (lineStart !== undefined || lineEnd !== undefined) {
+                    const lines = data.split('\n');
+                    const start = (lineStart || 1) - 1;
+                    const end = lineEnd || lines.length;
+                    const partial = lines.slice(start, end).join('\n');
+                    console.error(`[FileSystem] Read partial file: ${safePath} (lines ${start + 1}-${end})`);
+                    return partial;
+                }
+
+                console.error(`[FileSystem] Read file: ${safePath}`);
                 return data;
             }
 
@@ -46,7 +64,19 @@ export const fileSystemTool: AgentTool = {
                 if (content === undefined) {
                     throw new Error('Content is required for write operation');
                 }
+
+                // Create backup if file exists
+                try {
+                    await fs.access(fullPath);
+                    const backupPath = `${fullPath}.bak`;
+                    await fs.copyFile(fullPath, backupPath);
+                    console.error(`[FileSystem] Created backup: ${safePath}.bak`);
+                } catch (e) {
+                    // File doesn't exist, no backup needed
+                }
+
                 await fs.writeFile(fullPath, content, 'utf-8');
+                console.error(`[FileSystem] Wrote to file: ${safePath}`);
                 return `Successfully wrote to ${safePath}`;
             }
 

@@ -499,6 +499,13 @@ export interface SearchMemoryInput {
   query: string;
   /** Maximum results (optional) */
   limit?: number;
+  /** Filter by tags (optional) */
+  tags?: string[];
+  /** Filter by date range (optional) */
+  dateRange?: {
+    start?: string;
+    end?: string;
+  };
 }
 
 /**
@@ -553,6 +560,20 @@ export interface SearchDocumentsResult {
   snippets: string[];
   /** Result message */
   message: string;
+}
+
+/**
+ * Input for listing bots
+ */
+export interface ListBotsInput {
+  /** Filter by role */
+  role?: BotRole;
+  /** Filter by enabled status */
+  enabled?: boolean;
+  /** Filter by model */
+  model?: string;
+  /** Sort by field */
+  sortBy?: 'name' | 'role' | 'model';
 }
 
 /**

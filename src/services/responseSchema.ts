@@ -25,6 +25,7 @@ export interface UnifiedResponse {
     nays?: number;
     confidence?: number;
     codeFileCount?: number;
+    filteredCount?: number;
   };
   errors?: ValidationError[];
   warnings?: string[];
@@ -60,7 +61,7 @@ export interface WarningResponse<T = any> extends UnifiedResponse {
 export class ResponseSchemaService {
   private static instance: ResponseSchemaService;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): ResponseSchemaService {
     if (!ResponseSchemaService.instance) {
@@ -253,6 +254,7 @@ export class ResponseSchemaService {
         totalCount?: number;
         limit?: number;
         offset?: number;
+        filteredCount?: number;
       };
       executionTime?: number;
     } = {}

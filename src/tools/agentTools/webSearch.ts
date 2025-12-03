@@ -2,15 +2,32 @@ import { z } from 'zod';
 import { AgentTool } from './base.js';
 import { search, SafeSearchType } from 'duck-duck-scrape';
 
+// Simple in-memory cache
+const searchCache = new Map<string, { result: string, timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export const webSearchTool: AgentTool = {
     name: 'web_search',
     description: 'Search the web for information. Use this to find current events, documentation, or facts.',
     schema: z.object({
-        query: z.string().describe('The search query')
+        query: z.string().describe('The search query'),
+        fetchContent: z.boolean().describe('Fetch content of top result').optional()
     }),
     execute: async (args: any) => {
-        const { query } = args;
+        const { query, fetchContent } = args;
         const provider = (process.env.SEARCH_PROVIDER || 'duckduckgo').toLowerCase();
+
+        // Check cache
+        const cacheKey = `${provider}:${query}`;
+        const cached = searchCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+            console.error(`[WebSearch] Cache hit for "${query}"`);
+            return cached.result;
+        }
+
+        console.error(`[WebSearch] Searching for "${query}" via ${provider}`);
+
+        let finalResult = '';
 
         try {
             const tavilyKey = process.env.TAVILY_API_KEY;
@@ -34,11 +51,11 @@ export const webSearchTool: AgentTool = {
 
                 const data = await response.json() as any;
                 const snippets = data.web?.results?.slice(0, 5).map((r: any) => `- ${r.title}: ${r.url}\n  ${r.description}`).join('\n\n') || "No results.";
-                return `Brave Search Results for "${query}":\n\n${snippets}`;
+                finalResult = `Brave Search Results for "${query}":\n\n${snippets}`;
             }
 
             // Tavily
-            if (provider === 'tavily') {
+            else if (provider === 'tavily') {
                 if (!tavilyKey) throw new Error("TAVILY_API_KEY is not set.");
 
                 const response = await fetch('https://api.tavily.com/search', {
@@ -55,11 +72,11 @@ export const webSearchTool: AgentTool = {
                 if (!response.ok) throw new Error(`Tavily API error: ${response.statusText}`);
 
                 const data = await response.json() as any;
-                return `Tavily Search Results for "${query}":\n\n${data.answer || ''}\n\nSources:\n${data.results.map((r: any) => `- ${r.title}: ${r.url}`).join('\n')}`;
+                finalResult = `Tavily Search Results for "${query}":\n\n${data.answer || ''}\n\nSources:\n${data.results.map((r: any) => `- ${r.title}: ${r.url}`).join('\n')}`;
             }
 
             // Serper
-            if (provider === 'serper') {
+            else if (provider === 'serper') {
                 if (!serperKey) throw new Error("SERPER_API_KEY is not set.");
 
                 const response = await fetch('https://google.serper.dev/search', {
@@ -75,22 +92,29 @@ export const webSearchTool: AgentTool = {
 
                 const data = await response.json() as any;
                 const snippets = data.organic.map((r: any) => `- ${r.title}: ${r.snippet}`).join('\n');
-                return `Serper Search Results for "${query}":\n\n${snippets}`;
+                finalResult = `Serper Search Results for "${query}":\n\n${snippets}`;
             }
 
             // Default: DuckDuckGo (via library or fallback)
-            if (provider === 'duckduckgo') {
+            else if (provider === 'duckduckgo') {
                 const results = await search(query, { safeSearch: SafeSearchType.STRICT });
-                if (!results.results.length) return "No results found.";
-
-                return `DuckDuckGo Results for "${query}":\n\n` +
-                    results.results.slice(0, 5).map(r => `- ${r.title}: ${r.url}\n  ${r.description}`).join('\n\n');
+                if (!results.results.length) {
+                    finalResult = "No results found.";
+                } else {
+                    finalResult = `DuckDuckGo Results for "${query}":\n\n` +
+                        results.results.slice(0, 5).map(r => `- ${r.title}: ${r.url}\n  ${r.description}`).join('\n\n');
+                }
+            } else {
+                finalResult = `Error: Unknown search provider '${provider}'. Supported: duckduckgo, brave, tavily, serper.`;
             }
 
-            return `Error: Unknown search provider '${provider}'. Supported: duckduckgo, brave, tavily, serper.`;
+            // Cache the result
+            searchCache.set(cacheKey, { result: finalResult, timestamp: Date.now() });
+            return finalResult;
 
         } catch (error) {
             const err = error as Error;
+            console.error(`[WebSearch] Error: ${err.message}`);
             return `Search Error (${provider}): ${err.message}`;
         }
     }
