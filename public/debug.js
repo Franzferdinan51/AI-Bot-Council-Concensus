@@ -32,8 +32,19 @@ const els = {
         search: document.getElementById('cfg-search'),
         searchKey: document.getElementById('cfg-search-key')
     },
-    sessionsList: document.getElementById('sessions-list')
+    sessionsList: document.getElementById('sessions-list'),
+    // New Elements
+    modeForm: document.getElementById('mode-form'),
+    modeJson: document.getElementById('mode-json'),
+    toolFormContainer: document.getElementById('tool-form-container'),
+    toolHistory: document.getElementById('tool-history'),
+    outTabPreview: document.getElementById('out-tab-preview'),
+    outTabJson: document.getElementById('out-tab-json')
 };
+
+let toolMode = 'form'; // 'form' | 'json'
+let toolHistory = [];
+let lastResult = null;
 
 // Initialize
 async function init() {
@@ -324,7 +335,27 @@ function setupListeners() {
             els.toolDesc.textContent = tool.description;
             const template = generateTemplate(tool.inputSchema);
             els.toolArgs.value = JSON.stringify(template, null, 2);
+            renderToolForm(tool.inputSchema); // Generate form
         }
+    });
+
+    // Mode Toggles
+    els.modeForm.addEventListener('click', () => setToolMode('form'));
+    els.modeJson.addEventListener('click', () => setToolMode('json'));
+
+    // Output Tabs
+    els.outTabPreview.addEventListener('click', () => setOutputTab('preview'));
+    els.outTabJson.addEventListener('click', () => setOutputTab('json'));
+
+    // Sync Form -> JSON
+    els.toolFormContainer.addEventListener('input', (e) => {
+        if (toolMode === 'form') syncFormToJson();
+    });
+
+    // Sync JSON -> Form
+    els.toolArgs.addEventListener('input', () => {
+        // Optional: sync back to form if valid JSON
+        // For now, we only sync Form -> JSON to avoid complexity
     });
 
     els.formatBtn.addEventListener('click', () => {
@@ -362,7 +393,9 @@ function setupListeners() {
             const duration = Date.now() - start;
 
             els.executionTime.textContent = `${duration}ms`;
+            lastResult = result;
             renderOutput(result);
+            addToHistory(toolName, args, result, duration); // Add to history
 
             // Log this run
             addLog({ timestamp: new Date().toISOString(), level: 'TOOL', message: `Executed ${toolName} (${duration}ms)` });
@@ -453,23 +486,18 @@ function generateTemplate(schema) {
 }
 
 function renderOutput(data) {
+    const tab = els.outTabPreview.classList.contains('text-indigo-400') ? 'preview' : 'json';
     els.toolOutput.innerHTML = '';
 
-    // Helper to highlight JSON
-    const highlight = (json) => {
-        return JSON.stringify(json, null, 2)
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-                let cls = 'json-number';
-                if (/^"/.test(match)) {
-                    if (/:$/.test(match)) cls = 'json-key';
-                    else cls = 'json-string';
-                } else if (/true|false/.test(match)) cls = 'json-boolean';
-                else if (/null/.test(match)) cls = 'json-null';
-                return '<span class="' + cls + '">' + match + '</span>';
-            });
-    };
+    if (tab === 'json') {
+        const pre = document.createElement('pre');
+        pre.className = "text-gray-300 whitespace-pre-wrap font-mono text-xs";
+        pre.innerHTML = highlight(data);
+        els.toolOutput.appendChild(pre);
+        return;
+    }
 
+    // Preview Mode
     if (data.content && Array.isArray(data.content)) {
         data.content.forEach(item => {
             if (item.type === 'text') {
@@ -477,14 +505,14 @@ function renderOutput(data) {
                 try {
                     const json = JSON.parse(item.text);
                     const pre = document.createElement('pre');
-                    pre.className = "whitespace-pre-wrap";
+                    pre.className = "whitespace-pre-wrap text-green-400";
                     pre.innerHTML = highlight(json);
                     els.toolOutput.appendChild(pre);
                 } catch (e) {
-                    const pre = document.createElement('pre');
-                    pre.className = "text-gray-300 whitespace-pre-wrap";
-                    pre.textContent = item.text;
-                    els.toolOutput.appendChild(pre);
+                    const div = document.createElement('div');
+                    div.className = "text-gray-300 whitespace-pre-wrap font-sans text-sm leading-relaxed";
+                    div.textContent = item.text;
+                    els.toolOutput.appendChild(div);
                 }
             } else if (item.type === 'image') {
                 const img = document.createElement('img');
@@ -501,6 +529,215 @@ function renderOutput(data) {
         pre.innerHTML = highlight(data);
         els.toolOutput.appendChild(pre);
     }
+}
+
+// --- New Helpers ---
+
+function setToolMode(mode) {
+    toolMode = mode;
+    if (mode === 'form') {
+        els.modeForm.classList.add('bg-indigo-600', 'text-white');
+        els.modeForm.classList.remove('text-gray-400');
+        els.modeJson.classList.remove('bg-indigo-600', 'text-white');
+        els.modeJson.classList.add('text-gray-400');
+        els.toolFormContainer.classList.remove('hidden');
+        els.toolArgs.classList.add('hidden');
+        // Sync JSON -> Form (try to parse)
+        try {
+            const json = JSON.parse(els.toolArgs.value);
+            // TODO: Populate form values from JSON
+        } catch (e) { }
+    } else {
+        els.modeJson.classList.add('bg-indigo-600', 'text-white');
+        els.modeJson.classList.remove('text-gray-400');
+        els.modeForm.classList.remove('bg-indigo-600', 'text-white');
+        els.modeForm.classList.add('text-gray-400');
+        els.toolArgs.classList.remove('hidden');
+        els.toolFormContainer.classList.add('hidden');
+    }
+}
+
+function setOutputTab(tab) {
+    if (tab === 'preview') {
+        els.outTabPreview.classList.add('text-indigo-400', 'border-b-2', 'border-indigo-400');
+        els.outTabPreview.classList.remove('text-gray-500');
+        els.outTabJson.classList.remove('text-indigo-400', 'border-b-2', 'border-indigo-400');
+        els.outTabJson.classList.add('text-gray-500');
+    } else {
+        els.outTabJson.classList.add('text-indigo-400', 'border-b-2', 'border-indigo-400');
+        els.outTabJson.classList.remove('text-gray-500');
+        els.outTabPreview.classList.remove('text-indigo-400', 'border-b-2', 'border-indigo-400');
+        els.outTabPreview.classList.add('text-gray-500');
+    }
+    if (lastResult) renderOutput(lastResult);
+}
+
+function renderToolForm(schema) {
+    els.toolFormContainer.innerHTML = '';
+    if (!schema || !schema.properties) {
+        els.toolFormContainer.innerHTML = '<div class="text-gray-500 text-sm">No arguments required.</div>';
+        return;
+    }
+
+    for (const key in schema.properties) {
+        const prop = schema.properties[key];
+        const required = schema.required && schema.required.includes(key);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = "space-y-1";
+
+        const label = document.createElement('label');
+        label.className = "text-[10px] uppercase font-bold text-gray-400";
+        label.textContent = key + (required ? ' *' : '');
+        wrapper.appendChild(label);
+
+        let input;
+        if (prop.enum) {
+            input = document.createElement('select');
+            input.className = "w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-indigo-500 outline-none form-input";
+            input.dataset.key = key;
+            input.dataset.type = 'string'; // Enums are usually strings
+            prop.enum.forEach(val => {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = val;
+                input.appendChild(opt);
+            });
+            if (prop.default) input.value = prop.default;
+        } else if (prop.type === 'boolean') {
+            input = document.createElement('input');
+            input.type = 'checkbox';
+            input.className = "ml-2 form-input";
+            input.dataset.key = key;
+            input.dataset.type = 'boolean';
+            if (prop.default) input.checked = prop.default;
+            // Wrap for checkbox
+            const checkWrapper = document.createElement('div');
+            checkWrapper.className = "flex items-center";
+            checkWrapper.appendChild(input);
+            wrapper.appendChild(checkWrapper);
+            input = null; // Already appended
+        } else if (prop.type === 'number' || prop.type === 'integer') {
+            input = document.createElement('input');
+            input.type = 'number';
+            input.className = "w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-indigo-500 outline-none form-input";
+            input.dataset.key = key;
+            input.dataset.type = 'number';
+            if (prop.default) input.value = prop.default;
+        } else {
+            // Default to text
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = "w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-indigo-500 outline-none form-input";
+            input.dataset.key = key;
+            input.dataset.type = 'string';
+            if (prop.default) input.value = prop.default;
+        }
+
+        if (input) wrapper.appendChild(input);
+
+        if (prop.description) {
+            const desc = document.createElement('p');
+            desc.className = "text-[10px] text-gray-500";
+            desc.textContent = prop.description;
+            wrapper.appendChild(desc);
+        }
+
+        els.toolFormContainer.appendChild(wrapper);
+    }
+}
+
+function syncFormToJson() {
+    const inputs = els.toolFormContainer.querySelectorAll('.form-input');
+    const args = {};
+    inputs.forEach(input => {
+        const key = input.dataset.key;
+        const type = input.dataset.type;
+
+        if (type === 'boolean') {
+            args[key] = input.checked;
+        } else if (type === 'number') {
+            args[key] = Number(input.value);
+        } else {
+            args[key] = input.value;
+        }
+    });
+    els.toolArgs.value = JSON.stringify(args, null, 2);
+}
+
+function addToHistory(toolName, args, result, duration) {
+    const item = {
+        id: Date.now(),
+        toolName,
+        args,
+        result,
+        duration,
+        timestamp: new Date().toISOString()
+    };
+    toolHistory.unshift(item);
+    if (toolHistory.length > 20) toolHistory.pop();
+    renderHistory();
+}
+
+function renderHistory() {
+    els.toolHistory.innerHTML = '';
+    if (toolHistory.length === 0) {
+        els.toolHistory.innerHTML = '<div class="text-center text-gray-500 text-xs py-4">No recent runs.</div>';
+        return;
+    }
+
+    toolHistory.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "p-3 border-b border-gray-800 hover:bg-gray-800/50 cursor-pointer transition-colors group";
+        div.onclick = () => restoreHistoryItem(item);
+
+        const success = !item.result.error;
+        const color = success ? 'text-green-400' : 'text-red-400';
+
+        div.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-xs text-white">${item.toolName}</span>
+                <span class="text-[10px] font-mono text-gray-500">${new Date(item.timestamp).toLocaleTimeString()}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] ${color}">${success ? 'Success' : 'Error'}</span>
+                <span class="text-[10px] text-gray-600">${item.duration}ms</span>
+            </div>
+        `;
+        els.toolHistory.appendChild(div);
+    });
+}
+
+function restoreHistoryItem(item) {
+    els.toolSelect.value = item.toolName;
+    // Trigger change to load schema but keep args
+    const tool = tools.find(t => t.name === item.toolName);
+    if (tool) {
+        els.toolDesc.textContent = tool.description;
+        renderToolForm(tool.inputSchema);
+    }
+
+    els.toolArgs.value = JSON.stringify(item.args, null, 2);
+    // TODO: Sync JSON -> Form
+
+    lastResult = item.result;
+    renderOutput(item.result);
+    els.executionTime.textContent = `${item.duration}ms (History)`;
+}
+
+// Helper to highlight JSON
+function highlight(json) {
+    return JSON.stringify(json, null, 2)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            let cls = 'json-number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) cls = 'json-key';
+                else cls = 'json-string';
+            } else if (/true|false/.test(match)) cls = 'json-boolean';
+            else if (/null/.test(match)) cls = 'json-null';
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
 }
 
 function showToast(msg, type = 'info') {
