@@ -1,0 +1,430 @@
+/**
+ * Type Utilities and Helper Types
+ * Provides reusable type patterns and utility types
+ */
+
+// ===== CONDITIONAL UTILITIES =====
+
+/**
+ * Extracts the value type from a Promise
+ */
+export type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
+
+/**
+ * Removes readonly modifiers from all properties
+ */
+export type Mutable<T> = {
+  -readonly [K in keyof T]: T[K];
+};
+
+/**
+ * Makes specific properties required while keeping others optional
+ */
+export type PartialExcept<T, K extends keyof T> = Partial<T> & Required<Pick<T, K>>;
+
+/**
+ * Makes specific properties optional while keeping others required
+ */
+export type RequiredExcept<T, K extends keyof T> = Required<Omit<T, K>> & Partial<Pick<T, K>>;
+
+/**
+ * Creates a type with only the specified keys
+ */
+export type PickOnly<T, K extends keyof T> = {
+  [P in K]: T[P];
+};
+
+/**
+ * Creates a type with all keys except the specified ones
+ */
+export type OmitKeys<T, K extends PropertyKey> = {
+  [P in keyof T as P extends K ? never : P]: T[P];
+};
+
+// ===== CONDITIONAL TYPE HELPERS =====
+
+/**
+ * Check if type is never
+ */
+export type IsNever<T> = [T] extends [never] ? true : false;
+
+/**
+ * Check if type is any
+ */
+export type IsAny<T> = 0 extends (1 & T) ? true : false;
+
+/**
+ * Check if type is unknown
+ */
+export type IsUnknown<T> = IsAny<T> extends false
+  ? T extends unknown
+    ? unknown extends T
+      ? true
+      : false
+    : false
+  : false;
+
+// ===== VALUE VALIDATION =====
+
+/**
+ * Creates a type for values from a specific enum
+ */
+export type EnumValue<T extends Record<string, string | number>> = T[keyof T];
+
+/**
+ * Creates a union type from object values
+ */
+export type ValueOf<T> = T[keyof T];
+
+/**
+ * Get keys of an object that have a specific value type
+ */
+export type KeysOfType<T, V> = {
+  [K in keyof T]-?: T[K] extends V ? K : never;
+}[keyof T];
+
+/**
+ * Get keys of an object that do NOT have a specific value type
+ */
+export type KeysNotOfType<T, V> = {
+  [K in keyof T]-?: T[K] extends V ? never : K;
+}[keyof T];
+
+// ===== FUNCTION UTILITIES =====
+
+/**
+ * Function with no arguments
+ */
+export type NoArgs<TReturn = void> = () => TReturn;
+
+/**
+ * Function with single argument
+ */
+export type OneArg<TArg, TReturn = void> = (arg: TArg) => TReturn;
+
+/**
+ * Async function with no arguments
+ */
+export type AsyncNoArgs<TReturn = void> = () => Promise<TReturn>;
+
+/**
+ * Async function with single argument
+ */
+export type AsyncOneArg<TArg, TReturn = void> = (arg: TArg) => Promise<TReturn>;
+
+/**
+ * Variadic function type
+ */
+export type Variadic<TReturn> = (...args: any[]) => TReturn;
+
+/**
+ * Async variadic function type
+ */
+export type AsyncVariadic<TReturn> = (...args: any[]) => Promise<TReturn>;
+
+// ===== PROMISE UTILITIES =====
+
+/**
+ * Promise that can be rejected
+ */
+export type NullablePromise<T> = Promise<T | null>;
+
+/**
+ * Promise that can be undefined
+ */
+export type UndefinablePromise<T> = Promise<T | undefined>;
+
+/**
+ * Optional promise
+ */
+export type OptionalPromise<T> = Promise<T | null | undefined>;
+
+// ===== RECORD UTILITIES =====
+
+/**
+ * Record with string keys and specific value type
+ */
+export type StringKeyedRecord<T> = Record<string, T>;
+
+/**
+ * Record with number keys and specific value type
+ */
+export type NumberKeyedRecord<T> = Record<number, T>;
+
+/**
+ * Record with readonly string keys
+ */
+export type ReadonlyRecord<T> = Readonly<Record<string, T>>;
+
+/**
+ * Deep readonly type
+ */
+export type DeepReadonly<T> = T extends (infer _U)[]
+  ? readonly T
+  : T extends object
+    ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+    : T;
+
+/**
+ * Deep mutable type
+ */
+export type DeepMutable<T> = T extends (infer _U)[]
+  ? Mutable<T>
+  : T extends object
+    ? { [K in keyof T]: DeepMutable<T[K]> }
+    : T;
+
+// ===== ARRAY UTILITIES =====
+
+/**
+ * Non-empty array type
+ */
+export type NonEmptyArray<T> = [T, ...T[]];
+
+/**
+ * Array with at least N elements
+ * Note: This is a simplified version for practical use
+ */
+export type ArrayMinLength<T, N extends number> = N extends 0
+  ? T[]
+  : T[] & { 0: T } & { length: N };
+
+/**
+ * Tuple of exact length
+ */
+export type Tuple<T, N extends number> = N extends N
+  ? number extends N
+    ? T[]
+    : readonly [T, ...T[]] & { length: N }
+  : never;
+
+// ===== STRING UTILITIES =====
+
+/**
+ * String with minimum length
+ */
+export type MinLengthString<N extends number> = string & { readonly minLength: N };
+
+/**
+ * String with maximum length
+ */
+export type MaxLengthString<N extends number> = string & { readonly maxLength: N };
+
+/**
+ * String with exact length
+ */
+export type ExactLengthString<N extends number> = string & { readonly length: N };
+
+// ===== NUMBER UTILITIES =====
+
+/**
+ * Positive number
+ */
+export type PositiveNumber = number & { readonly sign: 'positive' };
+
+/**
+ * Negative number
+ */
+export type NegativeNumber = number & { readonly sign: 'negative' };
+
+/**
+ * Non-negative number
+ */
+export type NonNegativeNumber = number & { readonly sign: 'non-negative' };
+
+/**
+ * Non-positive number
+ */
+export type NonPositiveNumber = number & { readonly sign: 'non-positive' };
+
+/**
+ * Integer
+ */
+export type Integer = number & { readonly integer: true };
+
+/**
+ * Float
+ */
+export type Float = number & { readonly float: true };
+
+// ===== ERROR UTILITIES =====
+
+/**
+ * Base error interface
+ */
+export interface ErrorInfo {
+  name: string;
+  message: string;
+  stack?: string;
+  cause?: Error;
+  context?: Record<string, unknown>;
+}
+
+/**
+ * Error with metadata
+ */
+export interface TypedError<T extends string = string, C = Record<string, unknown>>
+  extends Error {
+  readonly type: T;
+  readonly context: C;
+}
+
+/**
+ * Create a typed error
+ */
+export function createTypedError<T extends string, C extends Record<string, unknown>>(
+  type: T,
+  message: string,
+  context: C
+): TypedError<T, C> {
+  const error = new Error(message) as TypedError<T, C>;
+  error.type = type;
+  error.context = context;
+  return error;
+}
+
+// ===== COMPONENT UTILITIES =====
+
+/**
+ * Result type for operations that can fail
+ */
+export type Result<T, E = Error> =
+  | { readonly success: true; readonly value: T }
+  | { readonly success: false; readonly error: E };
+
+/**
+ * Creates a successful result
+ */
+export function success<T>(value: T): Result<T, never> {
+  return { success: true, value };
+}
+
+/**
+ * Creates a failed result
+ */
+export function failure<E extends Error>(error: E): Result<never, E> {
+  return { success: false, error };
+}
+
+/**
+ * Option type (like Maybe in Haskell)
+ */
+export type Option<T> = Some<T> | None;
+
+export interface Some<T> {
+  readonly kind: 'some';
+  readonly value: T;
+}
+
+export interface None {
+  readonly kind: 'none';
+}
+
+export const some = <T>(value: T): Some<T> => ({ kind: 'some', value });
+export const none: None = { kind: 'none' };
+
+/**
+ * Check if option is Some
+ */
+export function isSome<T>(option: Option<T>): option is Some<T> {
+  return option.kind === 'some';
+}
+
+/**
+ * Check if option is None
+ */
+export function isNone<T>(option: Option<T>): option is None {
+  return option.kind === 'none';
+}
+
+/**
+ * Extract value from Option (throws if None)
+ */
+export function unwrap<T>(option: Option<T>, message = 'Cannot unwrap None'): T {
+  if (isNone(option)) {
+    throw new Error(message);
+  }
+  return option.value;
+}
+
+/**
+ * Extract value from Option with default
+ */
+export function unwrapOr<T>(option: Option<T>, defaultValue: T): T {
+  return isSome(option) ? option.value : defaultValue;
+}
+
+// ===== CONFIGURATION UTILITIES =====
+
+/**
+ * Provider configuration
+ */
+export interface ProviderConfig {
+  readonly endpoint?: string;
+  readonly apiKey?: string;
+  readonly timeoutMs?: number;
+  readonly maxRetries?: number;
+}
+
+/**
+ * API response wrapper
+ */
+export interface ApiResponse<T> {
+  readonly data?: T;
+  readonly error?: string;
+  readonly status: number;
+  readonly ok: boolean;
+  readonly metadata?: Record<string, unknown>;
+}
+
+// ===== JSON UTILITIES =====
+
+/**
+ * JSON serializable type
+ */
+export type JSONSerializable =
+  | null
+  | string
+  | number
+  | boolean
+  | JSONSerializable[]
+  | { [key: string]: JSONSerializable };
+
+/**
+ * Deep partial type
+ */
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+    }
+  : T;
+
+// ===== EVENT UTILITIES =====
+
+/**
+ * Event emitter type
+ */
+export interface EventEmitter<T = void> {
+  on(handler: (data: T) => void): void;
+  off(handler: (data: T) => void): void;
+  emit(data: T): void;
+}
+
+/**
+ * Create an event emitter
+ */
+export function createEventEmitter<T>(): EventEmitter<T> {
+  const handlers = new Set<(data: T) => void>();
+
+  return {
+    on(handler: (data: T) => void): void {
+      handlers.add(handler);
+    },
+    off(handler: (data: T) => void): void {
+      handlers.delete(handler);
+    },
+    emit(data: T): void {
+      handlers.forEach(handler => handler(data));
+    },
+  };
+}

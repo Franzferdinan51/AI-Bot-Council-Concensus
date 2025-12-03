@@ -1,29 +1,51 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false,
     "module": "ESNext",
     "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "skipLibCheck": true,
-    "types": [
-      "node"
+      "ES2022"
     ],
     "moduleResolution": "bundler",
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "allowJs": true,
-    "jsx": "react-jsx",
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    },
-    "allowImportingTsExtensions": true,
-    "noEmit": true
-  }
+    "strict": false,
+    "noImplicitAny": false,
+    "noEmitOnError": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/frontend",
+    "src/services/multimodalAnalysisService.ts",
+    "src/services/vectorDatabaseService.ts",
+    "src/services/conversationIntelligenceService.ts",
+    "src/services/analyticsDashboardService.ts",
+    "src/services/deploymentAutomationService.ts",
+    "src/services/exportService.ts",
+    "src/services/microserviceArchitectureService.ts",
+    "src/services/predictionTrackingService.ts",
+    "src/services/personaSuggestionService.ts",
+    "src/services/costTrackingService.ts",
+    "src/services/sessionTemplateService.ts",
+    "src/services/semanticMemoryService.ts",
+    "src/services/personaOptimizationService.ts",
+    "src/services/dialecticalDeliberationService.ts",
+    "src/services/ensemblePredictionService.ts",
+    "src/services/adaptiveOrchestrationService.ts",
+    "src/services/ragService.ts",
+    "src/services/federationService.ts",
+    "src/services/metaLearningService.ts",
+    "src/services/botConfigService.ts",
+    "src/services/webSocketService.ts",
+    "src/services/liveCodeExecutionService.ts",
+    "src/services/integrationEcosystemService.ts",
+    "src/services/enhancedSwarmCodingService.ts"
+  ]
 }

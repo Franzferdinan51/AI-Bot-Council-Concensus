@@ -1,0 +1,31 @@
+{
+  "providers": {
+    "geminiApiKey": "your-gemini-api-key-here",
+    "openRouterKey": "your-openrouter-key-here",
+    "ollamaEndpoint": "http://localhost:11434/v1/chat/completions",
+    "lmStudioEndpoint": "http://localhost:1234/v1/chat/completions",
+    "janAiEndpoint": "http://localhost:1337/v1/chat/completions",
+    "genericOpenAIEndpoint": "",
+    "genericOpenAIKey": "",
+    "zaiApiKey": "",
+    "zaiEndpoint": "https://api.zai.com/v1/chat/completions",
+    "moonshotApiKey": "",
+    "moonshotEndpoint": "https://api.moonshot.cn/v1/chat/completions",
+    "minimaxApiKey": "",
+    "minimaxEndpoint": "https://api.minimax.chat/v1/text/chatcompletion_v2"
+  },
+  "defaultSettings": {
+    "economyMode": true,
+    "maxConcurrentRequests": 2,
+    "contextPruning": true,
+    "maxContextTurns": 8,
+    "customDirective": ""
+  },
+  "enabledBots": [
+    "speaker-high-council",
+    "councilor-technocrat",
+    "councilor-ethicist",
+    "councilor-pragmatist",
+    "councilor-skeptic"
+  ]
+}
