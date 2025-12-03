@@ -39,7 +39,12 @@ const els = {
     toolFormContainer: document.getElementById('tool-form-container'),
     toolHistory: document.getElementById('tool-history'),
     outTabPreview: document.getElementById('out-tab-preview'),
-    outTabJson: document.getElementById('out-tab-json')
+    outTabJson: document.getElementById('out-tab-json'),
+    // Transcript Modal
+    transcriptModal: document.getElementById('transcript-modal'),
+    transcriptPanel: document.getElementById('transcript-panel'),
+    transcriptContent: document.getElementById('transcript-content'),
+    transcriptId: document.getElementById('transcript-id')
 };
 
 let toolMode = 'form'; // 'form' | 'json'
@@ -222,6 +227,9 @@ function renderSessions(sessions) {
                 <div class="font-medium text-white text-sm">${s.topic || 'Untitled Session'}</div>
             </div>
             <div class="flex gap-2">
+                <button onclick="viewTranscript('${s.id}')" class="p-2 hover:bg-gray-700 rounded text-gray-400 hover:text-indigo-400" title="View Transcript">
+                    📄
+                </button>
                 <button onclick="controlSession('${s.id}', 'pause')" class="p-2 hover:bg-gray-700 rounded text-gray-400 hover:text-amber-400" title="Pause/Resume">
                     ⏸
                 </button>
@@ -243,6 +251,57 @@ window.controlSession = async (sessionId, action) => {
         showToast(`Session ${action} command sent`, "success");
         setTimeout(refreshSessions, 500);
     } catch (e) { showToast(`Failed to ${action} session`, "error"); }
+};
+
+// --- Transcript Viewer ---
+window.viewTranscript = async (sessionId) => {
+    // Open Modal
+    els.transcriptModal.classList.remove('hidden', 'pointer-events-none');
+    // Small delay to allow display:block to apply before opacity transition
+    setTimeout(() => {
+        els.transcriptModal.classList.remove('opacity-0');
+        els.transcriptPanel.classList.remove('translate-x-full');
+    }, 10);
+
+    els.transcriptId.textContent = `Session #${sessionId.substring(0, 8)}`;
+    els.transcriptContent.innerHTML = '<div class="text-center text-gray-500 py-10 animate-pulse">Loading transcript...</div>';
+
+    try {
+        const res = await fetch('/call-tool', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: 'council_get_transcript',
+                arguments: { sessionId, format: 'markdown' }
+            })
+        });
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error);
+
+        // The tool returns content in data.content[0].text
+        const text = data.content?.[0]?.text || "No transcript available.";
+
+        // Simple Markdown Rendering
+        const html = text
+            .replace(/### (.*?)\n/g, '<h3 class="text-lg font-bold text-indigo-400 mt-4 mb-2">$1</h3>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+            .replace(/`([^`]+)`/g, '<code class="bg-gray-800 px-1 rounded text-amber-300 font-mono text-xs">$1</code>')
+            .replace(/\n/g, '<br>');
+
+        els.transcriptContent.innerHTML = html;
+
+    } catch (e) {
+        els.transcriptContent.innerHTML = `<div class="text-red-400 text-center">Failed to load transcript: ${e.message}</div>`;
+    }
+};
+
+window.closeTranscript = () => {
+    els.transcriptPanel.classList.add('translate-x-full');
+    els.transcriptModal.classList.add('opacity-0');
+    setTimeout(() => {
+        els.transcriptModal.classList.add('hidden', 'pointer-events-none');
+    }, 300);
 };
 
 
