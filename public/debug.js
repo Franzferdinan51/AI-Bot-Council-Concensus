@@ -597,6 +597,7 @@ function renderToolForm(schema) {
             input.className = "w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-indigo-500 outline-none form-input";
             input.dataset.key = key;
             input.dataset.type = 'string'; // Enums are usually strings
+            input.dataset.required = required;
             prop.enum.forEach(val => {
                 const opt = document.createElement('option');
                 opt.value = val;
@@ -610,6 +611,7 @@ function renderToolForm(schema) {
             input.className = "ml-2 form-input";
             input.dataset.key = key;
             input.dataset.type = 'boolean';
+            input.dataset.required = required;
             if (prop.default) input.checked = prop.default;
             // Wrap for checkbox
             const checkWrapper = document.createElement('div');
@@ -623,7 +625,17 @@ function renderToolForm(schema) {
             input.className = "w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-indigo-500 outline-none form-input";
             input.dataset.key = key;
             input.dataset.type = 'number';
+            input.dataset.required = required;
             if (prop.default) input.value = prop.default;
+        } else if (prop.type === 'object' || prop.type === 'array') {
+            input = document.createElement('textarea');
+            input.className = "w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-indigo-500 outline-none form-input font-mono h-24";
+            input.dataset.key = key;
+            input.dataset.type = prop.type;
+            input.dataset.required = required;
+            input.placeholder = prop.type === 'array' ? '["item1", "item2"]' : '{"key": "value"}';
+            if (prop.default) input.value = JSON.stringify(prop.default, null, 2);
+            else input.value = prop.type === 'array' ? '[]' : '{}';
         } else {
             // Default to text
             input = document.createElement('input');
@@ -631,6 +643,7 @@ function renderToolForm(schema) {
             input.className = "w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white focus:border-indigo-500 outline-none form-input";
             input.dataset.key = key;
             input.dataset.type = 'string';
+            input.dataset.required = required;
             if (prop.default) input.value = prop.default;
         }
 
@@ -653,12 +666,22 @@ function syncFormToJson() {
     inputs.forEach(input => {
         const key = input.dataset.key;
         const type = input.dataset.type;
+        const required = input.dataset.required === 'true';
 
         if (type === 'boolean') {
             args[key] = input.checked;
         } else if (type === 'number') {
+            if (input.value === '' && !required) return; // Omit empty optional numbers
             args[key] = Number(input.value);
+        } else if (type === 'object' || type === 'array') {
+            if (input.value === '' && !required) return; // Omit empty optional objects
+            try {
+                args[key] = JSON.parse(input.value);
+            } catch (e) {
+                args[key] = input.value;
+            }
         } else {
+            if (input.value === '' && !required) return; // Omit empty optional strings
             args[key] = input.value;
         }
     });
