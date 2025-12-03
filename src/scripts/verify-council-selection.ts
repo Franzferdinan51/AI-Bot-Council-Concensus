@@ -4,7 +4,7 @@ import { BotConfig } from '../types/index.js';
 const mockBots: BotConfig[] = [
     { id: 'speaker', name: 'Speaker', role: 'speaker', enabled: true } as BotConfig,
     { id: 'mod', name: 'Moderator', role: 'moderator', enabled: true } as BotConfig,
-    { id: 'c1', name: 'Technocrat', role: 'councilor', enabled: false } as BotConfig, // Disabled
+    { id: 'c1', name: 'Technocrat', role: 'councilor', enabled: true } as BotConfig,  // Enabled Councilor
     { id: 's1', name: 'Scientist', role: 'specialist', enabled: true } as BotConfig,  // Enabled Specialist
     { id: 's2', name: 'Coder', role: 'specialist', enabled: true } as BotConfig     // Enabled Specialist
 ];

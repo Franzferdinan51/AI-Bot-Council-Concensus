@@ -431,7 +431,10 @@ export class CouncilOrchestrator {
     sessionService.addMessage(sessionId, devMsg);
 
     await this.runBatchWithConcurrency(tasks, async (task) => {
-      let assignedBot = enabledBots.find(b => b.role === 'councilor') || speaker!;
+      // Find a suitable bot: prefer one with matching role, otherwise any councilor/specialist, fallback to speaker
+      let assignedBot = enabledBots.find(b => b.role === task.role) ||
+        enabledBots.find(b => b.role !== 'speaker' && b.role !== 'moderator') ||
+        speaker!;
       const devPrompt = injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.DEV_AGENT)
         .replace('{{ROLE}}', task.role)
         .replace('{{FILE}}', task.file)

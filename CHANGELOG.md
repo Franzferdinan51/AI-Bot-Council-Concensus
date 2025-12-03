@@ -14,6 +14,7 @@
     - Added `SEARCH_PROVIDER` environment variable to select provider (`duckduckgo`, `brave`, `tavily`, `serper`).
   - **Bug Fixes**:
     - Fixed `CouncilOrchestrator` member selection logic to include `specialist` and other roles as councilors, preventing adjournment when default councilors are disabled.
+    - Fixed `runSwarmCodingMode` to correctly utilize available councilors and specialists for development tasks instead of defaulting to the Speaker.
 
 - **Configuration Externalization**:
   - Moved system prompts to `src/config/prompts.json`.
