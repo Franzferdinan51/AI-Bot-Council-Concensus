@@ -90,11 +90,11 @@ export class MicroserviceArchitectureService {
   };
   private roundRobinCounters: Map<string, number> = new Map();
 
-  constructor() {}
+  constructor() { }
 
   async registerService(definition: ServiceDefinition): Promise<void> {
     this.registry.serviceDefinitions.set(definition.name, definition);
-    console.log(`[MicroserviceArchitecture] Registered service: ${definition.name} v${definition.version}`);
+    console.error(`[MicroserviceArchitecture] Registered service: ${definition.name} v${definition.version}`);
   }
 
   async discoverService(serviceName: string): Promise<ServiceInstance[]> {
@@ -118,7 +118,7 @@ export class MicroserviceArchitectureService {
     // Start health check for this instance
     await this.startHealthCheck(serviceInstance);
 
-    console.log(`[MicroserviceArchitecture] Registered instance: ${id}`);
+    console.error(`[MicroserviceArchitecture] Registered instance: ${id}`);
     return id;
   }
 
@@ -140,7 +140,7 @@ export class MicroserviceArchitectureService {
       }
 
       instances.splice(index, 1);
-      console.log(`[MicroserviceArchitecture] Deregistered instance: ${instanceId}`);
+      console.error(`[MicroserviceArchitecture] Deregistered instance: ${instanceId}`);
     }
   }
 
@@ -220,7 +220,7 @@ export class MicroserviceArchitectureService {
       }
     }
 
-    console.log(`[MicroserviceArchitecture] Scaled ${serviceName} to ${targetInstances} instances`);
+    console.error(`[MicroserviceArchitecture] Scaled ${serviceName} to ${targetInstances} instances`);
   }
 
   async getServiceMetrics(serviceName: string): Promise<{
@@ -257,17 +257,17 @@ export class MicroserviceArchitectureService {
 
   configureLoadBalancer(strategy: LoadBalancerStrategy): void {
     this.loadBalancer = strategy;
-    console.log(`[MicroserviceArchitecture] Load balancer configured: ${strategy.type}`);
+    console.error(`[MicroserviceArchitecture] Load balancer configured: ${strategy.type}`);
   }
 
   configureCircuitBreaker(config: CircuitBreakerConfig): void {
     this.circuitBreaker = config;
-    console.log(`[MicroserviceArchitecture] Circuit breaker configured`);
+    console.error(`[MicroserviceArchitecture] Circuit breaker configured`);
   }
 
   configureServiceDiscovery(config: ServiceDiscoveryConfig): void {
     this.serviceDiscovery = config;
-    console.log(`[MicroserviceArchitecture] Service discovery configured: ${config.strategy}`);
+    console.error(`[MicroserviceArchitecture] Service discovery configured: ${config.strategy}`);
   }
 
   async exportArchitectureDiagram(): Promise<string> {
@@ -458,7 +458,7 @@ export class MicroserviceArchitectureService {
     this.registry.healthChecks.forEach(check => clearInterval(check));
     this.registry.healthChecks.clear();
 
-    console.log('[MicroserviceArchitecture] Service shutdown complete');
+    console.error('[MicroserviceArchitecture] Service shutdown complete');
   }
 }
 

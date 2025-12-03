@@ -20,7 +20,7 @@ export class WebSocketService {
   private sessionSubscriptions: Map<string, Set<string>> = new Map(); // sessionId -> Set of clientIds
   private httpServer: any = null;
 
-  constructor(private port: number = 4001) {}
+  constructor(private port: number = 4001) { }
 
   initialize(): void {
     this.httpServer = createServer();
@@ -31,7 +31,7 @@ export class WebSocketService {
       const connection: ClientConnection = { ws, clientId };
       this.clients.set(clientId, connection);
 
-      console.log(`[WebSocket] Client connected: ${clientId}`);
+      console.error(`[WebSocket] Client connected: ${clientId}`);
 
       ws.on('message', (data: string) => {
         try {
@@ -46,7 +46,7 @@ export class WebSocketService {
         this.handleDisconnect(clientId);
       });
 
-      ws.on('error', (error) => {
+      ws.on('error', (error: Error) => {
         console.error(`[WebSocket] Client ${clientId} error:`, error);
       });
 
@@ -60,7 +60,7 @@ export class WebSocketService {
     });
 
     this.httpServer.listen(this.port, () => {
-      console.log(`[WebSocket] Server listening on port ${this.port}`);
+      console.error(`[WebSocket] Server listening on port ${this.port}`);
     });
   }
 
@@ -81,7 +81,7 @@ export class WebSocketService {
         });
         break;
       default:
-        console.log('[WebSocket] Unknown message type:', message.type);
+        console.error('[WebSocket] Unknown message type:', message.type);
     }
   }
 
@@ -100,7 +100,7 @@ export class WebSocketService {
       connection.sessionId = sessionId;
     }
 
-    console.log(`[WebSocket] Client ${clientId} subscribed to session ${sessionId}`);
+    console.error(`[WebSocket] Client ${clientId} subscribed to session ${sessionId}`);
   }
 
   unsubscribeFromSession(clientId: string, sessionId: string): void {
@@ -117,7 +117,7 @@ export class WebSocketService {
       connection.sessionId = undefined;
     }
 
-    console.log(`[WebSocket] Client ${clientId} unsubscribed from session ${sessionId}`);
+    console.error(`[WebSocket] Client ${clientId} unsubscribed from session ${sessionId}`);
   }
 
   private handleDisconnect(clientId: string): void {
@@ -126,10 +126,10 @@ export class WebSocketService {
       this.unsubscribeFromSession(clientId, connection.sessionId);
     }
     this.clients.delete(clientId);
-    console.log(`[WebSocket] Client disconnected: ${clientId}`);
+    console.error(`[WebSocket] Client disconnected: ${clientId}`);
   }
 
-  sendToSession(sessionId: string, message: Omit<WebSocketMessage, 'sessionId'>): void {
+  sendToSession(sessionId: string, message: Omit<WebSocketMessage, 'sessionId' | 'timestamp'>): void {
     const subscriptions = this.sessionSubscriptions.get(sessionId);
     if (!subscriptions) return;
 
@@ -194,7 +194,7 @@ export class WebSocketService {
       this.httpServer.close();
     }
 
-    console.log('[WebSocket] Server shutdown complete');
+    console.error('[WebSocket] Server shutdown complete');
   }
 }
 

@@ -121,12 +121,12 @@ export class MultimodalAnalysisService {
   private supportedAudioTypes = ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/webm'];
   private supportedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov'];
 
-  constructor() {}
+  constructor() { }
 
   async initialize(): Promise<void> {
     try {
       await fs.mkdir(this.tempDir, { recursive: true });
-      console.log('[MultimodalAnalysis] Service initialized');
+      console.error('[MultimodalAnalysis] Service initialized');
     } catch (error) {
       console.error('[MultimodalAnalysis] Failed to initialize:', error);
     }
@@ -154,7 +154,7 @@ export class MultimodalAnalysisService {
       }
     } finally {
       const processingTime = Date.now() - startTime;
-      console.log(`[MultimodalAnalysis] ${input.type} analysis completed in ${processingTime}ms`);
+      console.error(`[MultimodalAnalysis] ${input.type} analysis completed in ${processingTime}ms`);
     }
   }
 
@@ -440,7 +440,7 @@ export class MultimodalAnalysisService {
     return [];
   }
 
-  private async extractTopics(content: string): Promise<string[]>> {
+  private async extractTopics(content: string): Promise<string[]> {
     await this.delay(300);
     return ['topic1', 'topic2', 'topic3'];
   }
@@ -482,7 +482,7 @@ export class MultimodalAnalysisService {
     return (content.match(/\[[0-9]+\]|\([^)]*\d{4}\)/g) || []).slice(0, 10);
   }
 
-  private async extractTables(content: string): Promise<string[]>> {
+  private async extractTables(content: string): Promise<string[]> {
     return [];
   }
 
@@ -616,7 +616,7 @@ export class MultimodalAnalysisService {
     return [];
   }
 
-  private async generateThumbnails(scenes: VideoAnalysis['scenes']): Promise<string[]>> {
+  private async generateThumbnails(scenes: VideoAnalysis['scenes']): Promise<string[]> {
     return [];
   }
 
@@ -673,7 +673,7 @@ export class MultimodalAnalysisService {
     return { valid: true };
   }
 
-  getSupportedFormats(): Record<string, string[]>> {
+  getSupportedFormats(): Record<string, string[]> {
     return {
       image: this.supportedImageTypes,
       document: this.supportedDocumentTypes,

@@ -345,7 +345,7 @@ export class MetaLearningService {
 
     // Insight 2: Mode efficiency
     const modeEfficiency = this.analyzeModeEfficiency();
-    if (modeEfficiency.bestMode) {
+    if (modeEfficiency && modeEfficiency.bestMode) {
       insights.push({
         insightId: this.generateId(),
         category: 'efficiency',
@@ -551,7 +551,7 @@ export class MetaLearningService {
   }
 
   private async runLearningCycle(): Promise<void> {
-    console.log('[MetaLearning] Running learning cycle...');
+    console.error('[MetaLearning] Running learning cycle...');
 
     // Mine patterns
     await this.minePatterns();
@@ -567,7 +567,7 @@ export class MetaLearningService {
       await this.autoOptimize();
     }
 
-    console.log('[MetaLearning] Learning cycle completed');
+    console.error('[MetaLearning] Learning cycle completed');
   }
 
   private mineQualityPatterns(sessions: SessionAnalysis[]): DiscoveredPattern[] {
@@ -696,7 +696,7 @@ export class MetaLearningService {
 
   private async applyOptimization(suggestion: OptimizationSuggestion): Promise<boolean> {
     // In production, would actually apply the optimization
-    console.log(`[MetaLearning] Applying optimization: ${suggestion.title}`);
+    console.error(`[MetaLearning] Applying optimization: ${suggestion.title}`);
     await new Promise(resolve => setTimeout(resolve, 100));
     return true;
   }

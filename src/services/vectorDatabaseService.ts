@@ -30,10 +30,10 @@ export class VectorDatabaseService {
   private vectors: Map<string, VectorEntry> = new Map();
   private embeddings: Map<string, number[]> = new Map();
 
-  constructor() {}
+  constructor() { }
 
   async initialize(): Promise<void> {
-    console.log('[VectorDB] Initialized (in-memory mode)');
+    console.error('[VectorDB] Initialized (in-memory mode)');
   }
 
   async addVector(entry: Omit<VectorEntry, 'id'>): Promise<string> {
@@ -49,7 +49,7 @@ export class VectorDatabaseService {
     return id;
   }
 
-  async addVectors(entries: Omit<VectorEntry, 'id'>[]): Promise<string[]>> {
+  async addVectors(entries: Omit<VectorEntry, 'id'>[]): Promise<string[]> {
     return Promise.all(entries.map(entry => this.addVector(entry)));
   }
 

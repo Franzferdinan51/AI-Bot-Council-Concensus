@@ -8,7 +8,8 @@ import { CouncilOrchestrator } from '../services/councilOrchestrator.js';
 import { sessionService } from '../services/sessionService.js';
 import { ValidationService } from '../services/validationService.js';
 import { responseSchema } from '../services/responseSchema.js';
-import { SessionMode, CouncilSettings, getBotsWithCustomConfigs, DEFAULT_SETTINGS } from '../types/index.js';
+import { logger } from '../services/logger.js';
+import { SessionMode, CouncilSettings, BotConfig, getBotsWithCustomConfigs, DEFAULT_SETTINGS } from '../types/index.js';
 
 export interface AutoSessionInput {
   topic: string;
@@ -43,41 +44,96 @@ function selectOptimalMode(topic: string): SessionMode {
 
   // Check for code/development keywords
   if (topicLower.includes('code') || topicLower.includes('implement') ||
-      topicLower.includes('develop') || topicLower.includes('build') ||
-      topicLower.includes('function') || topicLower.includes('algorithm')) {
+    topicLower.includes('develop') || topicLower.includes('build') ||
+    topicLower.includes('function') || topicLower.includes('algorithm') ||
+    topicLower.includes('debug') || topicLower.includes('refactor') ||
+    topicLower.includes('api') || topicLower.includes('sdk')) {
     return SessionMode.SWARM_CODING;
   }
 
   // Check for prediction/forecast keywords
   if (topicLower.includes('predict') || topicLower.includes('forecast') ||
-      topicLower.includes('will happen') || topicLower.includes('outcome') ||
-      topicLower.includes('future') || topicLower.includes('estimate')) {
+    topicLower.includes('will happen') || topicLower.includes('outcome') ||
+    topicLower.includes('future') || topicLower.includes('estimate') ||
+    topicLower.includes('probability') || topicLower.includes('likelihood') ||
+    topicLower.includes('when will')) {
     return SessionMode.PREDICTION;
   }
 
   // Check for research/investigation keywords
   if (topicLower.includes('research') || topicLower.includes('investigate') ||
-      topicLower.includes('analyze') || topicLower.includes('study') ||
-      topicLower.includes('explore') || topicLower.includes('examine')) {
+    topicLower.includes('analyze') || topicLower.includes('study') ||
+    topicLower.includes('explore') || topicLower.includes('examine') ||
+    topicLower.includes('history') || topicLower.includes('background') ||
+    topicLower.includes('context') || topicLower.includes('deep dive')) {
     return SessionMode.RESEARCH;
   }
 
   // Check for inquiry/Q&A keywords
   if (topicLower.includes('?') || topicLower.includes('what is') ||
-      topicLower.includes('how to') || topicLower.includes('explain') ||
-      topicLower.includes('define') || topicLower.includes('what are')) {
+    topicLower.includes('how to') || topicLower.includes('explain') ||
+    topicLower.includes('define') || topicLower.includes('what are') ||
+    topicLower.includes('help me') || topicLower.includes('guide')) {
     return SessionMode.INQUIRY;
   }
 
   // Check for voting/decision keywords
   if (topicLower.includes('vote') || topicLower.includes('decide') ||
-      topicLower.includes('approve') || topicLower.includes('reject') ||
-      topicLower.includes('should we') || topicLower.includes('motion')) {
+    topicLower.includes('approve') || topicLower.includes('reject') ||
+    topicLower.includes('should we') || topicLower.includes('motion') ||
+    topicLower.includes('proposal') || topicLower.includes('bill') ||
+    topicLower.includes('enact')) {
     return SessionMode.PROPOSAL;
   }
 
   // Default to deliberation for general discussions
   return SessionMode.DELIBERATION;
+}
+
+/**
+ * Select relevant bots based on topic keywords
+ */
+function selectRelevantBots(topic: string, allBots: BotConfig[]): BotConfig[] {
+  const topicLower = topic.toLowerCase();
+  const relevantBots = [...allBots];
+
+  // Helper to enable a bot by ID or name part
+  const enableBot = (identifier: string) => {
+    const bot = relevantBots.find(b => b.id.includes(identifier) || b.name.toLowerCase().includes(identifier));
+    if (bot) bot.enabled = true;
+  };
+
+  // Always enable Speaker and Moderator
+  enableBot('speaker');
+  enableBot('moderator');
+
+  // Topic-based selection
+  if (topicLower.includes('tech') || topicLower.includes('code') || topicLower.includes('software') || topicLower.includes('ai')) {
+    enableBot('technocrat');
+    enableBot('futurist');
+  }
+
+  if (topicLower.includes('money') || topicLower.includes('finance') || topicLower.includes('cost') || topicLower.includes('budget')) {
+    enableBot('economist');
+    enableBot('pragmatist');
+  }
+
+  if (topicLower.includes('people') || topicLower.includes('social') || topicLower.includes('community') || topicLower.includes('ethics')) {
+    enableBot('ethicist');
+    enableBot('diplomat');
+  }
+
+  if (topicLower.includes('science') || topicLower.includes('research') || topicLower.includes('data') || topicLower.includes('study')) {
+    enableBot('scientist');
+    enableBot('academic');
+  }
+
+  if (topicLower.includes('creative') || topicLower.includes('design') || topicLower.includes('art') || topicLower.includes('write')) {
+    enableBot('visionary');
+    enableBot('artist');
+  }
+
+  return relevantBots;
 }
 
 /**
@@ -91,7 +147,7 @@ function buildSessionSettings(overrides?: AutoSessionInput['settings']): Council
   };
 
   if (overrides?.bots) {
-    const botMap = new Map<string, CouncilSettings['bots'][number]>(settings.bots.map(b => [b.id, b]));
+    const botMap = new Map<string, BotConfig>(settings.bots.map(b => [b.id, b]));
     for (const update of overrides.bots) {
       const bot = botMap.get(update.id);
       if (bot) {
@@ -113,9 +169,9 @@ function buildSessionSettings(overrides?: AutoSessionInput['settings']): Council
   }
 
   // Add custom metadata for auto sessions
-  (settings as any).autoSession = true;
-  (settings as any).useWeightedVoting = overrides?.useWeightedVoting || false;
-  (settings as any).maxRounds = overrides?.maxRounds || 10;
+  settings.autoSession = true;
+  settings.useWeightedVoting = overrides?.useWeightedVoting || false;
+  settings.maxRounds = overrides?.maxRounds || 10;
 
   return settings;
 }
@@ -202,11 +258,21 @@ export async function handleAutoSessionToolCall(
 
     const { topic, mode = 'auto', settings, context, autoStart = true } = arguments_;
 
+    console.error(`[MCP TOOL] council_auto called - Topic: "${topic}"`);
+
     // Determine the session mode
     const sessionMode: SessionMode = mode === 'auto' ? selectOptimalMode(topic) : (mode as SessionMode);
+    console.error(`[MCP TOOL] Selected mode: ${sessionMode} (Requested: ${mode})`);
 
     // Build settings
     const sessionSettings = buildSessionSettings(settings);
+
+    // Dynamic Persona Selection if not explicitly overridden
+    if (!settings?.bots) {
+      sessionSettings.bots = selectRelevantBots(topic, sessionSettings.bots);
+      const enabledCount = sessionSettings.bots.filter(b => b.enabled).length;
+      console.error(`[MCP TOOL] Auto-selected ${enabledCount} relevant personas for topic`);
+    }
 
     // Create session
     const sessionId = sessionService.createSession(
@@ -215,6 +281,8 @@ export async function handleAutoSessionToolCall(
       sessionSettings,
       context
     );
+
+    console.error(`[MCP TOOL] Created session: ${sessionId}`);
 
     let result: any = null;
 
@@ -227,6 +295,16 @@ export async function handleAutoSessionToolCall(
         sessionSettings,
         context
       );
+
+      console.error(`[MCP TOOL] Session completed: ${sessionId} - Messages: ${result.messages?.length || 0}`);
+
+      // Log to structured logger
+      logger.info('Auto council session completed', {
+        tool: 'council_auto',
+        sessionId: sessionId,
+        mode: sessionMode,
+        messageCount: result.messages?.length || 0
+      }, 'AutoSessionTools');
 
       // Use the council result response schema
       const unifiedResponse = responseSchema.councilResult(
@@ -264,6 +342,7 @@ export async function handleAutoSessionToolCall(
       return responseSchema.toMCPResponse(unifiedResponse);
     }
   } catch (error: any) {
+    console.error(`[MCP TOOL] Error in council_auto: ${error.message}`);
     const errorResponse = responseSchema.error(
       toolName,
       'AUTO_SESSION_ERROR',

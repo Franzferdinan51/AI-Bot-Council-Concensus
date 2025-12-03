@@ -479,7 +479,7 @@ export async function handleCouncilToolCall(
       case 'council_pause_session':
         return await handlePauseSession(arguments_, orchestrator);
       case 'council_diagnostics':
-        return await handleDiagnostics(arguments_);
+        return await handleDiagnostics(arguments_, orchestrator);
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
@@ -1139,7 +1139,7 @@ async function handlePauseSession(args: any, orchestrator: CouncilOrchestrator):
   return responseSchema.toMCPResponse(unifiedResponse);
 }
 
-async function handleDiagnostics(args: any): Promise<CallToolResult> {
+async function handleDiagnostics(args: any, orchestrator: CouncilOrchestrator): Promise<CallToolResult> {
   const startTime = responseSchema.startExecution();
   const verbose = args?.verbose || false;
   const preset = args?.preset || 'quick';
@@ -1203,7 +1203,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     diagnostics.status = 'ERROR';
     diagnostics.actionItems.push('Add an API key to your .env file for at least one AI provider (e.g., GEMINI_API_KEY).');
   } else {
-    if (verbose) console.log(`[Diagnostics] Configured providers: ${apiKeys.configured.join(', ')}`);
+    if (verbose) console.error(`[Diagnostics] Configured providers: ${apiKeys.configured.join(', ')}`);
   }
 
   // Check Search Provider
@@ -1346,14 +1346,55 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
       results: []
     };
 
-    // TODO: Implement actual ping to LLM providers here
-    // For now, we'll just simulate a check based on API keys
-    if (apiKeys.configured.length > 0) {
+    // Active Connectivity Tests
+    const providersToTest = apiKeys.configured;
+    let successCount = 0;
+
+    for (const provider of providersToTest) {
+      if (verbose) console.error(`[Diagnostics] Testing connectivity for ${provider}...`);
+
+      try {
+        // Active connectivity test
+        const result = await orchestrator.aiService.testConnectivity(provider);
+
+
+        diagnostics.checks.connectivity.results.push({
+          provider,
+          status: result.success ? 'OK' : 'FAILED',
+          message: result.message,
+          latency: result.latency
+        });
+
+        if (result.success) successCount++;
+        else {
+          diagnostics.errors.push({
+            component: 'Connectivity',
+            issue: `${provider} connectivity failed`,
+            severity: 'ERROR',
+            message: result.message
+          });
+        }
+      } catch (error: any) {
+        diagnostics.checks.connectivity.results.push({
+          provider,
+          status: 'FAILED',
+          message: error.message
+        });
+        diagnostics.errors.push({
+          component: 'Connectivity',
+          issue: `${provider} test error`,
+          severity: 'ERROR',
+          message: error.message
+        });
+      }
+    }
+
+    if (successCount === providersToTest.length && providersToTest.length > 0) {
       diagnostics.checks.connectivity.status = 'OK';
-      diagnostics.checks.connectivity.results.push({ provider: 'Configuration', status: 'OK', message: 'Providers configured correctly' });
+    } else if (successCount > 0) {
+      diagnostics.checks.connectivity.status = 'PARTIAL';
     } else {
       diagnostics.checks.connectivity.status = 'FAILED';
-      diagnostics.checks.connectivity.results.push({ provider: 'Configuration', status: 'FAILED', message: 'No providers configured' });
     }
   }
 
@@ -1380,6 +1421,22 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
 
   if (apiKeys.configured.length > 0) {
     report += `Configured Providers: ${apiKeys.configured.join(', ')}\n\n`;
+  }
+
+  // Connectivity Results
+  if (diagnostics.checks.connectivity && diagnostics.checks.connectivity.results.length > 0) {
+    report += `─── CONNECTIVITY ───\n`;
+    report += `Overall Status: ${diagnostics.checks.connectivity.status}\n`;
+
+    diagnostics.checks.connectivity.results.forEach((res: any) => {
+      const icon = res.status === 'OK' ? '✓' : '✗';
+      const latency = res.latency ? ` (${res.latency}ms)` : '';
+      report += `${icon} ${res.provider}: ${res.status}${latency}\n`;
+      if (res.status !== 'OK') {
+        report += `   Error: ${res.message}\n`;
+      }
+    });
+    report += '\n';
   }
 
   // Bots Status
@@ -1496,26 +1553,15 @@ function buildSessionSettings(overrides?: any): CouncilSettings {
         const bot = botMap.get(update.id);
         if (bot) {
           bot.enabled = update.enabled ?? bot.enabled;
+          if (update.model) bot.model = update.model;
         }
       }
     }
-    if (typeof overrides.economyMode === 'boolean') {
-      settings.economyMode = overrides.economyMode;
-    }
-    if (typeof overrides.maxConcurrentRequests === 'number') {
-      settings.maxConcurrentRequests = overrides.maxConcurrentRequests;
-    }
-    if (typeof overrides.customDirective === 'string') {
-      settings.customDirective = overrides.customDirective;
-    }
-    if (typeof overrides.verboseLogging === 'boolean') {
-      settings.verboseLogging = overrides.verboseLogging;
-      console.error(`[MCP SETTINGS] Verbose logging: ${overrides.verboseLogging ? 'enabled' : 'disabled'}`);
-    }
-    if (typeof overrides.progressDelay === 'number') {
-      settings.progressDelay = overrides.progressDelay;
-      console.error(`[MCP SETTINGS] Progress delay: ${overrides.progressDelay}ms`);
-    }
+
+    if (overrides.economyMode !== undefined) settings.economyMode = overrides.economyMode;
+    if (overrides.maxConcurrentRequests) settings.maxConcurrentRequests = overrides.maxConcurrentRequests;
+    if (overrides.domain) settings.domain = overrides.domain;
+    if (overrides.timeframe) settings.timeframe = overrides.timeframe;
   }
 
   return settings;
@@ -1561,3 +1607,5 @@ function formatCouncilResult(sessionId: string, result: any): string {
 
   return output;
 }
+
+

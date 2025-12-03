@@ -44,7 +44,7 @@ export class SessionStorageService {
   async initialize(): Promise<void> {
     try {
       await fs.mkdir(this.config.storageDir, { recursive: true });
-      console.log(`[SessionStorage] Initialized at ${this.config.storageDir}`);
+      console.error(`[SessionStorage] Initialized at ${this.config.storageDir}`);
     } catch (error: any) {
       console.error('[SessionStorage] Failed to initialize:', error.message);
       throw error;
@@ -67,17 +67,17 @@ export class SessionStorageService {
           const session = JSON.parse(data) as CouncilSession;
           sessions.push(session);
           this.sessions.set(session.id, session);
-          console.log(`[SessionStorage] Loaded session: ${session.id}`);
+          console.error(`[SessionStorage] Loaded session: ${session.id}`);
         } catch (error: any) {
           console.error(`[SessionStorage] Failed to load ${file}:`, error.message);
         }
       }
 
-      console.log(`[SessionStorage] Loaded ${sessions.length} sessions from disk`);
+      console.error(`[SessionStorage] Loaded ${sessions.length} sessions from disk`);
       return sessions;
     } catch (error: any) {
       if (error.code === 'ENOENT') {
-        console.log('[SessionStorage] No sessions directory found, starting fresh');
+        console.error('[SessionStorage] No sessions directory found, starting fresh');
         return [];
       }
       throw error;
@@ -103,7 +103,7 @@ export class SessionStorageService {
       // Update in-memory cache
       this.sessions.set(session.id, { ...session });
 
-      console.log(`[SessionStorage] Saved session: ${session.id}`);
+      console.error(`[SessionStorage] Saved session: ${session.id}`);
     } catch (error: any) {
       console.error(`[SessionStorage] Failed to save session ${session.id}:`, error.message);
       throw error;
@@ -177,7 +177,7 @@ export class SessionStorageService {
         this.saveTimers.delete(sessionId);
       }
 
-      console.log(`[SessionStorage] Deleted session: ${sessionId}`);
+      console.error(`[SessionStorage] Deleted session: ${sessionId}`);
     } catch (error: any) {
       console.error(`[SessionStorage] Failed to delete session ${sessionId}:`, error.message);
       throw error;
@@ -238,7 +238,7 @@ export class SessionStorageService {
       }
     }
 
-    console.log(`[SessionStorage] Cleaned up ${deletedCount} old sessions`);
+    console.error(`[SessionStorage] Cleaned up ${deletedCount} old sessions`);
     return deletedCount;
   }
 
@@ -271,7 +271,7 @@ export class SessionStorageService {
    */
   updateConfig(updates: Partial<SessionStorageConfig>): void {
     this.config = { ...this.config, ...updates };
-    console.log('[SessionStorage] Configuration updated');
+    console.error('[SessionStorage] Configuration updated');
   }
 
   /**
@@ -285,7 +285,7 @@ export class SessionStorageService {
    * Shutdown and clean up
    */
   async shutdown(): Promise<void> {
-    console.log('[SessionStorage] Shutting down...');
+    console.error('[SessionStorage] Shutting down...');
 
     // Save all pending sessions
     const savePromises: Promise<void>[] = [];
@@ -299,7 +299,7 @@ export class SessionStorageService {
 
     if (savePromises.length > 0) {
       await Promise.all(savePromises);
-      console.log(`[SessionStorage] Saved ${savePromises.length} pending sessions`);
+      console.error(`[SessionStorage] Saved ${savePromises.length} pending sessions`);
     }
 
     // Clear all timers
@@ -308,7 +308,7 @@ export class SessionStorageService {
     }
     this.saveTimers.clear();
 
-    console.log('[SessionStorage] Shutdown complete');
+    console.error('[SessionStorage] Shutdown complete');
   }
 
   /**

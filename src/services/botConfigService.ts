@@ -45,7 +45,7 @@ export class BotConfigService {
           ...existing,
           model: modelValue.trim()
         });
-        console.log(`[BotConfig] Loaded custom model for ${botId}: ${modelValue}`);
+        console.error(`[BotConfig] Loaded custom model for ${botId}: ${modelValue}`);
       }
     }
 
@@ -60,12 +60,12 @@ export class BotConfigService {
           ...existing,
           authorType: authorTypeValue.trim() as any
         });
-        console.log(`[BotConfig] Loaded custom author type for ${botId}: ${authorTypeValue}`);
+        console.error(`[BotConfig] Loaded custom author type for ${botId}: ${authorTypeValue}`);
       }
     }
 
     if (this.customBotConfigs.size > 0) {
-      console.log(`[BotConfig] Loaded ${this.customBotConfigs.size} custom bot configurations`);
+      console.error(`[BotConfig] Loaded ${this.customBotConfigs.size} custom bot configurations`);
     }
 
     return this.customBotConfigs;
@@ -85,7 +85,7 @@ export class BotConfigService {
       if (fs.existsSync(fullPath)) {
         const data = fs.readFileSync(fullPath, 'utf8');
         const bots = JSON.parse(data);
-        console.log(`[BotConfig] Loaded ${bots.length} bots from ${this.configPath}`);
+        console.error(`[BotConfig] Loaded ${bots.length} bots from ${this.configPath}`);
         return bots;
       }
     } catch (error) {
@@ -104,7 +104,7 @@ export class BotConfigService {
       const fullPath = path.resolve(process.cwd(), this.configPath);
 
       fs.writeFileSync(fullPath, JSON.stringify(bots, null, 2));
-      console.log(`[BotConfig] Saved ${bots.length} bots to ${this.configPath}`);
+      console.error(`[BotConfig] Saved ${bots.length} bots to ${this.configPath}`);
       return true;
     } catch (error) {
       console.error(`[BotConfig] Failed to save bots to file:`, error);

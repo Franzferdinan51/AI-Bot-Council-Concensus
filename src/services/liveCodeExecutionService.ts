@@ -39,12 +39,12 @@ export class LiveCodeExecutionService {
   private tempDir: string = './temp-exec';
   private executionCount: number = 0;
 
-  constructor() {}
+  constructor() { }
 
   async initialize(): Promise<void> {
     try {
       await fs.mkdir(this.tempDir, { recursive: true });
-      console.log('[LiveCodeExec] Service initialized');
+      console.error('[LiveCodeExec] Service initialized');
     } catch (error) {
       console.error('[LiveCodeExec] Failed to initialize:', error);
     }
@@ -139,14 +139,14 @@ export class LiveCodeExecutionService {
 const assert = require('assert');
 
 // Test Suite
-console.log('Running tests...');
+console.error('Running tests...');
 
 // Test 1: Basic functionality
 try {
   // Add your tests here
-  console.log('Test 1: PASS');
+  console.error('Test 1: PASS');
 } catch (error) {
-  console.log('Test 1: FAIL -', error.message);
+  console.error('Test 1: FAIL -', error.message);
 }
 `);
         break;
@@ -181,7 +181,7 @@ public class TestCode {
     return tests;
   }
 
-  async benchmark(code: string, language: string, iterations: number = 100): Promise<{
+  async benchmark(code: string, language: CodeExecutionRequest['language'], iterations: number = 100): Promise<{
     averageTime: number;
     minTime: number;
     maxTime: number;

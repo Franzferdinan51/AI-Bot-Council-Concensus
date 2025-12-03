@@ -23,7 +23,7 @@ import { registerAgentTools } from '../tools/agentTools/index.js';
 import { toolRegistry } from '../tools/agentTools/registry.js';
 
 export class CouncilOrchestrator {
-  private aiService: AIService;
+  public aiService: AIService;
   private controlSignals: Map<string, { stop: boolean; pause: boolean }> = new Map();
 
   constructor(aiService: AIService) {
@@ -934,7 +934,7 @@ ${toolDefs}
 
         const tool = toolRegistry.getTool(toolName);
         if (tool) {
-          console.log(`[Orchestrator] Executing tool ${toolName} for session ${sessionId}`);
+          console.error(`[Orchestrator] Executing tool ${toolName} for session ${sessionId}`);
           const result = await tool.execute(toolArgs);
 
           const toolOutput = `\n\n[TOOL OUTPUT: ${toolName}]\n${result}\n`;

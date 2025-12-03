@@ -585,6 +585,83 @@ export class AIService {
   }
 
   /**
+   * Test connectivity to a specific provider
+   */
+  async testConnectivity(provider: string): Promise<{ success: boolean; message: string; latency?: number }> {
+    const startTime = Date.now();
+    const testPrompt = 'Ping. Reply with "Pong".';
+
+    // Create a dummy bot config for testing
+    const testBot: BotConfig = {
+      id: 'test-bot',
+      name: 'Test Bot',
+      role: 'councilor', // Use valid role
+      authorType: AuthorType.GEMINI, // Default, will be overridden
+      model: 'gemini-pro', // Default
+      enabled: true,
+      persona: 'Test Persona',
+      color: '#000000'
+    };
+
+    try {
+      let response = '';
+
+      switch (provider.toLowerCase()) {
+        case 'gemini':
+          if (!this.settings.geminiApiKey) return { success: false, message: 'API Key missing' };
+          testBot.authorType = AuthorType.GEMINI;
+          testBot.model = 'gemini-1.5-flash'; // Use fast model
+          response = await this.getGeminiResponse(testBot, [], testPrompt, this.settings);
+          break;
+
+        case 'anthropic':
+          // Not fully implemented in this file yet, but placeholder
+          // if (!this.settings.anthropicApiKey) return { success: false, message: 'API Key missing' };
+          return { success: false, message: 'Anthropic provider not yet implemented in AIService' };
+
+        case 'openai':
+        case 'openrouter':
+          if (!this.settings.openRouterKey) return { success: false, message: 'API Key missing' };
+          testBot.authorType = AuthorType.OPENROUTER;
+          testBot.model = 'openai/gpt-3.5-turbo'; // Cheap model
+          response = await this.getOpenRouterResponse(testBot, [], testPrompt, this.settings);
+          break;
+
+        case 'lmstudio':
+          if (!this.settings.lmStudioEndpoint) return { success: false, message: 'Endpoint missing' };
+          testBot.authorType = AuthorType.LM_STUDIO;
+          testBot.model = 'local-model';
+          response = await this.getGenericOpenAIResponse(testBot, [], testPrompt, this.settings);
+          break;
+
+        case 'ollama':
+          if (!this.settings.ollamaEndpoint) return { success: false, message: 'Endpoint missing' };
+          testBot.authorType = AuthorType.OLLAMA;
+          testBot.model = 'llama3'; // Common default
+          response = await this.getGenericOpenAIResponse(testBot, [], testPrompt, this.settings);
+          break;
+
+        default:
+          return { success: false, message: `Unknown provider: ${provider}` };
+      }
+
+      const latency = Date.now() - startTime;
+      return {
+        success: true,
+        message: `Connected (${response.substring(0, 20)}...)`,
+        latency
+      };
+
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || String(error),
+        latency: Date.now() - startTime
+      };
+    }
+  }
+
+  /**
    * Estimate token count for a text string
    * Rough approximation: 1 token ≈ 3.5 characters for English text
    */

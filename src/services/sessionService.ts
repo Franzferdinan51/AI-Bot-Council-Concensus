@@ -23,7 +23,7 @@ export class SessionService {
     }
 
     this.initialized = true;
-    console.log(`[SessionService] Initialized with ${persistedSessions.length} persisted sessions (SQLite)`);
+    console.error(`[SessionService] Initialized with ${persistedSessions.length} persisted sessions (SQLite)`);
   }
 
   /**
@@ -281,11 +281,11 @@ export class SessionService {
    * Shutdown and cleanup
    */
   async shutdown(): Promise<void> {
-    console.log('[SessionService] Shutting down...');
+    console.error('[SessionService] Shutting down...');
     await sqliteStorage.shutdown();
     this.sessions.clear();
     this.initialized = false;
-    console.log('[SessionService] Shutdown complete');
+    console.error('[SessionService] Shutdown complete');
   }
 }
 

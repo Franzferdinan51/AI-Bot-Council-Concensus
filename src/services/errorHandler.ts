@@ -54,7 +54,7 @@ export class ErrorHandler {
   private errorCounts: Map<string, number> = new Map();
   private callbacks: Array<(error: LoggedError) => void> = [];
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): ErrorHandler {
     if (!ErrorHandler.instance) {
@@ -359,7 +359,7 @@ export class ErrorHandler {
         console.warn(`${logMessage} :: ${contextStr}`);
         break;
       case ErrorSeverity.LOW:
-        console.log(`${logMessage} :: ${contextStr}`);
+        console.error(`${logMessage} :: ${contextStr}`);
         break;
     }
   }

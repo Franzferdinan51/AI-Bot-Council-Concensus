@@ -15,7 +15,7 @@ export class ToolRegistry {
 
     registerTool(tool: AgentTool) {
         this.tools.set(tool.name, tool);
-        console.log(`[ToolRegistry] Registered tool: ${tool.name}`);
+        console.error(`[ToolRegistry] Registered tool: ${tool.name}`);
     }
 
     getTool(name: string): AgentTool | undefined {

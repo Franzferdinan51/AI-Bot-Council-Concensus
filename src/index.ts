@@ -34,6 +34,10 @@ if (process.argv.includes('--health')) {
   process.exit(0);
 }
 
+// Override console methods to redirect to structured logger
+// This ensures all logs are captured for diagnostics and directed to stderr to protect MCP protocol
+logger.overrideConsole();
+
 // Enhanced server logging
 const logServer = {
   startTime: Date.now(),

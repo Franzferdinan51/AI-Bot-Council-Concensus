@@ -356,6 +356,16 @@ export interface CouncilSettings {
   verboseLogging?: boolean;
   /** Delay between progress steps in milliseconds (default: 500) */
   progressDelay?: number;
+  /** Domain of the council session (e.g. "Technology", "Policy") */
+  domain?: string;
+  /** Timeframe for the discussion/prediction */
+  timeframe?: string;
+  /** Whether this is an auto-generated session */
+  autoSession?: boolean;
+  /** Use weighted voting based on bot weights */
+  useWeightedVoting?: boolean;
+  /** Maximum number of debate rounds */
+  maxRounds?: number;
 }
 
 // ===== MCP TOOL INPUT/OUTPUT TYPES =====

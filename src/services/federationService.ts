@@ -160,7 +160,7 @@ export class FederationService {
    */
   registerNode(node: FederationNode): void {
     this.nodes.set(node.nodeId, node);
-    console.log(`[Federation] Registered council node: ${node.councilId} (${node.specialization.type})`);
+    console.error(`[Federation] Registered council node: ${node.councilId} (${node.specialization.type})`);
   }
 
   /**
@@ -169,7 +169,7 @@ export class FederationService {
   unregisterNode(nodeId: string): boolean {
     const deleted = this.nodes.delete(nodeId);
     if (deleted) {
-      console.log(`[Federation] Unregistered council node: ${nodeId}`);
+      console.error(`[Federation] Unregistered council node: ${nodeId}`);
     }
     return deleted;
   }
@@ -259,7 +259,7 @@ export class FederationService {
     };
 
     this.sessions.set(sessionId, session);
-    console.log(`[Federation] Initiated federated session ${sessionId} with ${participatingCouncils.length} councils`);
+    console.error(`[Federation] Initiated federated session ${sessionId} with ${participatingCouncils.length} councils`);
 
     return session;
   }
@@ -276,7 +276,7 @@ export class FederationService {
     };
 
     this.messageQueue.push(fullMessage);
-    console.log(`[Federation] Queued message ${fullMessage.messageId}: ${message.type} from ${message.sourceCouncilId} to ${message.targetCouncilId}`);
+    console.error(`[Federation] Queued message ${fullMessage.messageId}: ${message.type} from ${message.sourceCouncilId} to ${message.targetCouncilId}`);
 
     // Process asynchronously
     this.processMessageQueue();
@@ -360,7 +360,7 @@ export class FederationService {
       }
     }
 
-    console.log(`[Federation] Received response to ${messageId} from ${message.sourceCouncilId}`);
+    console.error(`[Federation] Received response to ${messageId} from ${message.sourceCouncilId}`);
   }
 
   /**
@@ -403,7 +403,7 @@ export class FederationService {
     session.status = 'completed';
     session.completedAt = Date.now();
 
-    console.log(`[Federation] Synthesized results for session ${sessionId} with ${contributions.length} contributions`);
+    console.error(`[Federation] Synthesized results for session ${sessionId} with ${contributions.length} contributions`);
 
     return result;
   }
@@ -576,7 +576,7 @@ export class FederationService {
     message.status = 'responded';
     this.processingMessages.delete(message.messageId);
 
-    console.log(`[Federation] Processed message ${message.messageId}`);
+    console.error(`[Federation] Processed message ${message.messageId}`);
   }
 
   private async advanceToSynthesis(sessionId: string): Promise<void> {

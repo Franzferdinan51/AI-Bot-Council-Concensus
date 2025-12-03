@@ -59,6 +59,56 @@ export class Logger {
       timestampFormat: 'iso',
       prettyPrint: true
     };
+    // Store original console methods to avoid recursion and ensure we can always write to stderr
+    this.originalConsole = {
+      log: console.log.bind(console),
+      error: console.error.bind(console),
+      warn: console.warn.bind(console),
+      info: console.info.bind(console),
+      debug: console.debug.bind(console)
+    };
+  }
+
+  private originalConsole: {
+    log: (message?: any, ...optionalParams: any[]) => void;
+    error: (message?: any, ...optionalParams: any[]) => void;
+    warn: (message?: any, ...optionalParams: any[]) => void;
+    info: (message?: any, ...optionalParams: any[]) => void;
+    debug: (message?: any, ...optionalParams: any[]) => void;
+  };
+
+  /**
+   * Override global console methods to redirect to logger
+   * This ensures all logs (including from libraries) are captured and directed to stderr
+   */
+  overrideConsole(): void {
+    console.log = (message?: any, ...optionalParams: any[]) => {
+      this.info(this.formatMessage(message, optionalParams), {}, 'Console');
+    };
+
+    console.error = (message?: any, ...optionalParams: any[]) => {
+      this.error(this.formatMessage(message, optionalParams), undefined, {}, 'Console');
+    };
+
+    console.warn = (message?: any, ...optionalParams: any[]) => {
+      this.warn(this.formatMessage(message, optionalParams), {}, 'Console');
+    };
+
+    console.info = (message?: any, ...optionalParams: any[]) => {
+      this.info(this.formatMessage(message, optionalParams), {}, 'Console');
+    };
+
+    console.debug = (message?: any, ...optionalParams: any[]) => {
+      this.debug(this.formatMessage(message, optionalParams), {}, 'Console');
+    };
+  }
+
+  private formatMessage(message: any, args: any[]): string {
+    let msg = typeof message === 'string' ? message : JSON.stringify(message);
+    if (args.length > 0) {
+      msg += ' ' + args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+    }
+    return msg;
   }
 
   static getInstance(): Logger {
@@ -314,7 +364,7 @@ export class Logger {
     // Output to file
     if (this.config.outputToFile) {
       this.outputToFile(entry).catch(err => {
-        console.error('[Logger] Failed to write to file:', err);
+        this.originalConsole.error('[Logger] Failed to write to file:', err);
       });
     }
   }
@@ -332,18 +382,18 @@ export class Logger {
 
     switch (entry.level) {
       case LogLevel.DEBUG:
-        // Use console.error for all logs to avoid interfering with MCP stdout protocol
-        console.error(logLine);
+        // Use original console.error for all logs to avoid interfering with MCP stdout protocol
+        this.originalConsole.error(logLine);
         break;
       case LogLevel.INFO:
-        console.error(logLine);
+        this.originalConsole.error(logLine);
         break;
       case LogLevel.WARN:
-        console.error(logLine);
+        this.originalConsole.error(logLine);
         break;
       case LogLevel.ERROR:
       case LogLevel.CRITICAL:
-        console.error(logLine);
+        this.originalConsole.error(logLine);
         break;
     }
   }
@@ -380,7 +430,7 @@ export class Logger {
       }
     } catch (error) {
       // Fallback to console error if file writing fails
-      console.error('[Logger] Failed to write to file:', error);
+      this.originalConsole.error('[Logger] Failed to write to file:', error);
     }
   }
 

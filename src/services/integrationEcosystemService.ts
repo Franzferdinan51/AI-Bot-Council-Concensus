@@ -67,13 +67,13 @@ export class IntegrationEcosystemService {
   private config: IntegrationConfig = {};
   private configFile: string = './config/integrations.json';
 
-  constructor() {}
+  constructor() { }
 
   async initialize(): Promise<void> {
     try {
       await fs.mkdir('./config', { recursive: true });
       await this.loadConfig();
-      console.log('[IntegrationEcosystem] Service initialized');
+      console.error('[IntegrationEcosystem] Service initialized');
     } catch (error) {
       console.error('[IntegrationEcosystem] Failed to initialize:', error);
     }
@@ -82,25 +82,25 @@ export class IntegrationEcosystemService {
   async configureSlack(config: SlackIntegration): Promise<void> {
     this.config.slack = config;
     await this.saveConfig();
-    console.log('[IntegrationEcosystem] Slack integration configured');
+    console.error('[IntegrationEcosystem] Slack integration configured');
   }
 
   async configureGitHub(config: GitHubIntegration): Promise<void> {
     this.config.github = config;
     await this.saveConfig();
-    console.log('[IntegrationEcosystem] GitHub integration configured');
+    console.error('[IntegrationEcosystem] GitHub integration configured');
   }
 
   async configureJira(config: JiraIntegration): Promise<void> {
     this.config.jira = config;
     await this.saveConfig();
-    console.log('[IntegrationEcosystem] Jira integration configured');
+    console.error('[IntegrationEcosystem] Jira integration configured');
   }
 
   async configureWebhooks(webhooks: IntegrationConfig['webhooks']): Promise<void> {
     this.config.webhooks = webhooks;
     await this.saveConfig();
-    console.log('[IntegrationEcosystem] Webhooks configured');
+    console.error('[IntegrationEcosystem] Webhooks configured');
   }
 
   async notifySessionStart(sessionId: string, topic: string): Promise<IntegrationResult[]> {

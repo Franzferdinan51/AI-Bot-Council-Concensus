@@ -264,7 +264,7 @@ export class EnhancedSwarmCodingService {
     }
   ];
 
-  constructor() {}
+  constructor() { }
 
   async executeEnhancedSwarmCoding(
     sessionId: string,
@@ -303,7 +303,7 @@ export class EnhancedSwarmCodingService {
     const phasesToExecute = this.getPhasesForMode(pipelineMode);
     const totalPhases = phasesToExecute.length;
 
-    console.log(`[EnhancedSwarmCoding] Starting ${pipelineMode} mode (${totalPhases} phases) for session ${sessionId}`);
+    console.error(`[EnhancedSwarmCoding] Starting ${pipelineMode} mode (${totalPhases} phases) for session ${sessionId}`);
 
     // Notify via WebSocket
     websocketService.sendToSession(sessionId, {
@@ -319,17 +319,15 @@ export class EnhancedSwarmCodingService {
       const phase = phasesToExecute[i];
 
       try {
-        console.log(`[EnhancedSwarmCoding] Executing Phase ${phase.id}: ${phase.name}`);
+        console.error(`[EnhancedSwarmCoding] Executing Phase ${phase.id}: ${phase.name}`);
 
-        sessionService.updateSessionStatus(sessionId, SessionStatus.DEATING);
+        sessionService.updateSessionStatus(sessionId, SessionStatus.DEBATING);
         sessionService.addMessage(sessionId, {
-          id: this.generateId(),
           author: 'System',
           authorType: 'system' as any,
           content: `PHASE ${phase.id}/${this.phases.length}: ${phase.name} - ${phase.description}`,
           color: '#0066cc',
-          roleLabel: 'SYSTEM',
-          timestamp: Date.now()
+          roleLabel: 'SYSTEM'
         });
 
         // Notify via WebSocket
@@ -360,7 +358,7 @@ export class EnhancedSwarmCodingService {
           data: { phase: phase.id, phaseName: phase.name, status: 'completed' }
         });
 
-        console.log(`[EnhancedSwarmCoding] Phase ${phase.id} completed successfully`);
+        console.error(`[EnhancedSwarmCoding] Phase ${phase.id} completed successfully`);
 
         // Short delay between phases
         await this.delay(1000);
@@ -387,13 +385,11 @@ export class EnhancedSwarmCodingService {
     results.metadata.duration = results.metadata.endTime - startTime;
 
     sessionService.addMessage(sessionId, {
-      id: this.generateId(),
       author: 'System',
       authorType: 'system' as any,
       content: `Enhanced Swarm Coding Complete! Executed ${results.metadata.phasesSuccessful}/${results.metadata.phasesExecuted} phases in ${(results.metadata.duration / 1000).toFixed(2)}s`,
       color: '#00aa00',
-      roleLabel: 'SYSTEM',
-      timestamp: Date.now()
+      roleLabel: 'SYSTEM'
     });
 
     // Notify via WebSocket
@@ -402,7 +398,7 @@ export class EnhancedSwarmCodingService {
       data: { message: 'All phases completed', duration: results.metadata.duration }
     });
 
-    console.log(`[EnhancedSwarmCoding] Execution complete`);
+    console.error(`[EnhancedSwarmCoding] Execution complete`);
 
     return results;
   }
