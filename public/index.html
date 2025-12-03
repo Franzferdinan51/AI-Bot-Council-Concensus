@@ -214,109 +214,172 @@
             <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Select Tool</label>
             <select id="tool-select"
               class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
-
-              <!-- LOGS VIEW -->
-              <div id="view-logs" class="hidden h-full flex flex-col animate-fade-in">
-                <div class="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden">
-                  <div class="p-3 border-b border-gray-800 bg-gray-900/50 flex justify-between items-center">
-                    <div class="flex gap-2">
-                      <button onclick="filterLogs('ALL')"
-                        class="px-3 py-1 rounded text-xs font-medium bg-gray-800 text-white hover:bg-gray-700 transition-colors active-filter"
-                        data-filter="ALL">All</button>
-                      <button onclick="filterLogs('ERROR')"
-                        class="px-3 py-1 rounded text-xs font-medium bg-gray-900 text-gray-400 hover:text-red-400 hover:bg-gray-800 transition-colors"
-                        data-filter="ERROR">Errors</button>
-                      <button onclick="filterLogs('WARN')"
-                        class="px-3 py-1 rounded text-xs font-medium bg-gray-900 text-gray-400 hover:text-amber-400 hover:bg-gray-800 transition-colors"
-                        data-filter="WARN">Warnings</button>
-                      <button onclick="filterLogs('TOOL')"
-                        class="px-3 py-1 rounded text-xs font-medium bg-gray-900 text-gray-400 hover:text-blue-400 hover:bg-gray-800 transition-colors"
-                        data-filter="TOOL">Tools</button>
-                    </div>
-                    <button onclick="clearLogs()" class="text-xs text-gray-500 hover:text-white">Clear Logs</button>
-                  </div>
-                  <div id="full-log-view" class="flex-1 overflow-auto p-4 font-mono text-xs space-y-1 bg-gray-950">
-                    <!-- Logs injected here -->
-                  </div>
-                </div>
-              </div>
-
-              <!-- SESSIONS VIEW -->
-              <div id="view-sessions" class="hidden animate-fade-in space-y-6">
-                <div class="flex justify-between items-center">
-                  <h3 class="text-lg font-semibold text-white">Active Sessions</h3>
-                  <button onclick="refreshSessions()" class="text-sm text-indigo-400 hover:text-indigo-300">Refresh
-                    List</button>
-                </div>
-                <div id="sessions-list" class="grid grid-cols-1 gap-4">
-                  <!-- Session cards injected here -->
-                  <div class="text-center text-gray-500 py-10">Loading sessions...</div>
-                </div>
-              </div>
-
-              <!-- CONFIG VIEW -->
-              <div id="view-config" class="hidden animate-fade-in max-w-4xl mx-auto">
-                <div class="glass-panel rounded-xl overflow-hidden">
-                  <div class="p-6 border-b border-gray-800">
-                    <h3 class="text-lg font-semibold text-white">Server Configuration</h3>
-                    <p class="text-sm text-gray-400 mt-1">Update environment variables and provider settings.</p>
-                  </div>
-                  <div class="p-6 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase">Gemini API Key</label>
-                        <input type="password" id="cfg-gemini"
-                          class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 outline-none"
-                          placeholder="sk-...">
-                      </div>
-                      <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase">OpenRouter Key</label>
-                        <input type="password" id="cfg-openrouter"
-                          class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 outline-none"
-                          placeholder="sk-or-...">
-                      </div>
-                      <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase">Search Provider</label>
-                        <select id="cfg-search"
-                          class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 outline-none">
-                          <option value="duckduckgo">DuckDuckGo (Free)</option>
-                          <option value="brave">Brave Search</option>
-                          <option value="tavily">Tavily</option>
-                          <option value="serper">Serper (Google)</option>
-                        </select>
-                      </div>
-                      <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase">Search API Key</label>
-                        <input type="password" id="cfg-search-key"
-                          class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 outline-none"
-                          placeholder="Key for selected provider...">
-                      </div>
-                    </div>
-
-                    <div class="pt-4 border-t border-gray-800 flex justify-end">
-                      <button onclick="saveConfig()"
-                        class="bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg transition-all transform active:scale-[0.98]">
-                        Save Changes
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Bot Configuration -->
-                <div class="glass-panel rounded-xl overflow-hidden mt-6">
-                  <div class="p-6 border-b border-gray-800">
-                    <h3 class="text-lg font-semibold text-white">Bot Personas</h3>
-                    <p class="text-sm text-gray-400 mt-1">Customize the personality and models for each council member.
-                    </p>
-                  </div>
-                  <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4" id="bot-config-container">
-                    <!-- Bots injected here -->
-                    <div class="text-center text-gray-500 col-span-2">Loading bots...</div>
-                  </div>
-                </div>
-              </div>
-
+            </select>
+            <p id="tool-description" class="text-gray-400 text-xs mt-3 leading-relaxed min-h-[2.5em]"></p>
           </div>
+
+          <div class="glass-panel rounded-xl flex-1 flex flex-col min-h-0 overflow-hidden relative">
+            <div class="p-3 border-b border-gray-800 bg-gray-900/30 flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-gray-400 uppercase">Arguments</label>
+                <div class="flex bg-gray-800 rounded p-0.5">
+                  <button id="mode-form"
+                    class="px-2 py-0.5 text-[10px] font-bold rounded bg-indigo-600 text-white transition-all">Form</button>
+                  <button id="mode-json"
+                    class="px-2 py-0.5 text-[10px] font-bold rounded text-gray-400 hover:text-white transition-all">JSON</button>
+                </div>
+              </div>
+              <button id="format-json" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium hidden">Format
+                JSON</button>
+            </div>
+
+            <!-- Form View -->
+            <div id="tool-form-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+              <div class="text-center text-gray-500 text-sm mt-10">Select a tool to generate form.</div>
+            </div>
+
+            <!-- JSON View -->
+            <textarea id="tool-args"
+              class="hidden flex-1 bg-gray-950 p-4 font-mono text-sm text-green-400 outline-none resize-none border-none focus:ring-0 w-full h-full"
+              spellcheck="false">{}</textarea>
+          </div>
+
+          <button id="run-tool"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-900/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
+            <span>▶</span> Execute Tool
+          </button>
+
+          <!-- History -->
+          <div class="glass-panel rounded-xl flex flex-col h-48 overflow-hidden">
+            <div class="p-3 border-b border-gray-800 bg-gray-900/30">
+              <label class="text-xs font-bold text-gray-400 uppercase">History</label>
+            </div>
+            <div id="tool-history" class="flex-1 overflow-y-auto p-0">
+              <div class="text-center text-gray-500 text-xs py-4">No recent runs.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Output -->
+        <div class="w-full md:w-1/2 glass-panel rounded-xl flex flex-col h-full overflow-hidden">
+          <div class="p-3 border-b border-gray-800 bg-gray-900/30 flex justify-between items-center">
+            <div class="flex gap-4">
+              <span class="text-xs font-bold text-gray-400 uppercase">Output</span>
+              <div class="flex gap-2 text-[10px] font-bold">
+                <button id="out-tab-preview"
+                  class="text-indigo-400 border-b-2 border-indigo-400 pb-0.5">Preview</button>
+                <button id="out-tab-json" class="text-gray-500 hover:text-gray-300 pb-0.5">Raw JSON</button>
+              </div>
+            </div>
+            <span id="execution-time" class="text-xs text-gray-500 font-mono"></span>
+          </div>
+          <div id="tool-output" class="flex-1 overflow-auto p-4 font-mono text-sm text-gray-300 bg-gray-950/50">
+            <div class="text-gray-600 italic text-center mt-20">Select a tool and run it to see results here.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOGS VIEW -->
+      <div id="view-logs" class="hidden h-full flex flex-col animate-fade-in">
+        <div class="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden">
+          <div class="p-3 border-b border-gray-800 bg-gray-900/50 flex justify-between items-center">
+            <div class="flex gap-2">
+              <button onclick="filterLogs('ALL')"
+                class="px-3 py-1 rounded text-xs font-medium bg-gray-800 text-white hover:bg-gray-700 transition-colors active-filter"
+                data-filter="ALL">All</button>
+              <button onclick="filterLogs('ERROR')"
+                class="px-3 py-1 rounded text-xs font-medium bg-gray-900 text-gray-400 hover:text-red-400 hover:bg-gray-800 transition-colors"
+                data-filter="ERROR">Errors</button>
+              <button onclick="filterLogs('WARN')"
+                class="px-3 py-1 rounded text-xs font-medium bg-gray-900 text-gray-400 hover:text-amber-400 hover:bg-gray-800 transition-colors"
+                data-filter="WARN">Warnings</button>
+              <button onclick="filterLogs('TOOL')"
+                class="px-3 py-1 rounded text-xs font-medium bg-gray-900 text-gray-400 hover:text-blue-400 hover:bg-gray-800 transition-colors"
+                data-filter="TOOL">Tools</button>
+            </div>
+            <button onclick="clearLogs()" class="text-xs text-gray-500 hover:text-white">Clear Logs</button>
+          </div>
+          <div id="full-log-view" class="flex-1 overflow-auto p-4 font-mono text-xs space-y-1 bg-gray-950">
+            <!-- Logs injected here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SESSIONS VIEW -->
+      <div id="view-sessions" class="hidden animate-fade-in space-y-6">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-white">Active Sessions</h3>
+          <button onclick="refreshSessions()" class="text-sm text-indigo-400 hover:text-indigo-300">Refresh
+            List</button>
+        </div>
+        <div id="sessions-list" class="grid grid-cols-1 gap-4">
+          <!-- Session cards injected here -->
+          <div class="text-center text-gray-500 py-10">Loading sessions...</div>
+        </div>
+      </div>
+
+      <!-- CONFIG VIEW -->
+      <div id="view-config" class="hidden animate-fade-in max-w-4xl mx-auto">
+        <div class="glass-panel rounded-xl overflow-hidden">
+          <div class="p-6 border-b border-gray-800">
+            <h3 class="text-lg font-semibold text-white">Server Configuration</h3>
+            <p class="text-sm text-gray-400 mt-1">Update environment variables and provider settings.</p>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-400 uppercase">Gemini API Key</label>
+                <input type="password" id="cfg-gemini"
+                  class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 outline-none"
+                  placeholder="sk-...">
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-400 uppercase">OpenRouter Key</label>
+                <input type="password" id="cfg-openrouter"
+                  class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 outline-none"
+                  placeholder="sk-or-...">
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-400 uppercase">Search Provider</label>
+                <select id="cfg-search"
+                  class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 outline-none">
+                  <option value="duckduckgo">DuckDuckGo (Free)</option>
+                  <option value="brave">Brave Search</option>
+                  <option value="tavily">Tavily</option>
+                  <option value="serper">Serper (Google)</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-400 uppercase">Search API Key</label>
+                <input type="password" id="cfg-search-key"
+                  class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:border-indigo-500 outline-none"
+                  placeholder="Key for selected provider...">
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-800 flex justify-end">
+              <button onclick="saveConfig()"
+                class="bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg transition-all transform active:scale-[0.98]">
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bot Configuration -->
+        <div class="glass-panel rounded-xl overflow-hidden mt-6">
+          <div class="p-6 border-b border-gray-800">
+            <h3 class="text-lg font-semibold text-white">Bot Personas</h3>
+            <p class="text-sm text-gray-400 mt-1">Customize the personality and models for each council member.</p>
+          </div>
+          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4" id="bot-config-container">
+            <!-- Bots injected here -->
+            <div class="text-center text-gray-500 col-span-2">Loading bots...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </main>
 
   <script src="debug.js"></script>
