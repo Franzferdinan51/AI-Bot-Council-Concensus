@@ -33,7 +33,7 @@ export enum AuthorType {
 /**
  * Bot role types within the council
  */
-export type BotRole = 'speaker' | 'councilor' | 'specialist' | 'moderator' | 'swarm_agent';
+export type BotRole = 'speaker' | 'councilor' | 'specialist' | 'moderator' | 'swarm_agent' | 'system';
 
 /**
  * Session modes for council discussions

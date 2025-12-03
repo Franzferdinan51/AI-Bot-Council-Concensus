@@ -42,24 +42,11 @@ function loadProviderSettings() {
   };
 }
 
-async function bootstrap() {
-  await sessionService.initialize();
-
-  const settings = {
-    ...DEFAULT_SETTINGS,
-    providers: loadProviderSettings(),
-    bots: DEFAULT_SETTINGS.bots.map(b => ({ ...b }))
-  };
-
-  const aiService = new AIService(settings.providers);
-  const orchestrator = new CouncilOrchestrator(aiService);
-
-  const allTools = [
-    ...createCouncilSessionTools(orchestrator),
-    ...createManagementTools(),
-    ...createAutoSessionTools(orchestrator)
-  ];
-
+export async function startHttpServer(
+  orchestrator: CouncilOrchestrator,
+  allTools: any[],
+  port: number = 4000
+) {
   const server = http.createServer(async (req, res) => {
     try {
       if (!req.url) return;
@@ -84,7 +71,7 @@ async function bootstrap() {
           const stats = {
             uptime: process.uptime(),
             memory: process.memoryUsage(),
-            activeSessions: sessionService.listSessions().length, // Simplified
+            activeSessions: sessionService.listSessions().length,
             totalRequests: 0 // Placeholder
           };
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -101,8 +88,14 @@ async function bootstrap() {
         }
 
         if (req.method === 'GET' && pathname === '/api/config') {
+          // Re-load settings to get latest
+          const currentSettings = {
+            ...DEFAULT_SETTINGS,
+            providers: loadProviderSettings(),
+            bots: DEFAULT_SETTINGS.bots
+          };
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify(settings));
+          res.end(JSON.stringify(currentSettings));
           return;
         }
       }
@@ -210,10 +203,36 @@ async function bootstrap() {
     }
   });
 
-  server.listen(PORT, () => {
-    console.error(`[HTTP Bridge] Web UI available at http://localhost:${PORT}`);
-    console.error(`[HTTP Bridge] API available at http://localhost:${PORT}/health`);
+  server.listen(port, () => {
+    console.error(`[HTTP] Web UI available at http://localhost:${port}`);
+    console.error(`[HTTP] API available at http://localhost:${port}/health`);
   });
+
+  return server;
+}
+
+async function bootstrap() {
+  // Only run if called directly
+  if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    await sessionService.initialize();
+
+    const settings = {
+      ...DEFAULT_SETTINGS,
+      providers: loadProviderSettings(),
+      bots: DEFAULT_SETTINGS.bots.map(b => ({ ...b }))
+    };
+
+    const aiService = new AIService(settings.providers);
+    const orchestrator = new CouncilOrchestrator(aiService);
+
+    const allTools = [
+      ...createCouncilSessionTools(orchestrator),
+      ...createManagementTools(),
+      ...createAutoSessionTools(orchestrator)
+    ];
+
+    await startHttpServer(orchestrator, allTools, PORT);
+  }
 }
 
 function readJsonBody(req: http.IncomingMessage): Promise<any> {

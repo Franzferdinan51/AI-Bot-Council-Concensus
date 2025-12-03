@@ -16,7 +16,7 @@ async function verify() {
     try {
         const result = await handleCouncilToolCall('council_diagnostics', { verbose: true }, mockOrchestrator);
 
-        if (result.content && result.content[0] && result.content[0].text) {
+        if (result.content && result.content[0] && result.content[0].type === 'text') {
             console.log('Diagnostics Output Preview:');
             console.log(result.content[0].text.substring(0, 500) + '...');
 

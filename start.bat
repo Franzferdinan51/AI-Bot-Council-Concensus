@@ -24,16 +24,16 @@ echo ===============================================
 echo.
 echo Welcome! Choose an option:
 echo.
-echo   1. Quick Start (Start Server Now)
+echo   1. Quick Start (Start Server + Web UI)
 echo   2. Interactive Setup Wizard (Configure AI providers, personas, settings)
 echo      NEW: Includes Dynamic Persona Selection for topic-specific expertise!
 echo   3. Configure Bot Models (Set custom models for each persona)
 echo      NEW: Dynamic Persona Selection available via API calls
 echo   4. Configuration Check (Verify setup)
-echo   5. Development Mode (with auto-reload)
+echo   5. Development Mode (with auto-reload + Web UI)
 echo   6. Open Documentation (View README, setup guides)
 echo   7. View .env file
-echo   8. Start HTTP Bridge (/health, /list-tools, /call-tool)
+echo   8. Launch Web UI Only (No Stdio)
 echo   9. Generate mcp.json from environment
 echo  10. Exit
 echo.
@@ -87,6 +87,9 @@ if "%LOAD_ENV%"=="false" (
 ) else (
     echo [WARNING] No .env file found
 )
+
+if "%HTTP_PORT%"=="" set HTTP_PORT=4000
+echo [INFO] HTTP Port set to: %HTTP_PORT%
 
 :: Install dependencies
 echo [INFO] Installing dependencies...
@@ -172,6 +175,10 @@ echo.
 echo Starting in development mode with auto-reload...
 echo.
 
+if exist ".env" call :load_env
+if "%HTTP_PORT%"=="" set HTTP_PORT=4000
+echo [INFO] HTTP Port set to: %HTTP_PORT%
+
 call :check_node_version
 if errorlevel 1 (
     echo.
@@ -251,17 +258,22 @@ call npm install
 echo [INFO] Building server...
 call npm run build
 
+setlocal
+if "%HTTP_PORT%"=="" set HTTP_PORT=4000
+
 echo.
 echo [SUCCESS] Starting HTTP bridge on port %HTTP_PORT% (default 4000)...
 echo.
 echo   Web UI: http://localhost:%HTTP_PORT%
 echo   API:    http://localhost:%HTTP_PORT%/health
 echo.
+echo Opening Web UI in default browser...
 echo Press Ctrl+C to stop the bridge.
 echo.
-setlocal
-if "%HTTP_PORT%"=="" set HTTP_PORT=4000
-npm run start:http
+
+timeout /t 2 >nul
+start "" "http://localhost:%HTTP_PORT%"
+call npm run start:http
 endlocal
 
 echo.

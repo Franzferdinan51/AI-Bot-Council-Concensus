@@ -386,6 +386,7 @@ Return ONLY a JSON object with this structure:
       authorType: AuthorType.GEMINI, // Default to Gemini, will fallback if not available
       model: 'gemini-2.0-flash-exp',
       persona: 'You are an expert team builder.',
+      color: '#808080',
       enabled: true
     };
 

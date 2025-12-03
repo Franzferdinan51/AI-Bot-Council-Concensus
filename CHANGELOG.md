@@ -32,6 +32,19 @@
     - **Tool Tester**: Interactive interface to test MCP tools with JSON arguments.
     - **Configuration**: Visual editor for AI provider settings.
 
+  - **Dual Mode Support**:
+    - Integrated HTTP Server into main process (`index.ts`).
+    - **All startup modes** (Quick Start, Dev Mode, etc.) now support the Web UI and n8n integration simultaneously with standard MCP operation.
+    - Updated `start.bat` to ensure `HTTP_PORT` is set globally.
+
+### Fixed
+
+- **Build & Startup**:
+  - Fixed syntax errors and undefined variables in `webSearch.ts`.
+  - Fixed type errors in `verify-diagnostics.ts` and `personaSuggestionService.ts`.
+  - Fixed `start.bat` crash when launching Web UI (Option 8).
+  - Fixed `start.bat` variable expansion for port configuration.
+
 - **Configuration Externalization**:
   - Moved system prompts to `src/config/prompts.json`.
   - Moved bot definitions and persona presets to `src/config/bots.json`.

@@ -385,11 +385,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest 
   );
 });
 
+import { startHttpServer } from './httpBridge.js';
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   logServer.logConnection('connected');
-  logServer.logReady();
+
+  // Start HTTP Server for Web UI and n8n
+  const httpPort = Number(process.env.HTTP_PORT || 4000);
+  try {
+    await startHttpServer(orchestrator, allTools, httpPort);
+    logServer.logReady();
+    console.error(`[SERVER] HTTP Bridge active on port ${httpPort}`);
+  } catch (err) {
+    console.error(`[SERVER] Failed to start HTTP Bridge: ${err}`);
+  }
 }
 
 main().catch((error) => {
