@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "moduleResolution": "bundler",
     "strict": false,
     "noImplicitAny": false,
@@ -14,10 +16,13 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules",
     "dist",
+    "src/frontend",
     "src/services/multimodalAnalysisService.ts",
     "src/services/vectorDatabaseService.ts",
     "src/services/conversationIntelligenceService.ts",

@@ -17,6 +17,7 @@ import { searchMemories, searchDocuments, saveMemory } from './knowledgeService.
 import { protectionService } from './protectionService.js';
 import { predictionTrackingService } from './predictionTrackingService.js';
 import { logger } from './logger.js';
+import { councilEventBus } from './councilEventBus.js';
 
 import { registerAgentTools } from '../tools/agentTools/index.js';
 import { toolRegistry } from '../tools/agentTools/registry.js';
@@ -678,6 +679,16 @@ ${toolDefs}
 
     // IMPORTANT: Capture the returned message which has the correct ID
     const storedMsg = sessionService.addMessage(sessionId, initialMsg);
+
+    // Emit speaker change event
+    councilEventBus.emitEvent('speaker_change', sessionId, {
+      messageId: storedMsg.id,
+      botName: bot.name,
+      role: roleLabel,
+      avatar: bot.avatar || 'default', // Assuming avatar might be added later
+      color: bot.color
+    });
+
     let currentContent = "...";
 
     try {
@@ -689,6 +700,12 @@ ${toolDefs}
           // Update the message with streaming content
           currentContent += chunk;
           sessionService.updateMessage(sessionId, storedMsg.id, { content: currentContent });
+
+          // Emit token event for typewriter effect
+          councilEventBus.emitEvent('token', sessionId, {
+            messageId: storedMsg.id,
+            chunk: chunk
+          });
         }
       );
 

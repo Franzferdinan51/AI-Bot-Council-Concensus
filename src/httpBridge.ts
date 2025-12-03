@@ -12,6 +12,8 @@ import { createManagementTools, handleManagementToolCall } from './tools/managem
 import { createAutoSessionTools, handleAutoSessionToolCall } from './tools/autoSessionTools.js';
 import { errorHandler } from './services/errorHandler.js';
 import { logger } from './services/logger.js';
+import { councilEventBus } from './services/councilEventBus.js';
+import { BotConfigService } from './services/botConfigService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,7 +94,7 @@ export async function startHttpServer(
           const currentSettings = {
             ...DEFAULT_SETTINGS,
             providers: loadProviderSettings(),
-            bots: DEFAULT_SETTINGS.bots
+            bots: BotConfigService.getConfiguredBots()
           };
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify(currentSettings));
@@ -125,6 +127,112 @@ export async function startHttpServer(
             console.error('Failed to save config:', err);
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Failed to save configuration' }));
+          }
+          return;
+        }
+
+        if (req.method === 'POST' && pathname === '/api/config/bots') {
+          const body = await readJsonBody(req);
+          const bots = body.bots;
+
+          if (!Array.isArray(bots)) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid bots configuration' }));
+            return;
+          }
+
+          try {
+            const success = BotConfigService.saveBotsToFile(bots);
+            if (success) {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, message: 'Bots configuration saved' }));
+            } else {
+              throw new Error('Failed to write to file');
+            }
+          } catch (err: any) {
+            console.error('Failed to save bots config:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to save bots configuration' }));
+          }
+          return;
+        }
+
+        if (req.method === 'GET' && pathname === '/api/events') {
+          res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': '*'
+          });
+
+          const sendEvent = (event: any) => {
+            res.write(`data: ${JSON.stringify(event)}\n\n`);
+          };
+
+          // Subscribe to all event types
+          const handler = (event: any) => sendEvent(event);
+          councilEventBus.on('council_event', handler);
+
+          // Send initial connection event
+          sendEvent({ type: 'connected', timestamp: Date.now() });
+
+          // Cleanup on close
+          req.on('close', () => {
+            councilEventBus.off('council_event', handler);
+          });
+          return;
+        }
+
+        if (req.method === 'POST' && pathname === '/api/session/start') {
+          const body = await readJsonBody(req);
+          const { topic, mode, settings, context, userPrompt, attachments } = body;
+
+          try {
+            const sessionId = sessionService.createSession(topic, mode, settings || DEFAULT_SETTINGS, context, userPrompt, attachments);
+
+            // Run asynchronously
+            orchestrator.runCouncilSession(sessionId, topic, mode, settings || DEFAULT_SETTINGS, context, userPrompt, attachments)
+              .then(() => {
+                console.log(`[HTTP] Session ${sessionId} completed`);
+              })
+              .catch(err => {
+                console.error(`[HTTP] Session ${sessionId} failed:`, err);
+                councilEventBus.emitEvent('error', sessionId, { error: err.message });
+              });
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, sessionId }));
+          } catch (err: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+          return;
+        }
+
+        if (req.method === 'POST' && pathname === '/api/session/stop') {
+          const body = await readJsonBody(req);
+          const { sessionId } = body;
+          if (sessionId) {
+            orchestrator.stopSession(sessionId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true }));
+          } else {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'sessionId required' }));
+          }
+          return;
+        }
+
+        if (req.method === 'POST' && pathname === '/api/session/pause') {
+          const body = await readJsonBody(req);
+          const { sessionId } = body;
+          if (sessionId) {
+            orchestrator.pauseSession(sessionId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true }));
+          } else {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'sessionId required' }));
           }
           return;
         }

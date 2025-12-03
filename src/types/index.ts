@@ -125,6 +125,8 @@ export interface BotConfig {
   voiceIndex?: number;
   /** Voting weight in decisions (default: 1.0) */
   weight?: number;
+  /** Avatar image URL or icon name (optional) */
+  avatar?: string;
 }
 
 /**

@@ -69,16 +69,63 @@ export class BotConfigService {
     return this.customBotConfigs;
   }
 
+  private static configPath = 'bots.json';
+
+  /**
+   * Load bots from file if exists
+   */
+  static loadBotsFromFile(): BotConfig[] | null {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const fullPath = path.resolve(process.cwd(), this.configPath);
+
+      if (fs.existsSync(fullPath)) {
+        const data = fs.readFileSync(fullPath, 'utf8');
+        const bots = JSON.parse(data);
+        console.log(`[BotConfig] Loaded ${bots.length} bots from ${this.configPath}`);
+        return bots;
+      }
+    } catch (error) {
+      console.error(`[BotConfig] Failed to load bots from file:`, error);
+    }
+    return null;
+  }
+
+  /**
+   * Save bots to file
+   */
+  static saveBotsToFile(bots: BotConfig[]): boolean {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const fullPath = path.resolve(process.cwd(), this.configPath);
+
+      fs.writeFileSync(fullPath, JSON.stringify(bots, null, 2));
+      console.log(`[BotConfig] Saved ${bots.length} bots to ${this.configPath}`);
+      return true;
+    } catch (error) {
+      console.error(`[BotConfig] Failed to save bots to file:`, error);
+      return false;
+    }
+  }
+
   /**
    * Get bots with custom configurations applied
    */
   static getConfiguredBots(): BotConfig[] {
-    // Load custom configs if not already loaded
+    // 1. Try loading from file first (highest priority for persistence)
+    const fileBots = this.loadBotsFromFile();
+    if (fileBots) {
+      return fileBots;
+    }
+
+    // 2. Load custom configs from env vars if not already loaded
     if (this.customBotConfigs.size === 0) {
       this.loadCustomConfigs();
     }
 
-    // Apply custom configs to default bots
+    // 3. Apply custom env configs to default bots
     return DEFAULT_BOTS.map(bot => {
       const customConfig = this.customBotConfigs.get(bot.id);
       if (customConfig) {

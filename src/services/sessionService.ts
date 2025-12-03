@@ -1,5 +1,6 @@
 import { CouncilSession, Message, SessionMode, SessionStatus, VoteData, PredictionData, CodeFile, Attachment, AuthorType } from '../types/index.js';
 import { sqliteStorage } from './sqliteStorageService.js';
+import { councilEventBus } from './councilEventBus.js';
 
 export class SessionService {
   private sessions: Map<string, CouncilSession> = new Map();
@@ -108,6 +109,8 @@ export class SessionService {
       console.error(`[AI Council MCP] [SESSION] ${sessionId} status -> ${status}`);
       // Schedule auto-save
       sqliteStorage.scheduleSave(sessionId, session);
+
+      councilEventBus.emitEvent('status_change', sessionId, { status });
     }
   }
 
@@ -131,6 +134,8 @@ export class SessionService {
     console.error(`[AI Council MCP] [MESSAGE] ${sessionId} author=${fullMessage.author} type=${fullMessage.authorType}`);
     // Schedule auto-save
     sqliteStorage.scheduleSave(sessionId, session);
+
+    councilEventBus.emitEvent('session_update', sessionId, { type: 'new_message', message: fullMessage });
 
     return fullMessage;
   }

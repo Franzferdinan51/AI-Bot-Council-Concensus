@@ -20,6 +20,7 @@ import { createAutoSessionTools, handleAutoSessionToolCall } from './tools/autoS
 import { DEFAULT_SETTINGS } from './types/constants.js';
 import type { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from './services/logger.js';
+import { councilEventBus } from './services/councilEventBus.js';
 
 // Lightweight health check flag
 if (process.argv.includes('--health')) {
@@ -161,6 +162,13 @@ const logServer = {
       context: args?.context,
       userPrompt: args?.userPrompt
     });
+
+    // Emit event for Web UI
+    councilEventBus.emitEvent('tool_call', args?.sessionId || 'system', {
+      name,
+      requestId: args?.requestId,
+      args: args
+    });
   },
 
   logToolComplete(name: string, result?: any, duration?: number) {
@@ -202,6 +210,14 @@ const logServer = {
     logger.tool(name, result?.content?.[0]?.text?.includes('session-') ? result.content[0].text.match(/session-[0-9]+/)?.[0] : undefined, isError ? 'error' : 'completed', duration, {
       status: isError ? 'failed' : 'success',
       resultType: result?.content?.length || 0
+    });
+
+    // Emit event for Web UI
+    councilEventBus.emitEvent('tool_complete', 'system', {
+      name,
+      duration,
+      status: isError ? 'failed' : 'success',
+      resultPreview: result?.content?.[0]?.text?.substring(0, 200)
     });
   },
 
