@@ -126,7 +126,7 @@ This server provides **14+ MCP tools** organized in three categories:
 - `council_get_transcript` - Get formatted transcript (text/markdown/json) ⭐
 - `council_stop_session` - Stop a session
 - `council_pause_session` - Pause/resume a session
-- `council_diagnostics` - Server health check and diagnostics ⭐
+- `council_diagnostics` - Server health check with presets (quick, full, connectivity) ⭐
 
 #### 3. Management Tools (9 tools)
 - `council_list_bots` - List all councilor bots
@@ -550,7 +550,7 @@ MINIMAX_ENDPOINT=https://api.minimax.chat/v1/text/chatcompletion_v2
 Run a legislative proposal session - the standard parliamentary flow.
 
 **Parameters:**
-- `topic` (string, required): The motion to be debated
+- `topic` (string, optional): The motion to be debated (defaults to generic if omitted)
 - `settings` (object, optional): Custom configuration
   - `bots`: Array of bot IDs and enabled status
   - `economyMode`: Use simulated debate for cost savings
@@ -719,9 +719,30 @@ Stop a running session.
 Pause or resume a running session.
 
 **Example:**
-```json
 {
   "sessionId": "session-1701234567890-abc123"
+}
+
+### Diagnostics & Health Checks
+
+#### `council_diagnostics`
+
+Run server health checks and diagnostics.
+
+**Parameters:**
+- `preset` (string, optional): Diagnostic preset
+  - `quick` (default): Basic health check
+  - `full`: Comprehensive audit with config details
+  - `connectivity`: Test AI provider connections
+  - `config`: Validate settings and bots
+- `includeTests` (boolean, optional): Run active connectivity tests (default: false)
+- `verbose` (boolean, optional): Show detailed logs (default: false)
+
+**Example:**
+```json
+{
+  "preset": "connectivity",
+  "includeTests": true
 }
 ```
 

@@ -45,7 +45,7 @@ Management (9):
 19. council_add_document - Add knowledge base document
 20. council_search_documents - Search documents
 21. council_list_documents - List all documents
-22. council_diagnostics - Server health check and diagnostics
+22. council_diagnostics - Server health check and diagnostics (presets: quick, full, connectivity, config)
 
 KEY FEATURES TO LEVERAGE:
 
@@ -160,7 +160,8 @@ BEST PRACTICES:
    - Save important findings with council_add_memory
 
 5. **Session Management**:
-   - Check server health with council_diagnostics()
+   - Check server health with council_diagnostics({ "preset": "quick" })
+   - Check connectivity with council_diagnostics({ "preset": "connectivity", "includeTests": true })
    - List sessions with council_list_sessions()
    - Retrieve transcripts in markdown format for documentation
    - Stop runaway sessions with council_stop_session()

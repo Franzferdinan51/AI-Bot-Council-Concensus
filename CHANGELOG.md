@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.4.1] - 2025-12-03
+
+### Added
+- **Diagnostics**:
+  - Added `preset` parameter to `council_diagnostics` (`quick`, `full`, `connectivity`, `config`).
+  - Added "How to Fix" action items to diagnostic reports.
+  - Added `includeTests` parameter for active connectivity testing.
+
+### Changed
+- **Tool Inputs**:
+  - Made `topic` optional for all council session tools (defaults to generic topic).
+
+### Fixed
+- **Stability**:
+  - Fixed `ReferenceError: require is not defined` in `BotConfigService` (ESM compatibility).
+  - Fixed `TypeError` in `SQLiteStorageService` when binding complex objects.
+
 ## [2.4.0] - 2025-12-02
 
 ### Added

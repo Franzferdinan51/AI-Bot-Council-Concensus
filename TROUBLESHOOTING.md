@@ -23,8 +23,11 @@ This guide helps you diagnose and resolve common issues with the AI Council Cham
 ### Check System Health
 
 ```bash
-# Check configuration
-start.bat -c
+# Check configuration with diagnostics
+council_diagnostics({ "preset": "config" })
+
+# Check connectivity
+council_diagnostics({ "preset": "connectivity", "includeTests": true })
 
 # Check Node.js version
 node -v
