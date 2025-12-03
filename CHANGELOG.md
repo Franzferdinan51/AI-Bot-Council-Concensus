@@ -20,6 +20,10 @@
   - **Diagnostics**:
     - Enhanced `council_diagnostics` tool to check for `bots.json` configuration, council quorum, and all API keys (including search providers).
 
+  - **Startup Script**:
+    - Updated `start.bat` Setup Wizard (Option 2) to include interactive configuration for Search Providers (DuckDuckGo, Brave, Tavily, Serper).
+    - Added environment variable saving for search provider keys.
+
 - **Configuration Externalization**:
   - Moved system prompts to `src/config/prompts.json`.
   - Moved bot definitions and persona presets to `src/config/bots.json`.

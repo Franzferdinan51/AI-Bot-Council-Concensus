@@ -610,6 +610,46 @@ if /i "!OLLAMA_CHOICE!"=="y" (
 
 echo.
 echo [SUCCESS] AI providers configured
+echo.
+echo ===============================================
+echo STEP 1b: Configure Search Provider
+echo ===============================================
+echo.
+echo Choose your Search Provider for web research:
+echo.
+echo   1. DuckDuckGo (Default - Free, no API key required)
+echo   2. Brave Search (Requires API Key)
+echo   3. Tavily (Requires API Key)
+echo   4. Serper (Requires API Key)
+echo.
+
+set SEARCH_PROVIDER=duckduckgo
+set BRAVE_API_KEY=
+set TAVILY_API_KEY=
+set SERPER_API_KEY=
+
+set /p SEARCH_CHOICE="Enter your choice (1-4) [1]: "
+if "!SEARCH_CHOICE!"=="" set SEARCH_CHOICE=1
+
+if "!SEARCH_CHOICE!"=="1" (
+    set SEARCH_PROVIDER=duckduckgo
+    echo Selected: DuckDuckGo
+) else if "!SEARCH_CHOICE!"=="2" (
+    set SEARCH_PROVIDER=brave
+    set /p BRAVE_API_KEY="Enter your Brave Search API Key: "
+) else if "!SEARCH_CHOICE!"=="3" (
+    set SEARCH_PROVIDER=tavily
+    set /p TAVILY_API_KEY="Enter your Tavily API Key: "
+) else if "!SEARCH_CHOICE!"=="4" (
+    set SEARCH_PROVIDER=serper
+    set /p SERPER_API_KEY="Enter your Serper API Key: "
+) else (
+    echo Invalid choice, defaulting to DuckDuckGo.
+    set SEARCH_PROVIDER=duckduckgo
+)
+
+echo.
+echo [SUCCESS] Search provider configured
 pause
 exit /b 0
 
@@ -753,6 +793,12 @@ if defined OLLAMA_ENDPOINT (
 )
 
 echo.
+echo   Search Provider: !SEARCH_PROVIDER!
+if "!SEARCH_PROVIDER!"=="brave" echo   Brave Key: Configured
+if "!SEARCH_PROVIDER!"=="tavily" echo   Tavily Key: Configured
+if "!SEARCH_PROVIDER!"=="serper" echo   Serper Key: Configured
+
+echo.
 echo Environment variables to save:
 echo.
 echo MAX_CONCURRENT_REQUESTS=!MAX_REQUESTS!
@@ -788,6 +834,17 @@ if defined LM_STUDIO_ENDPOINT (
 )
 if defined OLLAMA_ENDPOINT (
     if not "!OLLAMA_ENDPOINT!"=="" echo OLLAMA_ENDPOINT=!OLLAMA_ENDPOINT! >> .env
+)
+
+echo SEARCH_PROVIDER=!SEARCH_PROVIDER! >> .env
+if defined BRAVE_API_KEY (
+    if not "!BRAVE_API_KEY!"=="" echo BRAVE_API_KEY=!BRAVE_API_KEY! >> .env
+)
+if defined TAVILY_API_KEY (
+    if not "!TAVILY_API_KEY!"=="" echo TAVILY_API_KEY=!TAVILY_API_KEY! >> .env
+)
+if defined SERPER_API_KEY (
+    if not "!SERPER_API_KEY!"=="" echo SERPER_API_KEY=!SERPER_API_KEY! >> .env
 )
 
 echo MAX_CONCURRENT_REQUESTS=!MAX_REQUESTS! >> .env
@@ -1359,6 +1416,25 @@ if defined OLLAMA_ENDPOINT (
         echo     Ollama: Configured
         set PROVIDER_CONFIGURED=true
     )
+)
+
+echo   Search Provider:
+if defined SEARCH_PROVIDER (
+    echo     Provider: !SEARCH_PROVIDER!
+    if "!SEARCH_PROVIDER!"=="brave" (
+        if defined BRAVE_API_KEY echo     Key: Configured
+        else echo     Key: [MISSING]
+    )
+    if "!SEARCH_PROVIDER!"=="tavily" (
+        if defined TAVILY_API_KEY echo     Key: Configured
+        else echo     Key: [MISSING]
+    )
+    if "!SEARCH_PROVIDER!"=="serper" (
+        if defined SERPER_API_KEY echo     Key: Configured
+        else echo     Key: [MISSING]
+    )
+) else (
+    echo     Provider: Default (DuckDuckGo)
 )
 if not defined PROVIDER_CONFIGURED (
     echo     None configured
