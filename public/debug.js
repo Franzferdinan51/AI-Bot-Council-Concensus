@@ -259,39 +259,6 @@ window.viewTranscript = async (sessionId) => {
     els.transcriptModal.classList.remove('hidden', 'pointer-events-none');
     // Small delay to allow display:block to apply before opacity transition
     setTimeout(() => {
-        els.transcriptModal.classList.remove('opacity-0');
-        els.transcriptPanel.classList.remove('translate-x-full');
-    }, 10);
-
-    els.transcriptId.textContent = `Session #${sessionId.substring(0, 8)}`;
-    els.transcriptContent.innerHTML = '<div class="text-center text-gray-500 py-10 animate-pulse">Loading transcript...</div>';
-
-    try {
-        const res = await fetch('/call-tool', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: 'council_get_transcript',
-                arguments: { sessionId, format: 'markdown' }
-            })
-        });
-        const data = await res.json();
-
-        if (data.error) throw new Error(data.error);
-
-        // The tool returns content in data.content[0].text
-        const text = data.content?.[0]?.text || "No transcript available.";
-
-        // Simple Markdown Rendering
-        const html = text
-            .replace(/### (.*?)\n/g, '<h3 class="text-lg font-bold text-indigo-400 mt-4 mb-2">$1</h3>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
-            .replace(/`([^`]+)`/g, '<code class="bg-gray-800 px-1 rounded text-amber-300 font-mono text-xs">$1</code>')
-            .replace(/\n/g, '<br>');
-
-        els.transcriptContent.innerHTML = html;
-
-    } catch (e) {
         els.transcriptContent.innerHTML = `<div class="text-red-400 text-center">Failed to load transcript: ${e.message}</div>`;
     }
 };

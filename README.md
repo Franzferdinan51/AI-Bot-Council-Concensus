@@ -1,12 +1,15 @@
-# AI Council Chamber MCP Server
+# AI Council Platform & MCP Server
 
 > ⚠️ **COST WARNING**: This server makes multiple AI API calls during sessions. Council sessions can generate 10-50+ API calls, and Enhanced Swarm Coding uses 12+ phases with parallel execution. **Using paid APIs (OpenAI, Claude, OpenRouter) can result in significant costs.** Use economy mode, test with free tiers, or use local models (Ollama, LM Studio) to control expenses.
 
-A **stand-alone** Model Context Protocol (MCP) server that provides multi-agent legislative simulation and deliberation engine. Transform AI interactions into a parliamentary debate process where diverse personas collaborate, challenge, and reach collective decisions.
+A **comprehensive multi-agent simulation platform** that transforms AI interactions into a parliamentary debate process. Diverse personas collaborate, challenge, and reach collective decisions through structured legislative sessions.
 
 ## 🚀 What This Is
 
-This is a **complete, standalone MCP server** - no web interface needed! Simply install the dependencies, configure your API keys, and start the server. The server provides **13 MCP tools** that can be integrated into any MCP-compatible AI assistant (Claude Desktop, custom MCP clients, etc.).
+This project serves two powerful roles:
+
+1.  **Standalone AI Platform**: A feature-rich **Web Dashboard** for running interactive council sessions, debugging complex workflows, and visualizing multi-agent collaboration—no external tools required.
+2.  **MCP Server**: A fully compliant **Model Context Protocol (MCP)** server providing **13+ tools** to integrate council capabilities directly into Claude Desktop, Cursor, or any MCP-compatible assistant.
 
 ## Quick Start
 
@@ -26,14 +29,7 @@ start.bat    # Windows (shows interactive menu)
 # OR
 ./start.sh   # Linux/Mac
 
-# Helper scripts
-- `npm run mcp` – build + start MCP server (STDIO)
-- `npm run start:http` – start lightweight HTTP bridge (`/health`, `/list-tools`, `/call-tool`)
-- `npm run health` – quick health probe (JSON then exit)
-- `npm run gen:mcp` – generate `mcp.json` from current environment
-
-# Or use the interactive setup wizard
-start.bat    # Then choose option 2 for setup
+# 🚀 Access the Debug Dashboard at: http://localhost:3000
 ```
 
 ## Installation
@@ -92,18 +88,26 @@ start.bat
 # Then choose option 2 from the menu
 ```
 
-### Core Features
+### 🌟 Core Platform Features
 
-- **15 Session Modes**: Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction, Advisory, Arbitration, Negotiation, Brainstorming, Peer Review, Strategic Planning, Design Review, Risk Assessment
-- **20+ Pre-configured Personas**: Technocrat, Ethicist, Pragmatist, Visionary, Sentinel, Historian, Diplomat, Skeptic, and more
-- **Multi-Provider AI Support**: Google Gemini, OpenRouter, LM Studio, Ollama, Z.ai, Moonshot, Minimax, and OpenAI-compatible APIs
-- **Voting & Consensus System**: Structured voting with weighted voting and consensus scores
-- **Prediction Mode**: Superforecasting with probabilistic outcomes
-- **Advisory Mode**: Strategic guidance and best practices consultation across 6 domains
-- **Swarm Coding**: Software development workflow with configurable pipeline modes (6/12/24 phases)
-- **Memory System**: Persisted precedents and knowledge base
-- **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
-- **Real-time Streaming**: Live token streaming for responsive sessions
+#### 🖥️ Interactive Web Dashboard
+- **Visual Session Management**: Create, monitor, and control council sessions in real-time.
+- **Transcript Viewer**: Read beautifully formatted transcripts of debates and decisions.
+- **Tool Tester**: Experiment with all council capabilities using a user-friendly form interface.
+- **Live Monitoring**: Watch real-time logs and token streaming as agents deliberate.
+- **Configuration Editor**: Tweak bot personas, models, and system settings on the fly.
+
+#### 🤖 Advanced Multi-Agent Engine
+- **15+ Session Modes**: From Legislative Proposals and Deep Research to Swarm Coding and Strategic Advisory.
+- **Dynamic Personas**: 20+ pre-configured experts (Technocrat, Ethicist, Visionary) that adapt to the topic.
+- **Bot-Specific Memory**: Agents remember past interactions, precedents, and directives.
+- **Consensus System**: Structured voting, weighted decision-making, and consensus scoring.
+
+#### 🔌 MCP Integration
+- **Universal Compatibility**: Connects seamlessly with Claude Desktop, Cursor, and other MCP clients.
+- **13+ Powerful Tools**: Exposes all platform capabilities as callable tools for your AI assistant.
+
+### Available MCP Tools
 
 ### Available MCP Tools
 
