@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.4.0] - 2025-12-02
+
+### Added
+
+- **Agent Tools**:
+  - Implemented `FileSystemTool` for sandboxed file operations (read, write, list).
+  - Implemented `WebSearchTool` integrating with Tavily or Serper APIs.
+  - Added `ToolRegistry` to manage and expose tools to agents.
+
+- **Configuration Externalization**:
+  - Moved system prompts to `src/config/prompts.json`.
+  - Moved bot definitions and persona presets to `src/config/bots.json`.
+  - Moved model lists and voice maps to `src/config/models.json`.
+  - Added `ConfigLoader` to load settings at runtime.
+
+- **Data Persistence**:
+  - Implemented SQLite storage using `better-sqlite3`.
+  - Added `DatabaseService` and `SQLiteStorageService`.
+  - Migrated session storage from JSON files to SQLite.
+
+### Fixed
+
+- **Swarm Coding Mode**:
+  - Fixed an issue where the orchestrator failed to identify tasks or assign agents due to missing XML formatting instructions in the prompts.
+  - Updated `TASK_PLANNER` and `SPEAKER_DECOMPOSITION` prompts to explicitly request the required output formats.
+
 ## [2.3.3] - 2025-12-02
  
  ### Added
