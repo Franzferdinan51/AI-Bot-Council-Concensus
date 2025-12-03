@@ -38,6 +38,11 @@ if (process.argv.includes('--health')) {
 // This ensures all logs are captured for diagnostics and directed to stderr to protect MCP protocol
 logger.overrideConsole();
 
+// Helper for raw output to bypass logger override
+function rawLog(message: string) {
+  process.stderr.write(message + '\n');
+}
+
 // Enhanced server logging
 const logServer = {
   startTime: Date.now(),
@@ -45,51 +50,51 @@ const logServer = {
   toolCallCount: 0,
 
   logStartup() {
-    console.error('╔════════════════════════════════════════════════════════════╗');
-    console.error('║         AI Council Chamber MCP Server                      ║');
-    console.error('║         Version 1.0.0 - Standalone Mode                   ║');
-    console.error('╚════════════════════════════════════════════════════════════╝');
-    console.error('');
-    console.error(`[SERVER] Starting initialization...`);
-    console.error(`[SERVER] Node.js: ${process.version}`);
-    console.error(`[SERVER] Platform: ${process.platform} ${process.arch}`);
-    console.error(`[SERVER] PID: ${process.pid}`);
+    rawLog('╔════════════════════════════════════════════════════════════╗');
+    rawLog('║         AI Council Chamber MCP Server                      ║');
+    rawLog('║         Version 1.0.0 - Standalone Mode                   ║');
+    rawLog('╚════════════════════════════════════════════════════════════╝');
+    rawLog('');
+    rawLog(`[SERVER] Starting initialization...`);
+    rawLog(`[SERVER] Node.js: ${process.version}`);
+    rawLog(`[SERVER] Platform: ${process.platform} ${process.arch}`);
+    rawLog(`[SERVER] PID: ${process.pid}`);
   },
 
   logInitialization() {
-    console.error('');
-    console.error('[SERVER] ✓ Session service initialized');
-    console.error('[SERVER] ✓ AI service initialized');
-    console.error('[SERVER] ✓ Council orchestrator ready');
+    rawLog('');
+    rawLog('[SERVER] ✓ Session service initialized');
+    rawLog('[SERVER] ✓ AI service initialized');
+    rawLog('[SERVER] ✓ Council orchestrator ready');
   },
 
   logTools(tools: any[]) {
-    console.error('');
-    console.error(`[SERVER] Tools registered: ${tools.length}`);
-    console.error(`[SERVER]   - Council Session Tools: ${tools.filter(t => t.name.startsWith('council_') && !['list', 'get', 'stop', 'pause', 'diagnostics'].some(a => t.name.includes(a))).length}`);
-    console.error(`[SERVER]   - Session Management: ${tools.filter(t => ['council_list_sessions', 'council_get_session', 'council_get_transcript', 'council_stop_session', 'council_pause_session'].includes(t.name)).length}`);
-    console.error(`[SERVER]   - Bot Management: ${tools.filter(t => t.name.includes('bot') || t.name.includes('memory') || t.name.includes('document')).length}`);
-    console.error(`[SERVER]   - System Tools: ${tools.filter(t => ['council_diagnostics', 'council_auto'].includes(t.name)).length}`);
+    rawLog('');
+    rawLog(`[SERVER] Tools registered: ${tools.length}`);
+    rawLog(`[SERVER]   - Council Session Tools: ${tools.filter(t => t.name.startsWith('council_') && !['list', 'get', 'stop', 'pause', 'diagnostics'].some(a => t.name.includes(a))).length}`);
+    rawLog(`[SERVER]   - Session Management: ${tools.filter(t => ['council_list_sessions', 'council_get_session', 'council_get_transcript', 'council_stop_session', 'council_pause_session'].includes(t.name)).length}`);
+    rawLog(`[SERVER]   - Bot Management: ${tools.filter(t => t.name.includes('bot') || t.name.includes('memory') || t.name.includes('document')).length}`);
+    rawLog(`[SERVER]   - System Tools: ${tools.filter(t => ['council_diagnostics', 'council_auto'].includes(t.name)).length}`);
   },
 
   logReady() {
     const uptime = ((Date.now() - this.startTime) / 1000).toFixed(2);
-    console.error('');
-    console.error('╔════════════════════════════════════════════════════════════╗');
-    console.error('║                 SERVER READY                                ║');
-    console.error('╚════════════════════════════════════════════════════════════╝');
-    console.error(`[SERVER] Initialization complete in ${uptime}s`);
-    console.error(`[SERVER] Waiting for MCP requests on STDIO...`);
-    console.error(`[SERVER] Log level: ERROR (use console.error for output)`);
-    console.error('');
+    rawLog('');
+    rawLog('╔════════════════════════════════════════════════════════════╗');
+    rawLog('║                 SERVER READY                                ║');
+    rawLog('╚════════════════════════════════════════════════════════════╝');
+    rawLog(`[SERVER] Initialization complete in ${uptime}s`);
+    rawLog(`[SERVER] Waiting for MCP requests on STDIO...`);
+    rawLog(`[SERVER] Log level: ERROR (use console.error for output)`);
+    rawLog('');
   },
 
   logRequest(type: string, details?: any) {
     this.requestCount++;
     const timestamp = new Date().toISOString();
-    console.error(`[${timestamp}] [SERVER] Request #${this.requestCount}: ${type}`);
+    rawLog(`[${timestamp}] [SERVER] Request #${this.requestCount}: ${type}`);
     if (details) {
-      console.error(`[SERVER]   Details:`, JSON.stringify(details, null, 2).split('\n').map(l => '   ' + l).join('\n'));
+      rawLog(`[SERVER]   Details:\n${JSON.stringify(details, null, 2).split('\n').map(l => '   ' + l).join('\n')}`);
     }
   },
 
@@ -98,65 +103,65 @@ const logServer = {
     const timestamp = new Date().toISOString();
 
     // Enhanced logging with more details
-    console.error('');
-    console.error('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
-    console.error(`┃ [TOOL CALL #${this.toolCallCount}] ${name.padEnd(44)} ┃`);
-    console.error('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
-    console.error(`[TOOL] Timestamp: ${timestamp}`);
-    console.error(`[TOOL] Request ID: ${args?.requestId || 'N/A'}`);
+    rawLog('');
+    rawLog('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
+    rawLog(`┃ [TOOL CALL #${this.toolCallCount}] ${name.padEnd(44)} ┃`);
+    rawLog('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
+    rawLog(`[TOOL] Timestamp: ${timestamp}`);
+    rawLog(`[TOOL] Request ID: ${args?.requestId || 'N/A'}`);
 
     // Log session ID if present
     if (args?.sessionId) {
-      console.error(`[TOOL] Session ID: ${args.sessionId}`);
+      rawLog(`[TOOL] Session ID: ${args.sessionId}`);
     }
 
     // Log key arguments based on tool type
     if (args?.topic) {
-      console.error(`[TOOL] Topic: ${args.topic.substring(0, 100)}${args.topic.length > 100 ? '...' : ''}`);
+      rawLog(`[TOOL] Topic: ${args.topic.substring(0, 100)}${args.topic.length > 100 ? '...' : ''}`);
     }
 
     // Log userPrompt if present
     if (args?.userPrompt) {
-      console.error(`[TOOL] User Prompt: ${args.userPrompt.substring(0, 100)}${args.userPrompt.length > 100 ? '...' : ''}`);
+      rawLog(`[TOOL] User Prompt: ${args.userPrompt.substring(0, 100)}${args.userPrompt.length > 100 ? '...' : ''}`);
     }
 
     // Log settings
     if (args?.settings) {
-      console.error(`[TOOL] Settings:`);
+      rawLog(`[TOOL] Settings:`);
       if (args.settings.bots) {
         const enabledBots = args.settings.bots.filter((b: any) => b.enabled).map((b: any) => b.id);
-        console.error(`[TOOL]   - Enabled Bots: ${enabledBots.length > 0 ? enabledBots.join(', ') : 'default'}`);
+        rawLog(`[TOOL]   - Enabled Bots: ${enabledBots.length > 0 ? enabledBots.join(', ') : 'default'}`);
       }
       if (args.settings.economyMode !== undefined) {
-        console.error(`[TOOL]   - Economy Mode: ${args.settings.economyMode}`);
+        rawLog(`[TOOL]   - Economy Mode: ${args.settings.economyMode}`);
       }
       if (args.settings.maxConcurrentRequests) {
-        console.error(`[TOOL]   - Max Concurrent: ${args.settings.maxConcurrentRequests}`);
+        rawLog(`[TOOL]   - Max Concurrent: ${args.settings.maxConcurrentRequests}`);
       }
       if (args.settings.domain) {
-        console.error(`[TOOL]   - Domain: ${args.settings.domain}`);
+        rawLog(`[TOOL]   - Domain: ${args.settings.domain}`);
       }
       if (args.settings.timeframe) {
-        console.error(`[TOOL]   - Timeframe: ${args.settings.timeframe}`);
+        rawLog(`[TOOL]   - Timeframe: ${args.settings.timeframe}`);
       }
     }
 
     // Log context if present
     if (args?.context) {
-      console.error(`[TOOL] Context: ${args.context.substring(0, 150)}${args.context.length > 150 ? '...' : ''}`);
+      rawLog(`[TOOL] Context: ${args.context.substring(0, 150)}${args.context.length > 150 ? '...' : ''}`);
     }
 
     if (duration) {
-      console.error(`[TOOL] Duration: ${duration}ms`);
+      rawLog(`[TOOL] Duration: ${duration}ms`);
     }
 
     // Full arguments (if needed, use format from original)
     if (args && Object.keys(args).length > 0 && !args.topic && !args.userPrompt) {
       const argStr = JSON.stringify(args, null, 2).split('\n').map(l => '   ' + l).join('\n');
-      console.error(`[TOOL] Arguments:\n${argStr}`);
+      rawLog(`[TOOL] Arguments:\n${argStr}`);
     }
 
-    console.error('');
+    rawLog('');
 
     // Also log to structured logger
     logger.tool(name, args?.sessionId, 'started', undefined, {
@@ -177,14 +182,14 @@ const logServer = {
 
   logToolComplete(name: string, result?: any, duration?: number) {
     const timestamp = new Date().toISOString();
-    console.error('');
-    console.error('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
-    console.error(`┃ [TOOL COMPLETE] ${name.padEnd(41)} ┃`);
-    console.error('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
-    console.error(`[TOOL] Timestamp: ${timestamp}`);
+    rawLog('');
+    rawLog('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
+    rawLog(`┃ [TOOL COMPLETE] ${name.padEnd(41)} ┃`);
+    rawLog('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
+    rawLog(`[TOOL] Timestamp: ${timestamp}`);
 
     if (duration) {
-      console.error(`[TOOL] Total Duration: ${duration}ms`);
+      rawLog(`[TOOL] Total Duration: ${duration}ms`);
     }
 
     // Log result summary based on content type
@@ -193,21 +198,21 @@ const logServer = {
 
       // Check if it's an error
       if (text.startsWith('Error:')) {
-        console.error(`[TOOL] Status: ❌ FAILED`);
-        console.error(`[TOOL] Error: ${text.substring(0, 300)}${text.length > 300 ? '...' : ''}`);
+        rawLog(`[TOOL] Status: ❌ FAILED`);
+        rawLog(`[TOOL] Error: ${text.substring(0, 300)}${text.length > 300 ? '...' : ''}`);
       } else {
-        console.error(`[TOOL] Status: ✅ SUCCESS`);
+        rawLog(`[TOOL] Status: ✅ SUCCESS`);
         const preview = text.length > 400 ? text.substring(0, 400) + '...' : text;
-        console.error(`[TOOL] Result preview:\n   ${preview.replace(/\n/g, '\n   ')}`);
+        rawLog(`[TOOL] Result preview:\n   ${preview.replace(/\n/g, '\n   ')}`);
       }
     }
 
     // Log structured data if available
     if (result && result.content && result.content.length > 1) {
-      console.error(`[TOOL] Additional data: ${result.content.length - 1} additional item(s)`);
+      rawLog(`[TOOL] Additional data: ${result.content.length - 1} additional item(s)`);
     }
 
-    console.error('');
+    rawLog('');
 
     // Also log to structured logger
     const isError = result && result.content && result.content[0] && result.content[0].text && result.content[0].text.startsWith('Error:');
@@ -226,7 +231,7 @@ const logServer = {
   },
 
   logConnection(status: string) {
-    console.error(`[SERVER] Connection status: ${status}`);
+    rawLog(`[SERVER] Connection status: ${status}`);
   },
 
   logHeartbeat() {
@@ -234,17 +239,17 @@ const logServer = {
     const sessions = sessionService.listSessions();
     const timestamp = new Date().toLocaleTimeString();
 
-    console.error('');
-    console.error('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
-    console.error('┃ [HEARTBEAT] Server Health Check                            ┃');
-    console.error('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
-    console.error(`[HEARTBEAT] Timestamp: ${timestamp}`);
-    console.error(`[HEARTBEAT] Total Requests: ${this.requestCount}`);
-    console.error(`[HEARTBEAT] Tool Calls: ${this.toolCallCount}`);
-    console.error(`[HEARTBEAT] Active Sessions: ${sessions.length}`);
-    console.error(`[HEARTBEAT] Memory Usage: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
-    console.error(`[HEARTBEAT] Uptime: ${((Date.now() - this.startTime) / 1000 / 60).toFixed(1)} minutes`);
-    console.error('');
+    rawLog('');
+    rawLog('┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
+    rawLog('┃ [HEARTBEAT] Server Health Check                            ┃');
+    rawLog('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛');
+    rawLog(`[HEARTBEAT] Timestamp: ${timestamp}`);
+    rawLog(`[HEARTBEAT] Total Requests: ${this.requestCount}`);
+    rawLog(`[HEARTBEAT] Tool Calls: ${this.toolCallCount}`);
+    rawLog(`[HEARTBEAT] Active Sessions: ${sessions.length}`);
+    rawLog(`[HEARTBEAT] Memory Usage: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+    rawLog(`[HEARTBEAT] Uptime: ${((Date.now() - this.startTime) / 1000 / 60).toFixed(1)} minutes`);
+    rawLog('');
 
     // Log to structured logger
     logger.info('Server heartbeat', {
@@ -257,14 +262,14 @@ const logServer = {
   },
 
   logSession(sessionId: string, action: string, status?: string) {
-    console.error(`[SESSION ${sessionId.substring(0, 8)}] ${action}${status ? ' - Status: ' + status : ''}`);
+    rawLog(`[SESSION ${sessionId.substring(0, 8)}] ${action}${status ? ' - Status: ' + status : ''}`);
   },
 
   logError(error: any, context?: string) {
     const timestamp = new Date().toISOString();
-    console.error(`[${timestamp}] [ERROR] ${context || 'Server Error'}: ${error.message || error}`);
+    rawLog(`[${timestamp}] [ERROR] ${context || 'Server Error'}: ${error.message || error}`);
     if (error.stack && process.env.NODE_ENV !== 'production') {
-      console.error(`[ERROR] Stack:`, error.stack);
+      rawLog(`[ERROR] Stack:\n${error.stack}`);
     }
   }
 };
