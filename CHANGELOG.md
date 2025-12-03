@@ -15,6 +15,10 @@
   - **Bug Fixes**:
     - Fixed `CouncilOrchestrator` member selection logic to include `specialist` and other roles as councilors, preventing adjournment when default councilors are disabled.
     - Fixed `runSwarmCodingMode` to correctly utilize available councilors and specialists for development tasks instead of defaulting to the Speaker.
+    - Fixed `council_suggest_personas` tool to use the AI service for generating suggestions instead of relying solely on hardcoded heuristics.
+
+  - **Diagnostics**:
+    - Enhanced `council_diagnostics` tool to check for `bots.json` configuration, council quorum, and all API keys (including search providers).
 
 - **Configuration Externalization**:
   - Moved system prompts to `src/config/prompts.json`.

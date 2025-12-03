@@ -1,4 +1,5 @@
-import { BotConfig } from '../types/index.js';
+import { AIService } from './aiService.js';
+import { AuthorType, BotConfig } from '../types/index.js';
 import { getBotsWithCustomConfigs } from '../types/constants.js';
 
 export interface PersonaSuggestion {
@@ -52,9 +53,15 @@ export class PersonaSuggestionService {
     specialties?: string[];
   }>;
 
+  private aiService?: AIService;
+
   constructor() {
     this.initializeTopicMappings();
     this.initializePersonaExpertise();
+  }
+
+  setAIService(aiService: AIService) {
+    this.aiService = aiService;
   }
 
   private initializeTopicMappings() {
@@ -271,6 +278,17 @@ export class PersonaSuggestionService {
   async suggestPersonas(request: SuggestionRequest): Promise<SuggestionResult> {
     const { topic, context, mode, maxBots = 5, includeSpecialists = true, includeIdeological = true } = request;
 
+    // Try AI-based suggestion first if service is available
+    if (this.aiService) {
+      try {
+        return await this.suggestPersonasWithAI(request);
+      } catch (error) {
+        console.error('[PersonaService] AI suggestion failed, falling back to heuristics:', error);
+        // Fallback to heuristics
+      }
+    }
+
+    // Heuristic fallback (existing logic)
     // Normalize topic for matching
     const normalizedTopic = (topic + ' ' + (context || '')).toLowerCase();
 
@@ -320,6 +338,87 @@ export class PersonaSuggestionService {
     };
 
     return result;
+  }
+
+  private async suggestPersonasWithAI(request: SuggestionRequest): Promise<SuggestionResult> {
+    const { topic, context, mode, maxBots = 5 } = request;
+    const allBots = getBotsWithCustomConfigs();
+
+    // Create a simplified bot list for the AI
+    const botList = allBots.map(b => ({
+      id: b.id,
+      name: b.name,
+      role: b.role,
+      persona: b.persona
+    }));
+
+    const prompt = `
+You are an expert team builder for an AI Council.
+Your task is to select the best combination of AI personas to discuss the following topic: "${topic}"
+Context: ${context || 'None provided'}
+Session Mode: ${mode || 'General Discussion'}
+Max Team Size: ${maxBots}
+
+Available Personas:
+${JSON.stringify(botList, null, 2)}
+
+Select the best team based on expertise, perspective diversity, and relevance to the topic.
+Ensure you include a Speaker (if appropriate) and a mix of Councilors/Specialists.
+
+Return ONLY a JSON object with this structure:
+{
+  "suggestions": [
+    {
+      "botId": "string",
+      "confidence": number (0-1),
+      "reasoning": "string"
+    }
+  ],
+  "reasoning": "Overall team selection reasoning"
+}
+`;
+
+    // Use a temporary bot config for the "Team Builder"
+    const teamBuilderBot: BotConfig = {
+      id: 'team-builder',
+      name: 'Team Builder',
+      role: 'system',
+      authorType: AuthorType.GEMINI, // Default to Gemini, will fallback if not available
+      model: 'gemini-2.0-flash-exp',
+      persona: 'You are an expert team builder.',
+      enabled: true
+    };
+
+    const response = await this.aiService!.getBotResponse(teamBuilderBot, [], prompt);
+
+    // Parse JSON response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Invalid JSON response from AI');
+
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // Map back to full objects
+    const suggestions = parsed.suggestions.map((s: any) => {
+      const bot = allBots.find(b => b.id === s.botId);
+      return {
+        botId: s.botId,
+        botName: bot?.name || s.botId,
+        role: bot?.role || 'unknown',
+        confidence: s.confidence,
+        reasoning: s.reasoning,
+        expertise: this.personaExpertise.get(s.botId)?.domains || []
+      };
+    });
+
+    const selectedBots = suggestions.map((s: any) => allBots.find(b => b.id === s.botId)).filter((b: any) => b);
+    const teamComposition = this.buildTeamComposition(selectedBots, null);
+
+    return {
+      suggestions,
+      teamComposition,
+      score: suggestions.reduce((sum: number, s: any) => sum + s.confidence, 0) / suggestions.length,
+      reasoning: parsed.reasoning
+    };
   }
 
   private categorizeTopic(text: string): string | null {
@@ -585,7 +684,6 @@ export class PersonaSuggestionService {
 
     if (ideologicalBots.length >= 2) {
       score += 20;
-      feedback.push('Good ideological diversity detected.');
     } else if (selectedBots.length >= 3) {
       score += 10;
     }

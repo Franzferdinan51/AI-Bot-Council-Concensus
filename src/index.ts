@@ -259,6 +259,10 @@ await sessionService.initialize();
 const aiService = new AIService(DEFAULT_SETTINGS.providers);
 const orchestrator = new CouncilOrchestrator(aiService);
 
+// Inject AI Service into PersonaSuggestionService
+import { personaSuggestionService } from './services/personaSuggestionService.js';
+personaSuggestionService.setAIService(aiService);
+
 logServer.logInitialization();
 
 const server = new Server(

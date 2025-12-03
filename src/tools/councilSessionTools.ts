@@ -1152,7 +1152,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     warnings: []
   };
 
-  // Check 1: API Keys
+  // Check 1: API Keys & Environment
   const apiKeys = {
     gemini: !!process.env.GEMINI_API_KEY,
     anthropic: !!process.env.ANTHROPIC_API_KEY,
@@ -1160,6 +1160,12 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     openrouter: !!process.env.OPENROUTER_API_KEY,
     lmStudio: !!process.env.LM_STUDIO_ENDPOINT,
     ollama: !!process.env.OLLAMA_ENDPOINT,
+    search: {
+      provider: process.env.SEARCH_PROVIDER || 'duckduckgo',
+      brave: !!process.env.BRAVE_API_KEY,
+      tavily: !!process.env.TAVILY_API_KEY,
+      serper: !!process.env.SERPER_API_KEY
+    },
     configured: [] as string[]
   };
 
@@ -1191,7 +1197,59 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     console.log(`[Diagnostics] Configured providers: ${apiKeys.configured.join(', ')}`);
   }
 
-  // Check 2: Session Service
+  // Check Search Provider
+  if (apiKeys.search.provider === 'brave' && !apiKeys.search.brave) {
+    diagnostics.errors.push({ component: 'Search', issue: 'Brave Search selected but BRAVE_API_KEY missing', severity: 'ERROR' });
+    diagnostics.status = 'ERROR';
+  } else if (apiKeys.search.provider === 'tavily' && !apiKeys.search.tavily) {
+    diagnostics.errors.push({ component: 'Search', issue: 'Tavily Search selected but TAVILY_API_KEY missing', severity: 'ERROR' });
+    diagnostics.status = 'ERROR';
+  } else if (apiKeys.search.provider === 'serper' && !apiKeys.search.serper) {
+    diagnostics.errors.push({ component: 'Search', issue: 'Serper Search selected but SERPER_API_KEY missing', severity: 'ERROR' });
+    diagnostics.status = 'ERROR';
+  }
+
+  // Check 2: Bots & Quorum
+  try {
+    const { getBotsWithCustomConfigs } = await import('../types/constants.js');
+    const bots = getBotsWithCustomConfigs();
+    const enabledBots = bots.filter(b => b.enabled);
+
+    const speaker = enabledBots.find(b => b.role === 'speaker');
+    const moderator = enabledBots.find(b => b.role === 'moderator');
+    // Logic matches CouncilOrchestrator fix: any non-speaker/mod is a councilor
+    const councilors = enabledBots.filter(b => b.role !== 'speaker' && b.role !== 'moderator');
+
+    diagnostics.checks.bots = {
+      total: bots.length,
+      enabled: enabledBots.length,
+      speaker: !!speaker,
+      moderator: !!moderator,
+      councilors: councilors.length,
+      roles: enabledBots.map(b => `${b.name} (${b.role})`)
+    };
+
+    if (!speaker && councilors.length === 0) {
+      diagnostics.errors.push({
+        component: 'Council Quorum',
+        issue: 'No Speaker and No Councilors enabled',
+        severity: 'CRITICAL',
+        message: 'Enable at least the Speaker or one Councilor/Specialist in bots.json or environment variables.'
+      });
+      diagnostics.status = 'ERROR';
+    } else if (councilors.length === 0) {
+      diagnostics.warnings.push({
+        component: 'Council Quorum',
+        issue: 'Speaker only (No Councilors)',
+        severity: 'WARNING',
+        message: 'Session will be a monologue. Enable councilors for debate.'
+      });
+    }
+  } catch (error: any) {
+    diagnostics.errors.push({ component: 'Bot Config', issue: `Failed to load bots: ${error.message}`, severity: 'ERROR' });
+  }
+
+  // Check 3: Session Service
   try {
     const sessions = sessionService.listSessions();
     diagnostics.checks.sessionService = {
@@ -1216,7 +1274,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     diagnostics.status = 'ERROR';
   }
 
-  // Check 3: Session Storage
+  // Check 4: Session Storage
   try {
     const stats = sessionStorage.getStorageStats();
     diagnostics.checks.sessionStorage = {
@@ -1238,7 +1296,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     diagnostics.checks.sessionStorage = { status: 'WARNING', error: error.message };
   }
 
-  // Check 4: Memory Usage
+  // Check 5: Memory Usage
   const memUsage = process.memoryUsage();
   diagnostics.checks.memory = {
     rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
@@ -1247,14 +1305,14 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     external: `${Math.round(memUsage.external / 1024 / 1024)} MB`
   };
 
-  // Check 5: Node.js Version
+  // Check 6: Node.js Version
   diagnostics.checks.nodeVersion = {
     version: process.version,
     platform: process.platform,
     arch: process.arch
   };
 
-  // Check 6: Logs
+  // Check 7: Logs
   const logStats = logger.getStats();
   const recentLogs = logger.getLogs(verbose ? 50 : 20);
   const errorLogs = logger.getLogsByLevel(3); // ERROR level
@@ -1267,7 +1325,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     recentErrors: errorLogs.slice(-5).map(l => `${l.message} ${l.error?.message ? '(' + l.error.message + ')' : ''}`)
   };
 
-  // Check 7: Available Council Modes
+  // Check 8: Available Council Modes
   diagnostics.checks.availableModes = [
     'council_proposal',
     'council_deliberation',
@@ -1295,10 +1353,20 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
   report += `OpenAI: ${apiKeys.openai ? '✓ Configured' : '✗ Missing'}\n`;
   report += `OpenRouter: ${apiKeys.openrouter ? '✓ Configured' : '✗ Missing'}\n`;
   report += `LM Studio: ${apiKeys.lmStudio ? '✓ Configured' : '✗ Missing'}\n`;
-  report += `Ollama: ${apiKeys.ollama ? '✓ Configured' : '✗ Missing'}\n\n`;
+  report += `Ollama: ${apiKeys.ollama ? '✓ Configured' : '✗ Missing'}\n`;
+  report += `Search Provider: ${apiKeys.search.provider} (${apiKeys.search[apiKeys.search.provider as keyof typeof apiKeys.search] ? '✓ Key Present' : '✗ Key Missing'})\n\n`;
 
   if (apiKeys.configured.length > 0) {
     report += `Configured Providers: ${apiKeys.configured.join(', ')}\n\n`;
+  }
+
+  // Bots Status
+  if (diagnostics.checks.bots) {
+    report += `─── COUNCIL QUORUM ───\n`;
+    report += `Speaker: ${diagnostics.checks.bots.speaker ? '✓ Present' : '✗ Missing'}\n`;
+    report += `Moderator: ${diagnostics.checks.bots.moderator ? '✓ Present' : '✗ Missing'}\n`;
+    report += `Councilors/Specialists: ${diagnostics.checks.bots.councilors} enabled\n`;
+    report += `Total Enabled Bots: ${diagnostics.checks.bots.enabled}/${diagnostics.checks.bots.total}\n\n`;
   }
 
   // Session Service
@@ -1332,6 +1400,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     report += `\n─── DIAGNOSTIC ERRORS (${diagnostics.errors.length}) ───\n`;
     diagnostics.errors.forEach((err: any, idx: number) => {
       report += `${idx + 1}. [${err.severity}] ${err.component}: ${err.issue}\n`;
+      if (err.message) report += `   ${err.message}\n`;
       if (verbose && err.stack) {
         report += `   Stack: ${err.stack}\n`;
       }
@@ -1344,6 +1413,7 @@ async function handleDiagnostics(args: any): Promise<CallToolResult> {
     report += `\n─── DIAGNOSTIC WARNINGS (${diagnostics.warnings.length}) ───\n`;
     diagnostics.warnings.forEach((warn: any, idx: number) => {
       report += `${idx + 1}. ${warn.component}: ${warn.issue}\n`;
+      if (warn.message) report += `   ${warn.message}\n`;
     });
     report += '\n';
   }
