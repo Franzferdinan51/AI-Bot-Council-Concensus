@@ -50,6 +50,8 @@
   - Fixed type errors in `verify-diagnostics.ts` and `personaSuggestionService.ts`.
   - Fixed `start.bat` crash when launching Web UI (Option 8).
   - Fixed `start.bat` variable expansion for port configuration.
+  - Fixed `ConfigLoader` to use absolute paths, resolving "file not found" errors in LM Studio.
+  - Fixed `EADDRINUSE` error by gracefully handling port conflicts in HTTP Bridge.
 
 - **Configuration Externalization**:
   - Moved system prompts to `src/config/prompts.json`.

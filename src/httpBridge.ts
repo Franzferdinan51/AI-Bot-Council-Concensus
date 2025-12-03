@@ -233,12 +233,23 @@ export async function startHttpServer(
     }
   });
 
-  server.listen(port, () => {
-    console.error(`[HTTP] Web UI available at http://localhost:${port}`);
-    console.error(`[HTTP] API available at http://localhost:${port}/health`);
-  });
+  return new Promise((resolve, reject) => {
+    server.on('error', (e: any) => {
+      if (e.code === 'EADDRINUSE') {
+        console.error(`[HTTP] Port ${port} is already in use. Web UI will not be available on this port.`);
+        // Resolve anyway so the main process doesn't crash
+        resolve(server);
+      } else {
+        reject(e);
+      }
+    });
 
-  return server;
+    server.listen(port, () => {
+      console.error(`[HTTP] Web UI available at http://localhost:${port}`);
+      console.error(`[HTTP] API available at http://localhost:${port}/health`);
+      resolve(server);
+    });
+  });
 }
 
 async function bootstrap() {

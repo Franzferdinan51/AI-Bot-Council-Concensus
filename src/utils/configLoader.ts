@@ -1,8 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { BotConfig } from '../types/index.js';
 
-const CONFIG_DIR = path.join(process.cwd(), 'src', 'config');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const CONFIG_DIR = path.join(__dirname, '../config');
 
 export class ConfigLoader {
     private static loadJson(filename: string): any {
