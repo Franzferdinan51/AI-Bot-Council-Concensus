@@ -6,7 +6,7 @@ A **stand-alone** Model Context Protocol (MCP) server that provides multi-agent 
 
 ## 🚀 What This Is
 
-This is a **complete, standalone MCP server** - no web interface needed! Simply install the dependencies, configure your API keys, and start the server. The server provides **13 MCP tools** that can be integrated into any MCP-compatible AI assistant (Claude Desktop, custom MCP clients, etc.).
+This is a **complete, standalone MCP server** with a built-in **Web Debug Dashboard**. It provides **13 MCP tools** that can be integrated into any MCP-compatible AI assistant (Claude Desktop, custom MCP clients, etc.), plus a rich web interface for testing, monitoring, and managing sessions.
 
 ## Quick Start
 
@@ -26,14 +26,7 @@ start.bat    # Windows (shows interactive menu)
 # OR
 ./start.sh   # Linux/Mac
 
-# Helper scripts
-- `npm run mcp` – build + start MCP server (STDIO)
-- `npm run start:http` – start lightweight HTTP bridge (`/health`, `/list-tools`, `/call-tool`)
-- `npm run health` – quick health probe (JSON then exit)
-- `npm run gen:mcp` – generate `mcp.json` from current environment
-
-# Or use the interactive setup wizard
-start.bat    # Then choose option 2 for setup
+# 🚀 Access the Debug Dashboard at: http://localhost:3000
 ```
 
 ## Installation
@@ -104,6 +97,17 @@ start.bat
 - **Memory System**: Persisted precedents and knowledge base
 - **Bot-Specific Memory**: Each bot maintains persistent context and memories across sessions ⭐ NEW
 - **Real-time Streaming**: Live token streaming for responsive sessions
+
+### 🖥️ Web Debug Dashboard (New!)
+
+The server now includes a powerful **Web Interface** running at `http://localhost:3000` for testing and monitoring:
+
+- **Tool Tester**: Interactively test all MCP tools with a generated form UI or raw JSON input.
+- **Active Sessions**: View running and completed sessions in real-time.
+- **Transcript Viewer**: Read full formatted transcripts of any session directly in the browser.
+- **Real-time Logs**: Monitor server activity, tool calls, and errors live.
+- **Configuration Editor**: Update server settings and bot configurations on the fly.
+- **Console Output**: View the server's standard output stream.
 
 ### Available MCP Tools
 
