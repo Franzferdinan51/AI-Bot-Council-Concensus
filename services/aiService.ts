@@ -16,16 +16,16 @@ const executePublicTool = async (name: string, args: any): Promise<any> => {
     try {
         switch (name) {
             case 'fetch_website':
-                 try {
-                     const res = await fetch(args.url);
-                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                     const text = await res.text();
-                     // Basic HTML to text (naïve)
-                     const doc = new DOMParser().parseFromString(text, 'text/html');
-                     return { content: doc.body.innerText.substring(0, 5000) }; // Limit context
-                 } catch (e) {
-                     return { error: `Failed to fetch URL (CORS or Network error): ${e}` };
-                 }
+                try {
+                    const res = await fetch(args.url);
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const text = await res.text();
+                    // Basic HTML to text (naïve)
+                    const doc = new DOMParser().parseFromString(text, 'text/html');
+                    return { content: doc.body.innerText.substring(0, 5000) }; // Limit context
+                } catch (e) {
+                    return { error: `Failed to fetch URL (CORS or Network error): ${e}` };
+                }
 
             case 'web_search':
                 // Simulation / Fallback for Local Models that can't use GoogleSearch
@@ -34,20 +34,20 @@ const executePublicTool = async (name: string, args: any): Promise<any> => {
             case 'get_weather':
                 const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${args.latitude}&longitude=${args.longitude}&current=temperature_2m,wind_speed_10m`);
                 return await weatherRes.json();
-            
+
             case 'get_crypto_price':
                 const coin = args.coinId.toLowerCase();
                 const cryptoRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`);
                 return await cryptoRes.json();
-            
+
             case 'search_wikipedia':
                 const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(args.query)}`);
                 const wikiData = await wikiRes.json();
                 return { title: wikiData.title, extract: wikiData.extract, url: wikiData.content_urls?.desktop?.page };
-                
+
             case 'get_current_time':
                 return { time: new Date().toLocaleString('en-US', { timeZone: args.timezone }) };
-                
+
             default:
                 return { error: `Tool ${name} not found locally.` };
         }
@@ -63,13 +63,13 @@ const pruneHistory = (history: Message[], settings: Settings): Message[] => {
     }
 
     const preservedHistory: Message[] = [];
-    
+
     if (history.length > 0 && history[0].authorType === AuthorType.SYSTEM) {
         preservedHistory.push(history[0]);
     }
 
     const lastN = history.slice(-settings.cost.maxContextTurns);
-    
+
     lastN.forEach(msg => {
         if (!preservedHistory.find(m => m.id === msg.id)) {
             preservedHistory.push(msg);
@@ -82,66 +82,66 @@ const pruneHistory = (history: Message[], settings: Settings): Message[] => {
 
 // Helper to format chat history for Gemini
 const formatHistoryForGemini = (history: Message[], settings: Settings) => {
-  const prunedHistory = pruneHistory(history, settings);
+    const prunedHistory = pruneHistory(history, settings);
 
-  const contents = prunedHistory.map(msg => {
-    const role: 'user' | 'model' = (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'model';
-    
-    const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
-    let text = `${msg.author} (${msg.roleLabel || 'Member'}): ${cleanContent}`;
-    
-    if (msg.attachments && msg.attachments.length > 0) {
-        const links = msg.attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
-        if (links) {
-            text += `\n\n[URGENT SYSTEM INSTRUCTION: The user has provided external sources via URL: ${links}.`;
-            text += `\n1. You MUST use the 'googleSearch' tool IMMEDIATELY to access these URLs.`;
-            text += `\n2. First, FETCH and SUMMARIZE the content of the link in your <thinking> block before answering.`;
-            text += `\n3. Do NOT hallucinate the content. If you cannot access the specific URL directly, search for the page title or video ID to find a summary/transcript.`;
-            
-            if (links.includes('youtube.com') || links.includes('youtu.be')) {
-                 text += `\n4. FOR YOUTUBE VIDEOS: You CANNOT watch the video directly. You MUST perform a Google Search for "transcript of youtube video ${links}" or "summary of youtube video ${links}" or the video title to understand its actual content. Extract the title and key arguments.`;
+    const contents = prunedHistory.map(msg => {
+        const role: 'user' | 'model' = (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'model';
+
+        const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+        let text = `${msg.author} (${msg.roleLabel || 'Member'}): ${cleanContent}`;
+
+        if (msg.attachments && msg.attachments.length > 0) {
+            const links = msg.attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
+            if (links) {
+                text += `\n\n[URGENT SYSTEM INSTRUCTION: The user has provided external sources via URL: ${links}.`;
+                text += `\n1. You MUST use the 'googleSearch' tool IMMEDIATELY to access these URLs.`;
+                text += `\n2. First, FETCH and SUMMARIZE the content of the link in your <thinking> block before answering.`;
+                text += `\n3. Do NOT hallucinate the content. If you cannot access the specific URL directly, search for the page title or video ID to find a summary/transcript.`;
+
+                if (links.includes('youtube.com') || links.includes('youtu.be')) {
+                    text += `\n4. FOR YOUTUBE VIDEOS: You CANNOT watch the video directly. You MUST perform a Google Search for "transcript of youtube video ${links}" or "summary of youtube video ${links}" or the video title to understand its actual content. Extract the title and key arguments.`;
+                }
+                text += `]`;
             }
-            text += `]`;
         }
-    }
-    
-    const parts: any[] = [{ text }];
-    
-    if (msg.attachments && msg.attachments.length > 0) {
-        msg.attachments.forEach(att => {
-            if (att.type === 'file' && att.mimeType && att.data) {
-                parts.push({
-                    inlineData: {
-                        mimeType: att.mimeType,
-                        data: att.data
-                    }
-                });
+
+        const parts: any[] = [{ text }];
+
+        if (msg.attachments && msg.attachments.length > 0) {
+            msg.attachments.forEach(att => {
+                if (att.type === 'file' && att.mimeType && att.data) {
+                    parts.push({
+                        inlineData: {
+                            mimeType: att.mimeType,
+                            data: att.data
+                        }
+                    });
+                }
+            });
+        }
+
+        return { role, parts };
+    });
+
+    const mergedContents: { role: string; parts: any[] }[] = [];
+    if (contents.length > 0) {
+        let lastMessage = { ...contents[0] };
+        for (let i = 1; i < contents.length; i++) {
+            if (lastMessage.role === contents[i].role) {
+                lastMessage.parts = [...lastMessage.parts, ...contents[i].parts];
+            } else {
+                mergedContents.push(lastMessage);
+                lastMessage = { ...contents[i] };
             }
-        });
+        }
+        mergedContents.push(lastMessage);
     }
 
-    return { role, parts };
-  });
+    if (mergedContents.length > 0 && mergedContents[mergedContents.length - 1].role === 'model') {
+        mergedContents.push({ role: 'user', parts: [{ text: "The floor is yours. Please proceed." }] });
+    }
 
-  const mergedContents: { role: string; parts: any[] }[] = [];
-  if (contents.length > 0) {
-      let lastMessage = { ...contents[0] };
-      for (let i = 1; i < contents.length; i++) {
-        if (lastMessage.role === contents[i].role) {
-            lastMessage.parts = [...lastMessage.parts, ...contents[i].parts];
-        } else {
-            mergedContents.push(lastMessage);
-            lastMessage = { ...contents[i] };
-        }
-      }
-      mergedContents.push(lastMessage);
-  }
-
-  if (mergedContents.length > 0 && mergedContents[mergedContents.length - 1].role === 'model') {
-    mergedContents.push({ role: 'user', parts: [{ text: "The floor is yours. Please proceed." }] });
-  }
-
-  return mergedContents;
+    return mergedContents;
 };
 
 // Helper for OpenAI / OpenRouter / LM Studio
@@ -150,10 +150,10 @@ const formatHistoryForOpenAI = (history: Message[], settings: Settings) => {
     return prunedHistory.map(msg => {
         const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
         let content = `${msg.author}: ${cleanContent}`;
-        
+
         const links = msg.attachments?.filter(a => a.type === 'link').map(a => a.data).join(', ');
         if (links) content += `\n[Context URLs: ${links}]`;
-        
+
         return {
             role: (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'assistant',
             content
@@ -196,7 +196,7 @@ export const transcribeAudio = async (audioBlob: Blob, apiKey: string): Promise<
 export const generateSpeech = async (text: string, botRole: string, apiKey: string): Promise<string | null> => {
     try {
         const ai = new GoogleGenAI({ apiKey });
-        
+
         let voiceName = 'Zephyr';
         const roleKey = Object.keys(VOICE_MAP).find(k => botRole.toLowerCase().includes(k));
         if (roleKey) voiceName = VOICE_MAP[roleKey];
@@ -221,6 +221,44 @@ export const generateSpeech = async (text: string, botRole: string, apiKey: stri
     }
 };
 
+// --- REMOTE TOOL EXECUTION (MCP SERVER) ---
+const executeRemoteTool = async (name: string, args: any, settings: Settings, sessionId?: string): Promise<any> => {
+    const endpoint = settings.mcp.dockerEndpoint || "http://localhost:4000";
+    const url = `${endpoint.replace(/\/sse$/, '')}/call-tool`; // Ensure we hit the HTTP POST endpoint, not SSE
+
+    console.log(`[Remote Tool] Calling ${name} at ${url}`, args);
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                arguments: { ...args, sessionId }
+            })
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`MCP Server Error (${res.status}): ${errText}`);
+        }
+
+        const data = await res.json();
+
+        // MCP SDK returns { content: [{ type: 'text', text: '...' }] }
+        // We need to normalize this for the bot
+        if (data.content && Array.isArray(data.content)) {
+            const textContent = data.content.find((c: any) => c.type === 'text')?.text;
+            if (textContent) return { result: textContent };
+        }
+
+        return data; // Fallback
+    } catch (e: any) {
+        console.error(`[Remote Tool] Failed:`, e);
+        return { error: `Remote Tool Execution Failed: ${e.message}` };
+    }
+};
+
 export const streamBotResponse = async (
     bot: BotConfig,
     history: Message[],
@@ -228,10 +266,10 @@ export const streamBotResponse = async (
     settings: Settings,
     onChunk: (text: string) => void
 ): Promise<string> => {
-    
+
     let effectiveModel = bot.model;
     let effectiveSystemPrompt = baseSystemInstruction;
-    
+
     if (settings.cost.economyMode && bot.role !== 'speaker') {
         effectiveModel = 'gemini-2.5-flash';
         effectiveSystemPrompt += "\n\n[ECONOMY MODE ACTIVE: Be concise. Skip pleasantries. Use standard logic, no advanced reasoning required.]";
@@ -247,7 +285,7 @@ export const streamBotResponse = async (
         if (!apiKey) throw new Error("Gemini API Key missing.");
 
         const ai = new GoogleGenAI({ apiKey });
-        const config: any = { 
+        const config: any = {
             systemInstruction: systemPrompt,
             safetySettings: [
                 { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -263,10 +301,11 @@ export const streamBotResponse = async (
         }
 
         const tools: any[] = [{ googleSearch: {} }];
-        
+
         if (settings.mcp.enabled) {
             const functionDeclarations: any[] = [];
-            
+
+            // 1. Public Tools (Local)
             if (settings.mcp.publicToolIds && settings.mcp.publicToolIds.length > 0) {
                 const publicTools = PUBLIC_MCP_REGISTRY.filter(t => settings.mcp.publicToolIds?.includes(t.id));
                 publicTools.forEach(t => {
@@ -274,19 +313,21 @@ export const streamBotResponse = async (
                 });
             }
 
+            // 2. Custom Tools (Remote MCP)
+            // We assume all custom tools defined in settings are meant to be executed on the MCP server
             if (settings.mcp.customTools && settings.mcp.customTools.length > 0) {
-                 settings.mcp.customTools.forEach(t => {
-                     try {
+                settings.mcp.customTools.forEach(t => {
+                    try {
                         const schema = JSON.parse(t.schema);
                         functionDeclarations.push({
                             name: t.name,
                             description: t.description,
                             parameters: schema
                         });
-                     } catch (e) {
-                         console.error("Invalid JSON Schema for tool:", t.name);
-                     }
-                 });
+                    } catch (e) {
+                        console.error("Invalid JSON Schema for tool:", t.name);
+                    }
+                });
             }
 
             if (functionDeclarations.length > 0) {
@@ -297,9 +338,14 @@ export const streamBotResponse = async (
         config.tools = tools;
 
         let currentHistory: { role: string; parts: any[] }[] = formatHistoryForGemini(history, settings);
-        let maxTurns = 5; 
+        let maxTurns = 5;
         let finalFullText = "";
         let finalSources: string[] = [];
+
+        // Extract Session ID from history if possible (hacky but needed for context)
+        // Ideally we should pass sessionId to streamBotResponse
+        const sessionIdMatch = history.find(m => m.id.startsWith('session-'))?.id;
+        const currentSessionId = sessionIdMatch || `session-${Date.now()}`;
 
         while (maxTurns > 0) {
             maxTurns--;
@@ -312,15 +358,15 @@ export const streamBotResponse = async (
 
                 let chunkText = "";
                 let functionCalls: any[] = [];
-                
+
                 for await (const chunk of result) {
-                    const text = chunk.text; 
+                    const text = chunk.text;
                     if (text) {
                         chunkText += text;
                         finalFullText += text;
                         onChunk(finalFullText);
                     }
-                    
+
                     const chunkSources = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks
                         ?.map((c: any) => c.web ? `• ${c.web.title}: ${c.web.uri}` : null)
                         .filter(Boolean);
@@ -329,7 +375,7 @@ export const streamBotResponse = async (
                     const calls = chunk.functionCalls;
                     if (calls) functionCalls.push(...calls);
                 }
-                
+
                 if (functionCalls.length === 0) {
                     const uniqueSources = Array.from(new Set(finalSources));
                     if (uniqueSources.length > 0) {
@@ -341,7 +387,7 @@ export const streamBotResponse = async (
                 }
 
                 onChunk(finalFullText + "\n\n[Using Tools...]");
-                
+
                 currentHistory.push({
                     role: 'model',
                     parts: [{ functionCalls: functionCalls }]
@@ -349,10 +395,21 @@ export const streamBotResponse = async (
 
                 const functionResponses: any[] = [];
                 for (const call of functionCalls) {
-                    const result = await executePublicTool(call.name, call.args);
+                    let result;
+
+                    // Check if it's a local public tool
+                    const isLocalTool = PUBLIC_MCP_REGISTRY.some(t => t.functionDeclaration?.name === call.name);
+
+                    if (isLocalTool) {
+                        result = await executePublicTool(call.name, call.args);
+                    } else {
+                        // Assume it's a remote MCP tool
+                        result = await executeRemoteTool(call.name, call.args, settings, currentSessionId);
+                    }
+
                     functionResponses.push({
                         name: call.name,
-                        response: { result: result } 
+                        response: { result: result }
                     });
                 }
 
@@ -362,15 +419,15 @@ export const streamBotResponse = async (
                         response: fr.response
                     }
                 }));
-                
+
                 currentHistory.push({
                     role: 'function',
                     parts: responseParts
                 });
 
             } catch (e: any) {
-                 if (e.message?.includes('429') || e.message?.includes('Quota')) {
-                     throw new Error("Rate Limit Exceeded. Slowing down...");
+                if (e.message?.includes('429') || e.message?.includes('Quota')) {
+                    throw new Error("Rate Limit Exceeded. Slowing down...");
                 }
                 throw new Error(`Gemini Stream Error: ${e.message}`);
             }
@@ -386,14 +443,14 @@ export const streamBotResponse = async (
 
 
 export const getBotResponse = async (
-    bot: BotConfig, 
-    history: Message[], 
+    bot: BotConfig,
+    history: Message[],
     baseSystemInstruction: string,
     settings: Settings
 ): Promise<string> => {
-    
+
     await waitWithJitter(200, 800);
-    
+
     const lastUserMsg = history.filter(m => m.authorType === AuthorType.HUMAN || m.authorType === AuthorType.SYSTEM).pop()?.content || "";
     const systemPrompt = injectMCPContext(baseSystemInstruction, settings, bot, lastUserMsg);
 
@@ -406,7 +463,7 @@ export const getBotResponse = async (
     let url = "https://openrouter.ai/api/v1/chat/completions";
     let apiKey = bot.apiKey || "";
 
-    switch(bot.authorType) {
+    switch (bot.authorType) {
         case AuthorType.OPENROUTER:
             url = "https://openrouter.ai/api/v1/chat/completions";
             apiKey = apiKey || settings.providers.openRouterKey || "";
@@ -414,7 +471,7 @@ export const getBotResponse = async (
             break;
         case AuthorType.LM_STUDIO:
             url = settings.providers.lmStudioEndpoint;
-            apiKey = "dummy"; 
+            apiKey = "dummy";
             break;
         case AuthorType.OLLAMA:
             url = settings.providers.ollamaEndpoint;
@@ -424,7 +481,7 @@ export const getBotResponse = async (
             url = settings.providers.janAiEndpoint;
             apiKey = "jan";
             break;
-        
+
         // --- NEW PROVIDERS ---
         case AuthorType.MOONSHOT:
             url = settings.providers.moonshotEndpoint || "https://api.moonshot.cn/v1/chat/completions";
@@ -451,12 +508,12 @@ export const getBotResponse = async (
     let headers: Record<string, string> = {
         "Content-Type": "application/json"
     };
-    
+
     if (bot.authorType === AuthorType.OPENROUTER) {
         headers["HTTP-Referer"] = "AI Bot Council";
         headers["X-Title"] = "AI Bot Council";
     }
-    
+
     if (apiKey) {
         headers["Authorization"] = `Bearer ${apiKey}`;
     }
@@ -483,18 +540,18 @@ export const getBotResponse = async (
         }
 
         const data = await response.json();
-        
+
         // Some APIs (like Minimax V2) might have different response structures. 
         // We try standard OpenAI first, then fallback or check specific fields.
         let content = data.choices?.[0]?.message?.content;
-        
+
         // Minimax legacy/v2 structure check if standard fails
         if (!content && data.reply) {
-            content = data.reply; 
+            content = data.reply;
         }
         // General fallback
         if (!content && data.base_resp?.status_msg) {
-             throw new Error(`Provider Error: ${data.base_resp.status_msg}`);
+            throw new Error(`Provider Error: ${data.base_resp.status_msg}`);
         }
 
         return content || "(No response generated)";
