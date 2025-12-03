@@ -93,7 +93,8 @@ export class CouncilOrchestrator {
 
     const speaker = enabledBots.find(b => b.role === 'speaker');
     const moderator = enabledBots.find(b => b.role === 'moderator');
-    const initialCouncilors = enabledBots.filter(b => b.role === 'councilor');
+    // Treat any enabled bot that isn't speaker or moderator as a councilor (including specialists)
+    const initialCouncilors = enabledBots.filter(b => b.role !== 'speaker' && b.role !== 'moderator');
 
     if (!speaker && initialCouncilors.length === 0) {
       const sysMessage = this.createSystemMessage('No Councilors present.');

@@ -12,6 +12,8 @@
     - Added **DuckDuckGo** as the default free search provider (via `duck-duck-scrape`).
     - Added **Brave Search** support (requires `BRAVE_API_KEY`).
     - Added `SEARCH_PROVIDER` environment variable to select provider (`duckduckgo`, `brave`, `tavily`, `serper`).
+  - **Bug Fixes**:
+    - Fixed `CouncilOrchestrator` member selection logic to include `specialist` and other roles as councilors, preventing adjournment when default councilors are disabled.
 
 - **Configuration Externalization**:
   - Moved system prompts to `src/config/prompts.json`.
