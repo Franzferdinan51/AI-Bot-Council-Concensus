@@ -1,5 +1,8 @@
 import 'dotenv/config';
 import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { DEFAULT_SETTINGS } from './types/constants.js';
 import { AIService } from './services/aiService.js';
 import { CouncilOrchestrator } from './services/councilOrchestrator.js';
@@ -8,6 +11,11 @@ import { createCouncilSessionTools, handleCouncilToolCall } from './tools/counci
 import { createManagementTools, handleManagementToolCall } from './tools/managementTools.js';
 import { createAutoSessionTools, handleAutoSessionToolCall } from './tools/autoSessionTools.js';
 import { errorHandler } from './services/errorHandler.js';
+import { logger } from './services/logger.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PUBLIC_DIR = path.join(__dirname, '../public');
 
 const PORT = Number(process.env.HTTP_PORT || 4000);
 
@@ -26,7 +34,11 @@ function loadProviderSettings() {
     moonshotApiKey: process.env.MOONSHOT_API_KEY || DEFAULT_SETTINGS.providers.moonshotApiKey,
     moonshotEndpoint: process.env.MOONSHOT_ENDPOINT || DEFAULT_SETTINGS.providers.moonshotEndpoint,
     minimaxApiKey: process.env.MINIMAX_API_KEY || DEFAULT_SETTINGS.providers.minimaxApiKey,
-    minimaxEndpoint: process.env.MINIMAX_ENDPOINT || DEFAULT_SETTINGS.providers.minimaxEndpoint
+    minimaxEndpoint: process.env.MINIMAX_ENDPOINT || DEFAULT_SETTINGS.providers.minimaxEndpoint,
+    searchProvider: process.env.SEARCH_PROVIDER || 'duckduckgo',
+    braveApiKey: process.env.BRAVE_API_KEY,
+    tavilyApiKey: process.env.TAVILY_API_KEY,
+    serperApiKey: process.env.SERPER_API_KEY
   };
 }
 
@@ -50,19 +62,59 @@ async function bootstrap() {
 
   const server = http.createServer(async (req, res) => {
     try {
-      if (!req.url) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Bad request' }));
+      if (!req.url) return;
+
+      // Enable CORS
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
         return;
       }
 
-      if (req.method === 'GET' && req.url === '/health') {
+      const url = new URL(req.url, `http://${req.headers.host}`);
+      const pathname = url.pathname;
+
+      // API Routes
+      if (pathname.startsWith('/api/')) {
+        if (req.method === 'GET' && pathname === '/api/system') {
+          const stats = {
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            activeSessions: sessionService.listSessions().length, // Simplified
+            totalRequests: 0 // Placeholder
+          };
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(stats));
+          return;
+        }
+
+        if (req.method === 'GET' && pathname === '/api/logs') {
+          const since = Number(url.searchParams.get('since') || 0);
+          const logs = logger.getRecentLogs(100).filter(l => l.timestamp > since);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(logs));
+          return;
+        }
+
+        if (req.method === 'GET' && pathname === '/api/config') {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(settings));
+          return;
+        }
+      }
+
+      // Existing Tool Routes
+      if (req.method === 'GET' && pathname === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'ok', server: 'ai-council-mcp-server', version: '1.0.0' }));
+        res.end(JSON.stringify({ status: 'ok', server: 'ai-council-mcp-server', version: '2.4.0' }));
         return;
       }
 
-      if (req.method === 'GET' && req.url === '/list-tools') {
+      if (req.method === 'GET' && pathname === '/list-tools') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           tools: allTools.map(tool => ({
@@ -74,7 +126,7 @@ async function bootstrap() {
         return;
       }
 
-      if (req.method === 'POST' && req.url === '/call-tool') {
+      if (req.method === 'POST' && pathname === '/call-tool') {
         const body = await readJsonBody(req);
         const { name, arguments: args } = body || {};
 
@@ -88,7 +140,6 @@ async function bootstrap() {
 
         const result = await errorHandler.wrap(
           async () => {
-            // Define session tool patterns
             const sessionToolPatterns = [
               'council_proposal',
               'council_deliberation',
@@ -99,7 +150,6 @@ async function bootstrap() {
               'council_prediction'
             ];
 
-            // Route based on tool name patterns
             if (name === 'council_auto') {
               return await handleAutoSessionToolCall(name, args, orchestrator);
             }
@@ -107,7 +157,6 @@ async function bootstrap() {
               return await handleCouncilToolCall(name, args, orchestrator);
             }
             else {
-              // All other council_ tools are management tools
               return await handleManagementToolCall(name, args);
             }
           },
@@ -124,16 +173,46 @@ async function bootstrap() {
         return;
       }
 
+      // Static File Serving
+      let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
+
+      // Prevent directory traversal
+      if (!filePath.startsWith(PUBLIC_DIR)) {
+        res.writeHead(403);
+        res.end('Forbidden');
+        return;
+      }
+
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        const ext = path.extname(filePath);
+        const contentTypes: Record<string, string> = {
+          '.html': 'text/html',
+          '.js': 'text/javascript',
+          '.css': 'text/css',
+          '.json': 'application/json',
+          '.png': 'image/png',
+          '.ico': 'image/x-icon'
+        };
+        const contentType = contentTypes[ext] || 'text/plain';
+
+        res.writeHead(200, { 'Content-Type': contentType });
+        fs.createReadStream(filePath).pipe(res);
+        return;
+      }
+
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Not found' }));
+
     } catch (err: any) {
+      console.error('Request error:', err);
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: err.message || 'Internal error' }));
     }
   });
 
   server.listen(PORT, () => {
-    console.error(`[HTTP Bridge] Listening on http://localhost:${PORT}`);
+    console.error(`[HTTP Bridge] Web UI available at http://localhost:${PORT}`);
+    console.error(`[HTTP Bridge] API available at http://localhost:${PORT}/health`);
   });
 }
 

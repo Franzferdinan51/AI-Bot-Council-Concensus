@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Council MCP - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>AI Council</h2>
+                <span class="version">v2.4.0</span>
+            </div>
+            <nav>
+                <button class="nav-item active" data-tab="dashboard">
+                    <span class="icon">📊</span> Dashboard
+                </button>
+                <button class="nav-item" data-tab="console">
+                    <span class="icon">💻</span> Console Logs
+                </button>
+                <button class="nav-item" data-tab="tester">
+                    <span class="icon">🛠️</span> Tool Tester
+                </button>
+                <button class="nav-item" data-tab="config">
+                    <span class="icon">⚙️</span> Configuration
+                </button>
+            </nav>
+            <div class="status-indicator">
+                <div class="status-dot online"></div>
+                <span>Server Online</span>
+            </div>
+        </aside>
+
+        <main class="content">
+            <!-- Dashboard View -->
+            <div id="dashboard" class="view active">
+                <header>
+                    <h1>System Overview</h1>
+                    <button id="refresh-stats" class="btn-secondary">Refresh</button>
+                </header>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Uptime</h3>
+                        <div class="value" id="uptime-value">--:--:--</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Memory Usage</h3>
+                        <div class="value" id="memory-value">-- MB</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Sessions</h3>
+                        <div class="value" id="sessions-value">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Requests</h3>
+                        <div class="value" id="requests-value">--</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Recent Activity</h2>
+                    <div class="activity-list" id="recent-activity">
+                        <div class="empty-state">No recent activity</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console View -->
+            <div id="console" class="view">
+                <header>
+                    <h1>Server Logs</h1>
+                    <div class="controls">
+                        <label><input type="checkbox" id="auto-scroll" checked> Auto-scroll</label>
+                        <button id="clear-logs" class="btn-secondary">Clear</button>
+                    </div>
+                </header>
+                <div class="console-window" id="log-container">
+                    <!-- Logs will be injected here -->
+                </div>
+            </div>
+
+            <!-- Tool Tester View -->
+            <div id="tester" class="view">
+                <header>
+                    <h1>Tool Tester</h1>
+                </header>
+                <div class="tester-layout">
+                    <div class="tool-selector">
+                        <label>Select Tool:</label>
+                        <select id="tool-select">
+                            <option value="">Loading tools...</option>
+                        </select>
+                    </div>
+                    <div class="tool-input">
+                        <label>Arguments (JSON):</label>
+                        <textarea id="tool-args" placeholder='{ "arg": "value" }'></textarea>
+                    </div>
+                    <button id="execute-tool" class="btn-primary">Execute Tool</button>
+                    
+                    <div class="tool-output">
+                        <label>Result:</label>
+                        <pre id="tool-result"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration View -->
+            <div id="config" class="view">
+                <header>
+                    <h1>Configuration</h1>
+                    <button id="save-config" class="btn-primary">Save Changes</button>
+                </header>
+                
+                <div class="config-section">
+                    <h2>AI Providers</h2>
+                    <div class="form-group">
+                        <label>Gemini API Key</label>
+                        <input type="password" id="gemini-key" placeholder="Enter key">
+                    </div>
+                    <div class="form-group">
+                        <label>OpenRouter API Key</label>
+                        <input type="password" id="openrouter-key" placeholder="Enter key">
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h2>Search Providers</h2>
+                    <div class="form-group">
+                        <label>Active Provider</label>
+                        <select id="search-provider">
+                            <option value="duckduckgo">DuckDuckGo</option>
+                            <option value="brave">Brave Search</option>
+                            <option value="tavily">Tavily</option>
+                            <option value="serper">Serper</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>API Key (if required)</label>
+                        <input type="password" id="search-key" placeholder="Enter provider key">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

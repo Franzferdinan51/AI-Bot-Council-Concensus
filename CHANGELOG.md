@@ -23,6 +23,14 @@
   - **Startup Script**:
     - Updated `start.bat` Setup Wizard (Option 2) to include interactive configuration for Search Providers (DuckDuckGo, Brave, Tavily, Serper).
     - Added environment variable saving for search provider keys.
+    - Added **Option 8** to launch the new Web UI.
+
+  - **Web UI**:
+    - Implemented a comprehensive Web UI for debugging and configuration (served via HTTP Bridge).
+    - **Dashboard**: Real-time server health, uptime, and active session metrics.
+    - **Console**: Live log viewer with filtering and auto-scroll.
+    - **Tool Tester**: Interactive interface to test MCP tools with JSON arguments.
+    - **Configuration**: Visual editor for AI provider settings.
 
 - **Configuration Externalization**:
   - Moved system prompts to `src/config/prompts.json`.

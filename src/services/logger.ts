@@ -431,8 +431,15 @@ export class Logger {
   /**
    * Get recent logs
    */
-  getLogs(limit: number = 100): LogEntry[] {
+  getRecentLogs(limit: number = 100): LogEntry[] {
     return this.logs.slice(-limit);
+  }
+
+  /**
+   * Get logs (alias for getRecentLogs)
+   */
+  getLogs(limit: number = 100): LogEntry[] {
+    return this.getRecentLogs(limit);
   }
 
   /**

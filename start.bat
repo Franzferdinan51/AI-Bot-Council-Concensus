@@ -253,6 +253,10 @@ call npm run build
 
 echo.
 echo [SUCCESS] Starting HTTP bridge on port %HTTP_PORT% (default 4000)...
+echo.
+echo   Web UI: http://localhost:%HTTP_PORT%
+echo   API:    http://localhost:%HTTP_PORT%/health
+echo.
 echo Press Ctrl+C to stop the bridge.
 echo.
 setlocal
