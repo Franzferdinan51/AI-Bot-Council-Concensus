@@ -22,11 +22,15 @@ interface ChatWindowProps {
   onOpenLiveSession: () => void;
   onCouncilorClick: (id: string) => void;
   enableCodingMode?: boolean;
+  settings?: any;
+  onSettingsChange?: any;
+  onToggleSettings?: () => void;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ 
     messages, activeBots, thinkingBotIds, onSendMessage, statusText, currentTopic, sessionMode, onModeChange, sessionStatus, 
-    debateHeat, onClearSession, onStopSession, onPauseSession, onOpenLiveSession, onCouncilorClick, enableCodingMode
+    debateHeat, onClearSession, onStopSession, onPauseSession, onOpenLiveSession, onCouncilorClick, enableCodingMode,
+    onToggleSettings
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -169,7 +173,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span className="hidden sm:inline">New</span>
                     </button>
-    
+                    
+                    {/* SETTINGS TOGGLE (NEW) */}
+                    <button 
+                        onClick={onToggleSettings}
+                        title="Settings"
+                        className="bg-slate-800 text-slate-400 hover:text-white transition-colors flex items-center justify-center p-2 rounded hover:bg-slate-700"
+                    >
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.78a2 2 0 0 1-.59 1.4l-4.12 4.12a2 2 0 0 0 0 2.82l4.12 4.12a2 2 0 0 1 .59 1.4v.78a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.78a2 2 0 0 1 .59-1.4l4.12-4.12a2 2 0 0 0 0-2.82l-4.12-4.12a2 2 0 0 1-.59-1.4V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+
                     <button 
                         onClick={() => setIsHistoryOpen(!isHistoryOpen)}
                         className="text-slate-400 hover:text-amber-400 transition-colors flex items-center justify-center p-1.5 rounded hover:bg-slate-800"

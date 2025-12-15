@@ -72,6 +72,25 @@ export const PUBLIC_MCP_REGISTRY = [
         }
     },
     {
+        id: 'github_repo',
+        name: 'read_github_content',
+        description: 'Read a file or list a directory from a public GitHub repository.',
+        functionDeclaration: {
+            name: 'read_github_content',
+            description: 'Read content from a GitHub repository. Can list directories or read file contents.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    owner: { type: Type.STRING, description: "Repository owner (e.g. 'facebook')" },
+                    repo: { type: Type.STRING, description: "Repository name (e.g. 'react')" },
+                    path: { type: Type.STRING, description: "File or directory path (optional, default root)" },
+                    branch: { type: Type.STRING, description: "Branch or tag (optional, defaults to main/master)" }
+                },
+                required: ["owner", "repo"]
+            }
+        }
+    },
+    {
         id: 'open_meteo',
         name: 'get_weather',
         description: 'Get current weather data for a location (latitude/longitude).',

@@ -31,6 +31,45 @@ const executePublicTool = async (name: string, args: any): Promise<any> => {
                 // Simulation / Fallback for Local Models that can't use GoogleSearch
                 return { result: `[Web Search Simulation]: Searched for "${args.query}". Please use Gemini models for live Google Search access.` };
 
+            case 'read_github_content':
+                try {
+                    const { owner, repo, path = '', branch } = args;
+                    let apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+                    if (branch) apiUrl += `?ref=${branch}`;
+                    
+                    const ghRes = await fetch(apiUrl, {
+                        headers: { 'Accept': 'application/vnd.github.v3+json' }
+                    });
+                    
+                    if (!ghRes.ok) throw new Error(`GitHub API ${ghRes.status}: ${ghRes.statusText}`);
+                    const data = await ghRes.json();
+                    
+                    if (Array.isArray(data)) {
+                        // Directory listing
+                        return {
+                            type: 'directory',
+                            items: data.map((item: any) => ({
+                                name: item.name,
+                                type: item.type,
+                                path: item.path
+                            }))
+                        };
+                    } else if (data.content && data.encoding === 'base64') {
+                        // File content
+                        // Handle unicode decoding correctly
+                        const text = decodeURIComponent(escape(atob(data.content)));
+                        return {
+                            type: 'file',
+                            path: data.path,
+                            content: text.substring(0, 20000) // Safety limit
+                        };
+                    } else {
+                        return { error: "Unknown response format from GitHub." };
+                    }
+                } catch (e: any) {
+                    return { error: `GitHub Read Failed: ${e.message}` };
+                }
+
             case 'get_weather':
                 const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${args.latitude}&longitude=${args.longitude}&current=temperature_2m,wind_speed_10m`);
                 return await weatherRes.json();
@@ -133,11 +172,19 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
   const contents = prunedHistory.map(msg => {
     const role: 'user' | 'model' = (msg.authorType === AuthorType.HUMAN || msg.authorType === AuthorType.SYSTEM) ? 'user' : 'model';
     
-    const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+    // SAFETY: Default to empty string if content is missing/undefined
+    const rawContent = msg.content || "";
+    const cleanContent = rawContent.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+    
+    // Construct the text part
     let text = `${msg.author} (${msg.roleLabel || 'Member'}): ${cleanContent}`;
     
-    // SAFETY: Ensure text is never empty to prevent 400 Bad Request
-    if (!text.trim()) text = "(No content)";
+    // SAFETY: Strictly ensure 'text' is never falsy. 
+    // Gemini 400 error occurs if 'parts' contains an object like {} (which happens if text is undefined)
+    // or if the text is empty/whitespace only in some contexts.
+    if (!text || !text.trim()) {
+        text = `${msg.author} (${msg.roleLabel || 'Member'}): (Silent/No Content)`;
+    }
 
     if (msg.attachments && msg.attachments.length > 0) {
         const links = msg.attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
@@ -177,6 +224,7 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
       let lastMessage = { ...contents[0] };
       for (let i = 1; i < contents.length; i++) {
         if (lastMessage.role === contents[i].role) {
+            // Merge parts if same role to avoid Gemini "Consecutive user turns" error (though we handle roles well now)
             lastMessage.parts = [...lastMessage.parts, ...contents[i].parts];
         } else {
             mergedContents.push(lastMessage);
@@ -186,6 +234,7 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
       mergedContents.push(lastMessage);
   }
 
+  // Gemini requires the LAST message to be from 'user'. If it's 'model', prompt it to continue.
   if (mergedContents.length > 0 && mergedContents[mergedContents.length - 1].role === 'model') {
     mergedContents.push({ role: 'user', parts: [{ text: "The floor is yours. Please proceed." }] });
   }
@@ -197,8 +246,9 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
 const formatHistoryForOpenAI = (history: Message[], settings: Settings) => {
     const prunedHistory = pruneHistory(history, settings);
     return prunedHistory.map(msg => {
-        const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+        const cleanContent = (msg.content || "").replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
         let content = `${msg.author}: ${cleanContent}`;
+        if (!content.trim()) content = `${msg.author}: (No content)`;
         
         const links = msg.attachments?.filter(a => a.type === 'link').map(a => a.data).join(', ');
         if (links) content += `\n[Context URLs: ${links}]`;
@@ -390,6 +440,9 @@ export const streamBotResponse = async (
                         finalFullText += sourceText;
                         onChunk(finalFullText);
                     }
+                    // SAFETY: If the model returned absolutely nothing (no text, no calls), return a placeholder.
+                    // This prevents empty strings in history.
+                    if (!finalFullText.trim()) return "(No response generated)";
                     return finalFullText;
                 }
 
@@ -429,12 +482,12 @@ export const streamBotResponse = async (
             }
         }
 
-        return finalFullText;
+        return finalFullText || "(Session Concluded)";
     }
 
     const text = await getBotResponse(bot, history, baseSystemInstruction, settings);
     onChunk(text);
-    return text;
+    return text || "(No response)";
 };
 
 

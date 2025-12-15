@@ -276,17 +276,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
 
   return (
     <>
-      <button 
-        onClick={onToggle}
-        className="fixed top-14 right-4 z-40 p-2 bg-slate-700 rounded-full text-white hover:bg-slate-600 shadow-xl transition-transform duration-300"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`}><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.78a2 2 0 0 1-.59 1.4l-4.12 4.12a2 2 0 0 0 0 2.82l4.12 4.12a2 2 0 0 1 .59 1.4v.78a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.78a2 2 0 0 1 .59-1.4l4.12-4.12a2 2 0 0 0 0-2.82l-4.12-4.12a2 2 0 0 1-.59-1.4V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>
-
       <div className={`fixed top-0 right-0 h-full bg-slate-900/95 backdrop-blur-md shadow-2xl z-30 transition-transform duration-300 w-full max-w-lg flex flex-col pt-[env(safe-area-inset-top)] ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         
         {/* Header Tabs */}
-        <div className="flex border-b border-slate-700 pt-16 px-4 md:px-6 bg-slate-900 overflow-x-auto scrollbar-hide">
+        <div className="flex border-b border-slate-700 pt-4 md:pt-16 px-4 md:px-6 bg-slate-900 overflow-x-auto scrollbar-hide relative">
+             <button onClick={onToggle} className="absolute top-4 right-4 text-slate-400 hover:text-white z-50 p-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
             {[
                 { id: 'council', label: 'Council' },
                 { id: 'knowledge', label: 'Knowledge' },
@@ -308,7 +304,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 animate-fade-in">
-            
             {/* --- COUNCIL TAB --- */}
             {activeTab === 'council' && !editingBot && (
                 <div className="space-y-4">
@@ -452,68 +447,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                 </div>
             )}
             
-            {/* --- KNOWLEDGE TAB (RAG/MEMORY) --- */}
-            {activeTab === 'knowledge' && (
-                <div className="space-y-6">
-                    <h3 className="text-white font-serif text-lg mb-2">Knowledge Base (RAG)</h3>
-                    
-                    {/* Add Document */}
-                    <div className="bg-slate-800 p-4 rounded border border-slate-700 space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase">Upload / Add Context Document</label>
-                        <input 
-                            value={newDocTitle} 
-                            onChange={e => setNewDocTitle(e.target.value)} 
-                            placeholder="Document Title (e.g. Constitution, Manifesto)" 
-                            className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-sm" 
-                        />
-                        <textarea 
-                            value={newDocContent} 
-                            onChange={e => setNewDocContent(e.target.value)} 
-                            placeholder="Paste full text content here..." 
-                            className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs h-24" 
-                        />
-                        <button onClick={addDocument} className="w-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded">
-                            ADD TO KNOWLEDGE STORE
-                        </button>
-                    </div>
-                    
-                    {/* List Documents */}
-                    <div>
-                         <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Active Documents</h4>
-                         {settings.knowledge.documents.length === 0 ? (
-                             <p className="text-xs text-slate-500 italic">No documents found.</p>
-                         ) : (
-                             settings.knowledge.documents.map(doc => (
-                                 <div key={doc.id} className="bg-slate-800 p-2 rounded border border-slate-700 mb-2 flex justify-between items-center">
-                                     <div>
-                                        <div className="text-sm font-bold text-white">{doc.title}</div>
-                                        <div className="text-[10px] text-slate-500">{doc.content.substring(0, 50)}...</div>
-                                     </div>
-                                     <button onClick={() => deleteDoc(doc.id)} className="text-red-400 text-xs hover:text-red-300">Delete</button>
-                                 </div>
-                             ))
-                         )}
-                    </div>
-
-                    {/* Precedents */}
-                     <div className="border-t border-slate-700 pt-4">
-                        <h4 className="text-xs font-bold text-amber-500 uppercase mb-2">Legislative Precedents (Long-Term Memory)</h4>
-                        {memories.length === 0 ? (
-                             <p className="text-xs text-slate-500 italic">No laws enacted yet.</p>
-                         ) : (
-                             <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                                 {memories.map(mem => (
-                                     <div key={mem.id} className="bg-slate-900 p-2 rounded border border-slate-800">
-                                         <div className="text-xs text-amber-200 font-bold mb-1">{mem.topic}</div>
-                                         <div className="text-[10px] text-slate-400">{mem.content.substring(0, 100)}...</div>
-                                     </div>
-                                 ))}
-                             </div>
-                         )}
-                     </div>
-                </div>
-            )}
-            
             {/* --- PROVIDERS TAB --- */}
             {activeTab === 'providers' && (
                 <div className="space-y-4">
@@ -529,8 +462,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                             placeholder="(Optional) Override environment key"
                         />
                     </div>
-                    
-                    <div className="p-4 bg-slate-800 rounded border border-slate-700">
+                     <div className="p-4 bg-slate-800 rounded border border-slate-700">
                         <label className="text-sm font-bold text-emerald-500 block mb-2">OpenRouter API Key</label>
                         <input 
                             type="password" 
@@ -541,27 +473,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         />
                     </div>
 
-                    {/* NEW: SPECIALIZED PROVIDERS */}
                     <div className="p-4 bg-slate-800 rounded border border-slate-700 mt-4 space-y-4">
                         <label className="text-sm font-bold text-pink-400 block border-b border-slate-700 pb-2">Specialized / International Providers</label>
-                        
-                        {/* Moonshot */}
                         <div className="space-y-1">
                             <label className="text-xs text-slate-400">Moonshot (Kimi) API Key</label>
                             <input type="password" value={settings.providers.moonshotApiKey || ''} onChange={e => updateProvider('moonshotApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
                             <label className="text-[10px] text-slate-500">Endpoint</label>
                             <input type="text" value={settings.providers.moonshotEndpoint || ''} onChange={e => updateProvider('moonshotEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-400 text-[10px]" />
                         </div>
-
-                        {/* Minimax */}
                         <div className="space-y-1">
                             <label className="text-xs text-slate-400">Minimax (M2) API Key</label>
                             <input type="password" value={settings.providers.minimaxApiKey || ''} onChange={e => updateProvider('minimaxApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
                             <label className="text-[10px] text-slate-500">Endpoint</label>
                             <input type="text" value={settings.providers.minimaxEndpoint || ''} onChange={e => updateProvider('minimaxEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-400 text-[10px]" />
                         </div>
-
-                        {/* Z.ai */}
                         <div className="space-y-1">
                             <label className="text-xs text-slate-400">Z.ai API Key</label>
                             <input type="password" value={settings.providers.zaiApiKey || ''} onChange={e => updateProvider('zaiApiKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
@@ -575,30 +500,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         <div className="space-y-3">
                             <div>
                                 <label className="text-xs text-slate-400">Base URL (v1/chat/completions)</label>
-                                <input 
-                                    type="text" 
-                                    value={settings.providers.genericOpenAIEndpoint || ''} 
-                                    onChange={e => updateProvider('genericOpenAIEndpoint', e.target.value)} 
-                                    className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600 text-xs"
-                                    placeholder="https://api.groq.com/openai/v1/chat/completions"
-                                />
+                                <input type="text" value={settings.providers.genericOpenAIEndpoint || ''} onChange={e => updateProvider('genericOpenAIEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600 text-xs" placeholder="https://api.groq.com/openai/v1/chat/completions" />
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400">API Key</label>
-                                <input 
-                                    type="password" 
-                                    value={settings.providers.genericOpenAIKey || ''} 
-                                    onChange={e => updateProvider('genericOpenAIKey', e.target.value)} 
-                                    className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600 text-xs"
-                                    placeholder="sk-..."
-                                />
+                                <input type="password" value={settings.providers.genericOpenAIKey || ''} onChange={e => updateProvider('genericOpenAIKey', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white placeholder-slate-600 text-xs" placeholder="sk-..." />
                             </div>
                         </div>
                     </div>
 
                     <div className="p-4 bg-slate-800 rounded border border-slate-700 space-y-3">
                         <h4 className="text-sm font-bold text-blue-400 block">Local Providers (Network / Tailscale)</h4>
-                        <p className="text-[10px] text-slate-400 mb-2">Enter full URLs including http/https. Use Tailscale IP for remote access.</p>
                         <div>
                             <label className="text-xs text-slate-400">LM Studio Endpoint</label>
                             <input type="text" value={settings.providers.lmStudioEndpoint} onChange={e => updateProvider('lmStudioEndpoint', e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" />
@@ -615,59 +527,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                 </div>
             )}
             
-            {/* ... other tabs ... */}
-            
-            {/* --- COST & PERFORMANCE TAB --- */}
-            {activeTab === 'cost' && (
-                <div className="space-y-6">
-                    <h3 className="text-white font-serif text-lg mb-2">Cost & Performance</h3>
-                    
-                    <div className="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                        <label className="flex items-center cursor-pointer">
-                            <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.cost.economyMode} onChange={e => updateCost('economyMode', e.target.checked)} />
-                            <div className="ml-3">
-                                <span className="text-amber-400 font-bold block">Economy Mode (Save $$$)</span>
-                                <span className="text-xs text-slate-400">Forces all Councilors/Agents to use cheaper models (Flash) and output concise answers. Speaker retains full power.</span>
-                            </div>
-                        </label>
-
-                        <div className="border-t border-slate-700 pt-4">
-                            <label className="flex items-center cursor-pointer">
-                                <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.cost.contextPruning} onChange={e => updateCost('contextPruning', e.target.checked)} />
-                                <div className="ml-3">
-                                    <span className="text-white font-bold block">Smart Context Pruning</span>
-                                    <span className="text-xs text-slate-400">Saves tokens by limiting history sent to API.</span>
-                                </div>
-                            </label>
-                        </div>
-
-                        {settings.cost.contextPruning && (
-                            <div className="ml-8">
-                                <label className="text-xs text-slate-300 block mb-1">Max History Turns (Keep Last N)</label>
-                                <input 
-                                    type="number" 
-                                    min="2" max="50"
-                                    value={settings.cost.maxContextTurns} 
-                                    onChange={e => updateCost('maxContextTurns', parseInt(e.target.value))}
-                                    className="w-20 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white"
-                                />
-                                <p className="text-[10px] text-slate-500 mt-1">Keeps the original topic + last {settings.cost.maxContextTurns} messages.</p>
-                            </div>
-                        )}
-
-                        <div className="border-t border-slate-700 pt-4">
-                             <label className="flex items-center cursor-pointer">
-                                <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.cost.parallelProcessing} onChange={e => updateCost('parallelProcessing', e.target.checked)} />
-                                <div className="ml-3">
-                                    <span className="text-white font-bold block">Batch Processing (Parallel)</span>
-                                    <span className="text-xs text-slate-400">Speeds up Research and Inquiry modes by running bots simultaneously.</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {/* --- AUDIO TAB --- */}
             {activeTab === 'audio' && (
                 <div className="space-y-6">
@@ -678,23 +537,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                             <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={settings.audio.enabled} onChange={e => updateAudio('enabled', e.target.checked)} />
                             <span className="ml-3 text-white font-bold">Enable Broadcast Mode (TTS)</span>
                         </label>
-
                         {settings.audio.enabled && (
                             <div className="ml-8 space-y-4 animate-fade-in">
                                 <label className="flex items-center cursor-pointer">
                                     <input type="checkbox" className="w-4 h-4 accent-amber-500" checked={settings.audio.useGeminiTTS} onChange={e => updateAudio('useGeminiTTS', e.target.checked)} />
                                     <span className="ml-2 text-slate-300 text-sm">Use Gemini Neural Voice (Recommended)</span>
                                 </label>
-                                <p className="text-xs text-slate-500">Requires Gemini API usage. Uncheck to use standard browser voices.</p>
-
                                 <div>
                                     <label className="text-xs text-slate-300 block mb-1">Speech Rate ({settings.audio.speechRate}x)</label>
-                                    <input 
-                                        type="range" min="0.5" max="2.0" step="0.1" 
-                                        value={settings.audio.speechRate} 
-                                        onChange={e => updateAudio('speechRate', parseFloat(e.target.value))}
-                                        className="w-full"
-                                    />
+                                    <input type="range" min="0.5" max="2.0" step="0.1" value={settings.audio.speechRate} onChange={e => updateAudio('speechRate', parseFloat(e.target.value))} className="w-full" />
                                 </div>
                                 <label className="flex items-center cursor-pointer">
                                     <input type="checkbox" className="w-4 h-4 accent-amber-500" checked={settings.audio.autoPlay} onChange={e => updateAudio('autoPlay', e.target.checked)} />
@@ -705,22 +556,104 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                     </div>
                 </div>
             )}
+            
+            {/* --- COST TAB (RESTORED) --- */}
+            {activeTab === 'cost' && (
+                <div className="space-y-6">
+                    <h3 className="text-white font-serif text-lg mb-2">Cost & Performance</h3>
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 space-y-6">
+                        {/* Economy Mode */}
+                        <label className="flex items-start cursor-pointer group">
+                            <div className="relative flex items-center">
+                                <input type="checkbox" className="w-5 h-5 accent-emerald-500 peer" checked={settings.cost.economyMode} onChange={e => updateCost('economyMode', e.target.checked)} />
+                            </div>
+                            <div className="ml-3">
+                                <span className="text-amber-400 font-bold block group-hover:text-amber-300 transition-colors">Economy Mode (Save $$$)</span>
+                                <span className="text-xs text-slate-400">Forces all Councilors/Agents to use cheaper models (Flash) and output concise answers. Speaker retains full power.</span>
+                            </div>
+                        </label>
 
-            {/* --- MCP / TOOLS TAB --- */}
-            {activeTab === 'mcp' && (
+                        <div className="border-t border-slate-700 pt-4">
+                            <label className="flex items-center cursor-pointer mb-2">
+                                <input type="checkbox" className="w-4 h-4 accent-blue-500" checked={settings.cost.contextPruning} onChange={e => updateCost('contextPruning', e.target.checked)} />
+                                <span className="ml-2 text-white font-bold text-sm">Smart Context Pruning</span>
+                            </label>
+                            <p className="text-xs text-slate-400 mb-2 pl-6">Automatically remove old messages to save tokens while keeping the System Prompt.</p>
+                            {settings.cost.contextPruning && (
+                                <div className="pl-6 space-y-1">
+                                    <div className="flex justify-between text-xs text-slate-300">
+                                        <span>Max History Turns</span>
+                                        <span className="font-mono text-blue-400">{settings.cost.maxContextTurns}</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="2" 
+                                        max="30" 
+                                        step="1"
+                                        value={settings.cost.maxContextTurns} 
+                                        onChange={e => updateCost('maxContextTurns', parseInt(e.target.value))} 
+                                        className="w-full h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer" 
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="border-t border-slate-700 pt-4">
+                            <label className="flex items-center cursor-pointer mb-2">
+                                <input type="checkbox" className="w-4 h-4 accent-purple-500" checked={settings.cost.parallelProcessing} onChange={e => updateCost('parallelProcessing', e.target.checked)} />
+                                <span className="ml-2 text-white font-bold text-sm">Parallel Processing</span>
+                            </label>
+                            <p className="text-xs text-slate-400 mb-2 pl-6">Run councilor debates simultaneously to save time (uses more rate limit quota).</p>
+                            {settings.cost.parallelProcessing && (
+                                <div className="pl-6 space-y-1">
+                                    <div className="flex justify-between text-xs text-slate-300">
+                                        <span>Max Concurrent Requests</span>
+                                        <span className="font-mono text-purple-400">{settings.cost.maxConcurrentRequests}</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="1" 
+                                        max="10" 
+                                        step="1"
+                                        value={settings.cost.maxConcurrentRequests} 
+                                        onChange={e => updateCost('maxConcurrentRequests', parseInt(e.target.value))} 
+                                        className="w-full h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer" 
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- MCP TAB (RESTORED) --- */}
+             {activeTab === 'mcp' && (
                 <div className="space-y-6">
                     <h3 className="text-white font-serif text-lg mb-4">Model Context Protocol (MCP)</h3>
                     <div>
                         <label className="flex items-center cursor-pointer mb-4">
-                            <input type="checkbox" className="w-4 h-4" checked={settings.mcp.enabled} onChange={e => onSettingsChange({...settings, mcp: {...settings.mcp, enabled: e.target.checked}})} />
+                            <input type="checkbox" className="w-4 h-4 accent-pink-500" checked={settings.mcp.enabled} onChange={e => onSettingsChange({...settings, mcp: {...settings.mcp, enabled: e.target.checked}})} />
                             <span className="ml-2 text-white font-bold">Enable Tools / MCP Context</span>
                         </label>
-                        <p className="text-xs text-slate-400 mb-4">
-                            Bots will be informed of these tools and may attempt to "call" them.
-                        </p>
+                        <p className="text-xs text-slate-400 mb-4">Bots will be informed of these tools and may attempt to "call" them to perform actions.</p>
                     </div>
 
-                    {/* PUBLIC TOOLS TOGGLES */}
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
+                        <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">Remote MCP Server (Docker/SSE)</label>
+                        <div className="flex gap-2 mb-2">
+                            <input 
+                                value={settings.mcp.dockerEndpoint} 
+                                onChange={e => onSettingsChange({...settings, mcp: {...settings.mcp, dockerEndpoint: e.target.value}})} 
+                                placeholder="http://localhost:8000/sse" 
+                                className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" 
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={() => quickSetEndpoint("http://localhost:8080/sse")} className="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-slate-300">Local 8080</button>
+                            <button onClick={() => quickSetEndpoint("")} className="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-slate-300">Clear</button>
+                        </div>
+                    </div>
+
                     <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
                         <div className="flex justify-between items-center mb-3">
                             <label className="text-xs text-cyan-400 font-bold uppercase">Public / Built-in Tools</label>
@@ -730,20 +663,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                                 <button onClick={() => toggleAllPublicTools(false)} className="text-[10px] text-slate-400 hover:text-white hover:underline">None</button>
                             </div>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                              {PUBLIC_MCP_REGISTRY.map(tool => (
-                                 <div key={tool.id} className="flex items-center justify-between">
+                                 <div key={tool.id} className="flex items-center justify-between p-2 rounded hover:bg-slate-700/30">
                                      <div className="mr-4">
                                          <div className="text-sm font-bold text-slate-200">{tool.name}</div>
                                          <div className="text-[10px] text-slate-500">{tool.description}</div>
                                      </div>
                                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                                        <input 
-                                            type="checkbox" 
-                                            className="sr-only peer"
-                                            checked={settings.mcp.publicToolIds?.includes(tool.id)}
-                                            onChange={() => togglePublicTool(tool.id)}
-                                        />
+                                        <input type="checkbox" className="sr-only peer" checked={settings.mcp.publicToolIds?.includes(tool.id)} onChange={() => togglePublicTool(tool.id)} />
                                         <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
                                     </label>
                                  </div>
@@ -751,77 +679,85 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         </div>
                     </div>
 
-                    {/* DYNAMIC IMPORT SECTION */}
-                    <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
-                        <label className="text-xs text-cyan-400 font-bold uppercase block mb-2">Import Tool Definition from URL</label>
-                        <p className="text-[10px] text-slate-400 mb-2">Paste a URL pointing to a raw JSON file containing a tool definition (or array of definitions).</p>
-                        <div className="flex gap-2">
-                             <input 
-                                type="text" 
-                                value={toolImportUrl} 
-                                onChange={e => setToolImportUrl(e.target.value)}
-                                placeholder="https://example.com/tools.json"
-                                className="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm"
-                            />
-                            <button onClick={handleImportToolFromUrl} className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded uppercase">
-                                Fetch
-                            </button>
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700">
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="text-xs font-bold text-purple-400 uppercase">Custom Client-Side Tools</label>
+                            <button onClick={addTool} className="text-[10px] bg-purple-700 px-2 py-1 rounded text-white hover:bg-purple-600">Add Tool</button>
                         </div>
-                        {importStatus && (
-                            <p className={`text-[10px] mt-2 ${importStatus.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>{importStatus}</p>
-                        )}
-                    </div>
+                        
+                        <div className="space-y-3">
+                            {settings.mcp.customTools.map((tool, idx) => (
+                                <div key={idx} className="bg-slate-900 p-3 rounded border border-slate-600">
+                                    <div className="flex justify-between mb-2">
+                                        <input value={tool.name} onChange={e => updateTool(idx, 'name', e.target.value)} className="bg-transparent border-b border-slate-500 text-sm font-bold text-white w-1/3 focus:outline-none" placeholder="tool_name" />
+                                        <button onClick={() => removeTool(idx)} className="text-red-400 hover:text-red-300 text-xs">Remove</button>
+                                    </div>
+                                    <input value={tool.description} onChange={e => updateTool(idx, 'description', e.target.value)} className="w-full bg-transparent text-xs text-slate-400 mb-2 border-b border-slate-700 focus:outline-none" placeholder="Description..." />
+                                    <textarea value={tool.schema} onChange={e => updateTool(idx, 'schema', e.target.value)} className="w-full bg-slate-950 text-[10px] font-mono text-green-400 p-2 rounded h-20" placeholder='{"type": "object", "properties": {...}}' />
+                                </div>
+                            ))}
+                        </div>
 
-                    <div className="p-4 bg-slate-800 rounded border border-slate-700 mb-4">
-                        <label className="text-xs text-cyan-400 font-bold uppercase block mb-2">Docker / Remote MCP Endpoint</label>
-                        <div className="flex gap-2 mb-2">
-                             <input 
-                                type="text" 
-                                value={settings.mcp.dockerEndpoint} 
-                                onChange={e => onSettingsChange({...settings, mcp: {...settings.mcp, dockerEndpoint: e.target.value}})}
-                                placeholder="http://localhost:8080/mcp (SSE Endpoint)"
-                                className="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm"
-                            />
-                            <div className="flex flex-col gap-1">
-                                <button onClick={() => quickSetEndpoint('http://localhost:3000/sse')} className="text-[10px] bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">3000</button>
-                                <button onClick={() => quickSetEndpoint('http://localhost:8080/sse')} className="text-[10px] bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">8080</button>
+                        <div className="mt-4 pt-4 border-t border-slate-700">
+                            <label className="text-xs text-slate-400 block mb-1">Import from URL (JSON)</label>
+                            <div className="flex gap-2">
+                                <input value={toolImportUrl} onChange={e => setToolImportUrl(e.target.value)} className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs" placeholder="https://example.com/tools.json" />
+                                <button onClick={handleImportToolFromUrl} className="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 rounded">Import</button>
                             </div>
+                            {importStatus && <p className="text-[10px] text-amber-400 mt-1">{importStatus}</p>}
                         </div>
-                    </div>
-
-                    <div>
-                         <div className="flex justify-between items-center mb-2">
-                             <label className="text-xs text-emerald-400 font-bold uppercase">Custom JSON Tool Definitions</label>
-                             <div className="flex gap-2">
-                                 <select 
-                                    onChange={(e) => { loadPreset(e.target.value); e.target.value = ''; }}
-                                    className="bg-slate-700 border-none text-white text-[10px] rounded px-2 py-1"
-                                 >
-                                     <option value="">Load Preset...</option>
-                                     {MCP_PRESETS.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
-                                 </select>
-                                 <button onClick={addTool} className="text-xs text-emerald-400 hover:underline">+ New</button>
-                             </div>
-                         </div>
-                         {settings.mcp.customTools.map((tool, idx) => (
-                             <div key={idx} className="bg-slate-800 p-3 rounded mb-2 border border-slate-700 animate-fade-in">
-                                 <div className="flex gap-2 mb-2">
-                                    <input value={tool.name} onChange={e => updateTool(idx, 'name', e.target.value)} className="bg-slate-900 border-slate-600 border rounded px-2 py-1 text-white text-xs flex-1" placeholder="Tool Name" />
-                                    <button onClick={() => removeTool(idx)} className="text-red-400 text-xs">Del</button>
-                                 </div>
-                                 <input value={tool.description} onChange={e => updateTool(idx, 'description', e.target.value)} className="w-full bg-slate-900 border-slate-600 border rounded px-2 py-1 text-white text-xs mb-2" placeholder="Description" />
-                                 <textarea value={tool.schema} onChange={e => updateTool(idx, 'schema', e.target.value)} className="w-full bg-slate-900 border-slate-600 border rounded px-2 py-1 text-slate-300 text-[10px] font-mono h-16" placeholder="{ type: 'object', ... }" />
-                             </div>
-                         ))}
                     </div>
                 </div>
             )}
-            
-            {/* --- GENERAL UI TAB --- */}
+
+            {/* --- KNOWLEDGE TAB (RESTORED) --- */}
+             {activeTab === 'knowledge' && (
+                <div className="space-y-6">
+                    <h3 className="text-white font-serif text-lg mb-2">Knowledge Base (RAG)</h3>
+                    
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4">
+                        <h4 className="text-sm font-bold text-slate-300 mb-2">Active Documents</h4>
+                        <div className="max-h-40 overflow-y-auto space-y-2 mb-2">
+                            {settings.knowledge.documents.length === 0 ? (
+                                <p className="text-xs text-slate-500 italic">No documents uploaded. The Council relies on general knowledge.</p>
+                            ) : (
+                                settings.knowledge.documents.map(doc => (
+                                    <div key={doc.id} className="flex justify-between items-center bg-slate-900 p-2 rounded border border-slate-600">
+                                        <span className="text-xs text-white truncate max-w-[200px]">{doc.title}</span>
+                                        <button onClick={() => deleteDoc(doc.id)} className="text-red-400 hover:text-white text-xs">Delete</button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                     <div className="bg-slate-800 p-4 rounded border border-slate-700 space-y-2">
+                        <label className="text-xs font-bold text-slate-400 uppercase">Upload / Add Context Document</label>
+                        <input value={newDocTitle} onChange={e => setNewDocTitle(e.target.value)} placeholder="Document Title" className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-sm" />
+                        <textarea value={newDocContent} onChange={e => setNewDocContent(e.target.value)} placeholder="Paste full text..." className="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs h-24" />
+                        <button onClick={addDocument} className="w-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded">ADD TO KNOWLEDGE STORE</button>
+                    </div>
+                    
+                    <div className="bg-slate-800 p-4 rounded border border-slate-700 mt-4">
+                        <h4 className="text-sm font-bold text-slate-300 mb-2">Long-Term Memory</h4>
+                        <div className="text-xs text-slate-400 mb-2">The Council automatically remembers passed resolutions.</div>
+                        <div className="max-h-40 overflow-y-auto space-y-2">
+                            {memories.map((mem, i) => (
+                                <div key={i} className="bg-slate-900 p-2 rounded border border-slate-800 opacity-70 hover:opacity-100">
+                                    <div className="font-bold text-amber-500">{mem.topic}</div>
+                                    <div className="truncate">{mem.content}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+             )}
+
             {activeTab === 'ui' && (
                 <div className="space-y-6">
                     <h3 className="text-white font-serif text-lg mb-4">General Preferences</h3>
                     <div className="space-y-4">
+                         {/* ... UI Settings ... */}
                         <div>
                             <label className="flex items-center cursor-pointer">
                                 <input type="checkbox" className="w-5 h-5 accent-emerald-500" checked={settings.ui.enableCodingMode} onChange={e => updateUI('enableCodingMode', e.target.checked)} />
@@ -834,7 +770,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         {settings.ui.enableCodingMode && (
                             <div className="pl-8 pt-2">
                                 <label className="flex items-center cursor-pointer">
-                                    <input type="checkbox" className="w-5 h-5 accent-pink-500" checked={settings.ui.proCodingUI} onChange={e => updateUI('proCodingUI', e.target.checked)} />
+                                    <input type="checkbox" className="w-5 h-5 accent-pink-500" checked={settings.ui.proCodingUI || false} onChange={e => updateUI('proCodingUI', e.target.checked)} />
                                     <div className="ml-3">
                                         <span className="text-white font-bold block">Enable Pro Coding UI</span>
                                         <span className="text-xs text-slate-400">Switch to an IDE-style layout when in Swarm Coding mode.</span>
@@ -844,11 +780,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         )}
                         <div className="border-t border-slate-700 pt-4">
                             <label className="text-sm text-slate-300 block mb-1">Debate Speed (Delay)</label>
-                            <select 
-                                value={settings.ui.debateDelay} 
-                                onChange={e => updateUI('debateDelay', parseInt(e.target.value))}
-                                className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white"
-                            >
+                            <select value={settings.ui.debateDelay} onChange={e => updateUI('debateDelay', parseInt(e.target.value))} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
                                 <option value={1000}>Fast (1s)</option>
                                 <option value={2000}>Normal (2s)</option>
                                 <option value={4000}>Slow (4s)</option>
@@ -857,11 +789,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         </div>
                         <div>
                             <label className="text-sm text-slate-300 block mb-1">Font Size</label>
-                            <select 
-                                value={settings.ui.fontSize} 
-                                onChange={e => updateUI('fontSize', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white"
-                            >
+                            <select value={settings.ui.fontSize} onChange={e => updateUI('fontSize', e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white">
                                 <option value="small">Compact</option>
                                 <option value="medium">Default</option>
                                 <option value="large">Large</option>
@@ -870,29 +798,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         <div className="border-t border-slate-700 pt-4">
                              <label className="text-sm text-slate-300 block mb-2">Default View Mode</label>
                              <div className="flex bg-slate-800 rounded p-1 border border-slate-700">
-                                 <button 
-                                     onClick={() => updateUI('chatViewMode', 'list')} 
-                                     className={`flex-1 py-1.5 text-xs font-bold rounded ${settings.ui.chatViewMode === 'list' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                                 >
-                                     Standard List
-                                 </button>
-                                 <button 
-                                     onClick={() => updateUI('chatViewMode', 'grid')} 
-                                     className={`flex-1 py-1.5 text-xs font-bold rounded ${settings.ui.chatViewMode === 'grid' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                                 >
-                                     Grid Layout
-                                 </button>
+                                 <button onClick={() => updateUI('chatViewMode', 'list')} className={`flex-1 py-1.5 text-xs font-bold rounded ${settings.ui.chatViewMode === 'list' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}>Standard List</button>
+                                 <button onClick={() => updateUI('chatViewMode', 'grid')} className={`flex-1 py-1.5 text-xs font-bold rounded ${settings.ui.chatViewMode === 'grid' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}>Grid Layout</button>
                              </div>
-                        </div>
-                        <div>
-                             <label className="text-sm text-slate-300 block mb-1">Custom Prime Directive (Override)</label>
-                             <textarea 
-                                value={settings.ui.customDirective || ''} 
-                                onChange={e => updateUI('customDirective', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white text-xs h-24"
-                                placeholder="Overwrite the core prompt here (e.g. 'You are all pirates...')"
-                             />
-                             <p className="text-[10px] text-slate-500 mt-1">Leave empty to use default Council rules.</p>
                         </div>
                     </div>
                 </div>

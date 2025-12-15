@@ -13,6 +13,7 @@ interface CodingInterfaceProps {
     currentTopic: string | null;
     currentMode: SessionMode;
     onModeChange: (mode: SessionMode) => void;
+    onToggleSettings?: () => void;
 }
 
 interface VirtualFile {
@@ -22,7 +23,7 @@ interface VirtualFile {
 }
 
 const CodingInterface: React.FC<CodingInterfaceProps> = ({
-    messages, onSendMessage, isLoading, statusText, thinkingBotIds, onStopSession, currentTopic, currentMode, onModeChange
+    messages, onSendMessage, isLoading, statusText, thinkingBotIds, onStopSession, currentTopic, currentMode, onModeChange, onToggleSettings
 }) => {
     const [files, setFiles] = useState<VirtualFile[]>([]);
     const [activeFile, setActiveFile] = useState<VirtualFile | null>(null);
@@ -90,11 +91,16 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
     };
 
     return (
-        <div className="flex h-full w-full bg-[#1e1e1e] text-slate-300 font-mono overflow-hidden">
+        <div className="flex flex-1 min-h-0 w-full bg-[#1e1e1e] text-slate-300 font-mono overflow-hidden">
             
             {/* LEFT: EXPLORER */}
             <div className="w-64 bg-[#252526] border-r border-[#333] flex flex-col shrink-0 hidden md:flex">
-                <div className="h-10 flex items-center px-4 text-xs font-bold uppercase tracking-widest text-slate-500 bg-[#252526]">Explorer</div>
+                <div className="h-10 flex items-center justify-between px-4 text-xs font-bold uppercase tracking-widest text-slate-500 bg-[#252526]">
+                    <span>Explorer</span>
+                    <button onClick={onToggleSettings} title="Settings">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="hover:text-white"><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.78a2 2 0 0 1-.59 1.4l-4.12 4.12a2 2 0 0 0 0 2.82l4.12 4.12a2 2 0 0 1 .59 1.4v.78a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.78a2 2 0 0 1 .59-1.4l4.12-4.12a2 2 0 0 0 0-2.82l-4.12-4.12a2 2 0 0 1-.59-1.4V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
                 <div className="flex-1 overflow-y-auto">
                     {files.length === 0 ? (
                         <div className="p-4 text-xs text-slate-500 italic">No files generated yet.</div>
