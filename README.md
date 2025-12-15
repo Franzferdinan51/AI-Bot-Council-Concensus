@@ -1,9 +1,11 @@
+
 # 🏛️ AI Council Chamber
 
 **The Definitive Multi-Agent Governance & Deliberation Engine**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Gemini-blue)](https://ai.google.dev/)
+[![React](https://img.shields.io/badge/React-18-blue)](https://react.dev/)
 
 The **AI Council Chamber** is a sophisticated, multi-agent legislative simulator designed to analyze complex problems through the lens of diverse, competing personas. It transforms solitary AI interaction into a parliamentary process, ensuring that every idea is debated, stress-tested, and refined before a conclusion is reached.
 
@@ -24,12 +26,12 @@ The **AI Council Chamber** solves this by enforcing **Adversarial Collaboration*
 ### 1. Multi-Modal Deliberation Engines
 The Council operates in distinct modes tailored to your specific needs:
 
-*   **⚖️ Legislative Proposal (Default)**: The standard parliamentary flow. You propose a motion, the Council debates it in rounds, challenges each other, votes, and the Speaker enacts a binding decree. Best for decision-making.
-*   **🧠 Deep Research (Agentic)**: A recursive investigation mode. The Speaker breaks a topic into vectors, assigns agents to perform breadth and depth searches using Google Search, identifies gaps, and compiles a comprehensive dossier. Best for learning.
+*   **⚖️ Legislative Proposal (Default)**: The standard parliamentary flow. You propose a motion, the Council debates it in rounds, challenges each other, votes, and the Speaker enacts a binding decree.
+*   **🧠 Deep Research (Agentic)**: A recursive investigation mode. The Speaker breaks a topic into vectors, assigns agents to perform breadth and depth searches using Google Search, identifies gaps, and compiles a comprehensive dossier.
 *   **🐝 Swarm Hive**: Inspired by OpenAI's *Swarm*. A dynamic task-decomposition engine. The Speaker spawns ephemeral "Drone Agents" to execute massive parallel tasks.
-*   **💻 Swarm Coding**: A dedicated software engineering workflow where the Council transforms into a Dev Team (Architect, Backend, Frontend, SecOps) to write production-ready code with live artifact previews. Includes a dedicated **IDE-Style UI**.
+*   **💻 Swarm Coding**: A dedicated software engineering workflow where the Council transforms into a Dev Team (Architect, Backend, Frontend, SecOps) to write production-ready code. Includes a dedicated **IDE-Style UI** with file explorer and preview.
+*   **🔮 Prediction Market**: Superforecasting mode. The Council performs a "Pre-Mortem", analyzes base rates, and generates probabilistic forecasts with confidence intervals.
 *   **🗣️ Inquiry**: A rapid-fire Q&A mode where the user asks questions and the Council provides specific answers synthesized by the Speaker.
-*   **🛡️ Deliberation**: A roundtable discussion focused on exploring nuances rather than binary voting.
 
 ### 2. The Councilors (Personas)
 The system comes pre-loaded with archetypes designed to cover the full spectrum of human thought:
@@ -38,18 +40,16 @@ The system comes pre-loaded with archetypes designed to cover the full spectrum 
 *   **The Ethicist**: Prioritizes morality and human well-being.
 *   **The Pragmatist**: Focuses on cost, feasibility, and immediate implementation.
 *   **The Skeptic**: The Devil's Advocate. Looks for flaws and risks.
-*   **The Historian**: Cites precedents and past human errors.
-*   **The Diplomat**: Values compromise and soft power.
-*   **The Sentinel**: Focuses on security and defense.
+*   **Specialist Agents**: Dynamic sub-agents for Law, Science, Finance, and Military strategy.
 *   ...and many more (Journalist, Psychologist, Conspiracist).
 
 ### 3. Advanced Tooling & Integration
 *   **Google Search Grounding**: Agents actively verify claims in real-time.
+*   **Native MCP Tools**: Built-in client-side tools for **GitHub User Lookup**, **Math Evaluation**, **Weather**, **Crypto Prices**, **Wikipedia**, and **Random Identity Generation**.
 *   **YouTube Analysis**: Paste a video URL, and agents will find transcripts/summaries to debate the content.
 *   **Direct Consultation**: Click any Councilor to open a private, off-the-record side channel.
 *   **Live Audio Audience**: Speak directly to the Council using Gemini's native low-latency audio API.
 *   **Broadcast Mode**: The Council speaks back using distinct neural voices for each persona.
-*   **MCP Support**: Integrate external tools via the Model Context Protocol (Weather, Wikipedia, etc.).
 
 ---
 
@@ -74,11 +74,13 @@ The system comes pre-loaded with archetypes designed to cover the full spectrum 
     npm run dev
     ```
 
-### Connecting Local Models (LM Studio / Ollama)
-You can save costs or ensure privacy by running Councilors on local hardware.
-1.  Open **Settings** > **API Configuration**.
-2.  Enter your Local Endpoint (e.g., `http://localhost:1234/v1/chat/completions` for LM Studio).
-3.  Go to **Council Composition**, edit a member (e.g., The Technocrat), and change their Provider to **LM Studio**.
+### Provider Configuration
+The Council supports a wide range of LLM providers. Configure them in **Settings > API**:
+
+*   **Google Gemini**: Primary driver for the Speaker and complex reasoning.
+*   **OpenRouter**: Access to Claude 3.5, GPT-4o, Llama 3.1 405B.
+*   **Local Models**: First-class support for **Ollama**, **LM Studio**, and **Jan AI** (local endpoints).
+*   **Specialized APIs**: Support for **Moonshot (Kimi)**, **Minimax**, and **Z.ai**.
 
 ---
 
@@ -101,7 +103,7 @@ You can save costs or ensure privacy by running Councilors on local hardware.
 
 The application is built on a modern React stack designed for performance and modularity.
 
-*   **Frontend**: React 18, TypeScript, Tailwind CSS.
+*   **Frontend**: React 18, TypeScript, Tailwind CSS, Recharts.
 *   **AI Orchestration**: Custom `aiService` layer that handles prompt injection, context pruning, and multi-provider routing.
 *   **State Management**: Complex local state orchestration to handle the asynchronous "Turn-Taking" of the debate cycle.
 *   **Streaming**: Real-time token streaming for a responsive, "alive" feel.
