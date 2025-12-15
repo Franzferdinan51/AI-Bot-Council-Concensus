@@ -420,7 +420,7 @@ export const DEFAULT_SETTINGS: Settings = {
         enabled: true, 
         dockerEndpoint: "",
         customTools: [],
-        publicToolIds: ['fetch_website', 'web_search', 'wikipedia', 'open_meteo'] 
+        publicToolIds: [] // Default to empty to prioritize Native Google Search and prevent 400 errors
     },
     providers: {
         geminiApiKey: "",

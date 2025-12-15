@@ -1,8 +1,0 @@
-{
-  "name": "High AI Council Chamber",
-  "description": "A legislative chamber where AI entities debate issues and the Speaker delivers a final resolution.",
-  "requestFramePermissions": [
-    "microphone",
-    "camera"
-  ]
-}

@@ -1,46 +1,23 @@
 {
-  "name": "ai-council-mcp-server",
-  "version": "1.0.0",
-  "description": "MCP Server providing AI Council Chamber - a multi-agent legislative simulation and deliberation engine",
+  "name": "high-ai-council-chamber",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist",
-    "check": "./start.sh -c",
-    "mcp": "npm run build && node dist/index.js",
-    "start:dev": "npm run dev",
-    "start:http": "npm run build && node dist/httpBridge.js",
-    "health": "node dist/index.js --health",
-    "gen:mcp": "tsx src/scripts/gen-mcp-config.ts"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "keywords": [
-    "mcp",
-    "model-context-protocol",
-    "ai-council",
-    "multi-agent",
-    "deliberation"
-  ],
-  "author": "",
-  "license": "MIT",
   "dependencies": {
-    "@google/generative-ai": "^0.24.0",
-    "@modelcontextprotocol/sdk": "^1.24.1",
-    "better-sqlite3": "^12.5.0",
-    "dotenv": "^16.4.5",
-    "duck-duck-scrape": "^2.2.7",
-    "ws": "^8.18.3",
-    "zod": "^3.23.8"
+    "react-dom": "^19.1.1",
+    "@google/genai": "^1.20.0",
+    "react": "^19.1.1",
+    "recharts": "2.13.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.14.0",
-    "@types/ws": "^8.18.1",
-    "tsx": "^4.19.0",
-    "typescript": "^5.8.2",
-    "vite": "^7.2.6"
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }

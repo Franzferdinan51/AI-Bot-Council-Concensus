@@ -262,10 +262,10 @@ export const streamBotResponse = async (
             config.thinkingConfig = { thinkingBudget: 32768 };
         }
 
-        const tools: any[] = [{ googleSearch: {} }];
+        const tools: any[] = [];
+        const functionDeclarations: any[] = [];
         
         if (settings.mcp.enabled) {
-            const functionDeclarations: any[] = [];
             
             if (settings.mcp.publicToolIds && settings.mcp.publicToolIds.length > 0) {
                 const publicTools = PUBLIC_MCP_REGISTRY.filter(t => settings.mcp.publicToolIds?.includes(t.id));
@@ -288,12 +288,16 @@ export const streamBotResponse = async (
                      }
                  });
             }
-
-            if (functionDeclarations.length > 0) {
-                tools.push({ functionDeclarations });
-            }
         }
 
+        // CRITICAL FIX: Ensure mutual exclusivity between Google Search and Function Declarations.
+        // Mixing them often causes 400 Bad Request on specific Gemini models.
+        if (functionDeclarations.length > 0) {
+            tools.push({ functionDeclarations });
+        } else {
+            tools.push({ googleSearch: {} });
+        }
+        
         config.tools = tools;
 
         let currentHistory: { role: string; parts: any[] }[] = formatHistoryForGemini(history, settings);
