@@ -135,6 +135,54 @@ export const PUBLIC_MCP_REGISTRY = [
                 required: ["timezone"]
             }
         }
+    },
+    {
+        id: 'github_user',
+        name: 'get_github_user',
+        description: 'Get public profile information for a GitHub user.',
+        functionDeclaration: {
+            name: 'get_github_user',
+            description: 'Fetch public details for a GitHub username.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    username: { type: Type.STRING, description: "The GitHub username" }
+                },
+                required: ["username"]
+            }
+        }
+    },
+    {
+        id: 'math_evaluate',
+        name: 'math_evaluate',
+        description: 'Evaluate a mathematical expression safely.',
+        functionDeclaration: {
+            name: 'math_evaluate',
+            description: 'Calculate the result of a math expression.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    expression: { type: Type.STRING, description: "The math expression (e.g., '12 * (5 + 3)')" }
+                },
+                required: ["expression"]
+            }
+        }
+    },
+    {
+        id: 'random_user',
+        name: 'get_random_identity',
+        description: 'Generate a random user identity (mock data).',
+        functionDeclaration: {
+            name: 'get_random_identity',
+            description: 'Get a random user profile for testing.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    nationality: { type: Type.STRING, description: "Optional nationality code (e.g. 'us', 'gb')" }
+                },
+                required: []
+            }
+        }
     }
 ];
 
@@ -411,6 +459,53 @@ export const MCP_PRESETS: MCPTool[] = [
             properties: { path: { type: "string" } },
             required: ["path"]
         }, null, 2)
+    },
+    {
+        name: "google_maps_search",
+        description: "Search for places using Google Maps MCP.",
+        schema: JSON.stringify({
+            type: "object",
+            properties: { 
+                query: { type: "string", description: "Place to search for" },
+                location: { type: "string", description: "Optional center location" }
+            },
+            required: ["query"]
+        }, null, 2)
+    },
+    {
+        name: "docker_control",
+        description: "Manage Docker containers via MCP.",
+        schema: JSON.stringify({
+            type: "object",
+            properties: { 
+                action: { type: "string", enum: ["list", "start", "stop", "restart"] },
+                containerId: { type: "string" }
+            },
+            required: ["action"]
+        }, null, 2)
+    },
+    {
+        name: "git_repo",
+        description: "Read Git repository info via MCP.",
+        schema: JSON.stringify({
+            type: "object",
+            properties: { 
+                path: { type: "string", description: "Path to repo" },
+                command: { type: "string", enum: ["status", "log", "diff"] }
+            },
+            required: ["path", "command"]
+        }, null, 2)
+    },
+    {
+        name: "postgres_query",
+        description: "Execute read-only queries on Postgres.",
+        schema: JSON.stringify({
+            type: "object",
+            properties: { 
+                query: { type: "string", description: "SQL Query (SELECT only)" }
+            },
+            required: ["query"]
+        }, null, 2)
     }
 ];
 
@@ -512,13 +607,14 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         You must SIMULATE a concise, rapid-fire debate between the following Councilors based on their personas:
         {{COUNCILORS_LIST}}
         
-        INSTRUCTIONS:
-        1. Speak ONLY as the councilors. Do not add Speaker commentary.
-        2. Create a transcript where each entry is separated by a newline and follows this format:
+        CRITICAL INSTRUCTION:
+        1. You MUST generate a response for EVERY SINGLE MEMBER listed above. Do not skip anyone.
+        2. Use this EXACT format for every entry:
            
-           **[Member Name]**: [Content]
+           ### [Member Name]:
+           [Content]
            
-        3. Ensure each councilor speaks at least once.
+        3. Do not add Speaker commentary or summaries. Just the transcript.
         `,
         ECONOMY_VOTE_BATCH: `${UNCONSTRAINED_DIRECTIVE} You are the Speaker acting as a proxy.
         Cast votes on behalf of the following Councilors regarding "{{TOPIC}}":

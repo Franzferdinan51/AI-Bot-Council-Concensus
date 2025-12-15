@@ -253,7 +253,9 @@ const App: React.FC = () => {
 
     const speaker = enabledBots.find(b => b.role === 'speaker');
     const moderator = enabledBots.find(b => b.role === 'moderator');
-    const initialCouncilors = enabledBots.filter(b => b.role === 'councilor');
+    
+    // CHANGED: Include specialists in the main debate pool if they are enabled
+    const initialCouncilors = enabledBots.filter(b => b.role === 'councilor' || b.role === 'specialist');
 
     if (!speaker && initialCouncilors.length === 0) {
         addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: "No Councilors present." });
@@ -288,7 +290,8 @@ const App: React.FC = () => {
              setSessionStatus(SessionStatus.DEBATING);
              
              // 2. Councilors: Superforecasting Analysis
-             await runBatchWithConcurrency(initialCouncilors.slice(0, 3), async (bot: BotConfig) => {
+             // CHANGED: Removed .slice(0, 3) to include ALL enabled councilors/specialists
+             await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
                  return await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PREDICTION.COUNCILOR)} Persona: ${bot.persona}`, "SUPERFORECASTER");
              }, maxConcurrency);
 
@@ -372,7 +375,8 @@ const App: React.FC = () => {
                 await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_PLANNING)} Persona: ${speaker.persona}`, "LEAD INVESTIGATOR");
                 
                 setSessionStatus(SessionStatus.DEBATING);
-                await runBatchWithConcurrency(initialCouncilors.slice(0,3), async (bot: BotConfig) => {
+                // CHANGED: Removed .slice(0,3) to include ALL enabled councilors/specialists
+                await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
                     return await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${bot.persona}`, "RESEARCH AGENT (PHASE 1)");
                 }, maxConcurrency);
 
@@ -381,7 +385,8 @@ const App: React.FC = () => {
                 sessionHistory.push({ id: 'gap-analysis', author: speaker.name, authorType: speaker.authorType, content: gapAnalysis });
 
                 setSessionStatus(SessionStatus.DEBATING);
-                await runBatchWithConcurrency(initialCouncilors.slice(0,3), async (bot: BotConfig) => {
+                // CHANGED: Removed .slice(0,3) to include ALL enabled councilors/specialists
+                await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
                     const depthPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_2).replace('{{GAP_CONTEXT}}', gapAnalysis)} Persona: ${bot.persona}`;
                     return await processBotTurn(bot, sessionHistory, depthPrompt, "RESEARCH AGENT (PHASE 2)");
                 }, maxConcurrency);
@@ -411,7 +416,8 @@ const App: React.FC = () => {
              if (speaker) await processBotTurn(speaker, sessionHistory, `${injectTopic(openingPrompt)} Persona: ${speaker.persona}`, "SPEAKER");
              
              setSessionStatus(SessionStatus.DEBATING);
-             await runBatchWithConcurrency(initialCouncilors.slice(0,3), async (bot: BotConfig) => {
+             // CHANGED: Removed .slice(0,3) to include ALL enabled councilors/specialists
+             await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
                  return await processBotTurn(bot, sessionHistory, `${injectTopic(councilorPrompt)} Persona: ${bot.persona}`, bot.role);
              }, maxConcurrency);
              
@@ -434,7 +440,8 @@ const App: React.FC = () => {
                  
                  sessionHistory.push({ id: 'eco-deb', author: speaker.name, authorType: speaker.authorType, content: rawTranscript });
                  
-                 const turnRegex = /\*\*([^*]+)\*\*:\s*([\s\S]*?)(?=\*\*|$)/g;
+                 // CHANGED: Use strictly robust regex to match the updated prompt format "### [Name]:"
+                 const turnRegex = /###\s*\[(.*?)\]:\s*([\s\S]*?)(?=###|$)/g;
                  const turns = [...rawTranscript.matchAll(turnRegex)];
                  
                  turns.forEach((match, idx) => {

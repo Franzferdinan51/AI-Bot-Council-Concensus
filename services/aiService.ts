@@ -47,6 +47,52 @@ const executePublicTool = async (name: string, args: any): Promise<any> => {
                 
             case 'get_current_time':
                 return { time: new Date().toLocaleString('en-US', { timeZone: args.timezone }) };
+            
+            case 'get_github_user':
+                try {
+                    const ghRes = await fetch(`https://api.github.com/users/${args.username}`);
+                    if (!ghRes.ok) return { error: `GitHub API Error: ${ghRes.status}` };
+                    const ghData = await ghRes.json();
+                    return {
+                        login: ghData.login,
+                        name: ghData.name,
+                        bio: ghData.bio,
+                        public_repos: ghData.public_repos,
+                        followers: ghData.followers,
+                        url: ghData.html_url
+                    };
+                } catch (e: any) {
+                    return { error: `GitHub Fetch Failed: ${e.message}` };
+                }
+
+            case 'math_evaluate':
+                try {
+                    // Safety check: only allow numbers, operators, and parenthesis
+                    if (!/^[0-9+\-*/().\s]*$/.test(args.expression)) {
+                        return { error: "Unsafe characters in expression." };
+                    }
+                    // Evaluate using Function constructor (sandbox-ish)
+                    const result = new Function(`return ${args.expression}`)();
+                    return { result: result };
+                } catch (e: any) {
+                    return { error: `Math Evaluation Failed: ${e.message}` };
+                }
+
+            case 'get_random_identity':
+                try {
+                    const nat = args.nationality ? `&nat=${args.nationality}` : '';
+                    const randRes = await fetch(`https://randomuser.me/api/?inc=name,location,email,login${nat}`);
+                    const randData = await randRes.json();
+                    const user = randData.results[0];
+                    return {
+                        name: `${user.name.first} ${user.name.last}`,
+                        location: `${user.location.city}, ${user.location.country}`,
+                        email: user.email,
+                        username: user.login.username
+                    };
+                } catch (e: any) {
+                    return { error: `Random Identity Failed: ${e.message}` };
+                }
                 
             default:
                 return { error: `Tool ${name} not found locally.` };
