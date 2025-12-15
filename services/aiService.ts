@@ -136,6 +136,9 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
     const cleanContent = msg.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
     let text = `${msg.author} (${msg.roleLabel || 'Member'}): ${cleanContent}`;
     
+    // SAFETY: Ensure text is never empty to prevent 400 Bad Request
+    if (!text.trim()) text = "(No content)";
+
     if (msg.attachments && msg.attachments.length > 0) {
         const links = msg.attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
         if (links) {

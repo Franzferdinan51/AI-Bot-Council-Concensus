@@ -254,7 +254,7 @@ const App: React.FC = () => {
     const speaker = enabledBots.find(b => b.role === 'speaker');
     const moderator = enabledBots.find(b => b.role === 'moderator');
     
-    // CHANGED: Include specialists in the main debate pool if they are enabled
+    // Include specialists in the main debate pool if they are enabled
     const initialCouncilors = enabledBots.filter(b => b.role === 'councilor' || b.role === 'specialist');
 
     if (!speaker && initialCouncilors.length === 0) {
@@ -289,11 +289,22 @@ const App: React.FC = () => {
              
              setSessionStatus(SessionStatus.DEBATING);
              
-             // 2. Councilors: Superforecasting Analysis
-             // CHANGED: Removed .slice(0, 3) to include ALL enabled councilors/specialists
-             await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
-                 return await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PREDICTION.COUNCILOR)} Persona: ${bot.persona}`, "SUPERFORECASTER");
+             // 2. Councilors: Superforecasting Analysis (BATCH)
+             const councilorResponses = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const res = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PREDICTION.COUNCILOR)} Persona: ${bot.persona}`, "SUPERFORECASTER");
+                 return { bot, res };
              }, maxConcurrency);
+             
+             // Update history with all batch results so the Speaker can see them
+             councilorResponses.forEach(({ bot, res }) => {
+                 sessionHistory.push({ 
+                     id: `pred-councilor-${bot.id}-${Date.now()}`, 
+                     author: bot.name, 
+                     authorType: bot.authorType, 
+                     content: res,
+                     roleLabel: "SUPERFORECASTER" 
+                 });
+             });
 
              // 3. Speaker: Final Synthesis & Prediction XML
              setSessionStatus(SessionStatus.RESOLVING);
@@ -335,12 +346,25 @@ const App: React.FC = () => {
                  if (tasks.length > 0) {
                      setSessionStatus(SessionStatus.DEBATING);
                      addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `ARCHITECT DEPLOYING ${tasks.length} DEV AGENTS.` });
-                     await runBatchWithConcurrency(tasks, async (task) => {
+                     
+                     const devResults = await runBatchWithConcurrency(tasks, async (task) => {
                          let assignedBot = enabledBots.find(b => b.name.includes(task.assignee) || task.assignee.includes(b.name));
                          if (!assignedBot) assignedBot = enabledBots.find(b => b.role === 'councilor') || speaker;
                          const devPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.DEV_AGENT).replace('{{ROLE}}', task.assignee).replace('{{FILE}}', task.file)} Additional Context: ${task.desc} Persona: ${assignedBot?.persona}`;
-                         return await processBotTurn(assignedBot!, sessionHistory, devPrompt, `${task.file} (DEV)`);
+                         const res = await processBotTurn(assignedBot!, sessionHistory, devPrompt, `${task.file} (DEV)`);
+                         return { task, assignedBot, res };
                      }, maxConcurrency);
+
+                     // Accumulate dev results
+                     devResults.forEach(({ task, assignedBot, res }) => {
+                         sessionHistory.push({
+                             id: `code-res-${task.file}-${Date.now()}`,
+                             author: assignedBot?.name || "Dev Agent",
+                             authorType: assignedBot?.authorType || AuthorType.GEMINI,
+                             content: res,
+                             roleLabel: "DEVELOPER"
+                         });
+                     });
                  }
                  setSessionStatus(SessionStatus.RESOLVING);
                  const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM_CODING.INTEGRATOR)} Persona: ${speaker.persona}`;
@@ -361,10 +385,23 @@ const App: React.FC = () => {
                  }
                  setActiveSessionBots([...currentSessionBots, ...swarmAgents]);
                  setSessionStatus(SessionStatus.DEBATING);
-                 await runBatchWithConcurrency(swarmAgents, async (agent: BotConfig) => {
+                 
+                 const swarmResults = await runBatchWithConcurrency(swarmAgents, async (agent: BotConfig) => {
                      const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SWARM_AGENT).replace('{{ROLE}}', agent.name).replace('{{TASK}}', 'Execute.')}`;
-                     return await processBotTurn(agent, sessionHistory, prompt, agent.name.toUpperCase());
+                     const res = await processBotTurn(agent, sessionHistory, prompt, agent.name.toUpperCase());
+                     return { agent, res };
                  }, maxConcurrency);
+
+                 swarmResults.forEach(({ agent, res }) => {
+                    sessionHistory.push({
+                        id: `swarm-res-${agent.id}-${Date.now()}`,
+                        author: agent.name,
+                        authorType: agent.authorType,
+                        content: res,
+                        roleLabel: "SWARM NODE"
+                    });
+                 });
+
                  setSessionStatus(SessionStatus.RESOLVING);
                  const finalRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SPEAKER_AGGREGATION)} Persona: ${speaker.persona}`, "HIVE CONSENSUS");
                  sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: finalRes });
@@ -375,21 +412,31 @@ const App: React.FC = () => {
                 await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_PLANNING)} Persona: ${speaker.persona}`, "LEAD INVESTIGATOR");
                 
                 setSessionStatus(SessionStatus.DEBATING);
-                // CHANGED: Removed .slice(0,3) to include ALL enabled councilors/specialists
-                await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
-                    return await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${bot.persona}`, "RESEARCH AGENT (PHASE 1)");
+                // Round 1 Batch
+                const round1Results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                    const res = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${bot.persona}`, "RESEARCH AGENT (PHASE 1)");
+                    return { bot, res };
                 }, maxConcurrency);
+
+                round1Results.forEach(({ bot, res }) => {
+                    sessionHistory.push({ id: `r1-${bot.id}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "RESEARCHER" });
+                });
 
                 setSessionStatus(SessionStatus.RECONCILING);
                 const gapAnalysis = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_GAP_ANALYSIS)} Persona: ${speaker.persona}`, "GAP ANALYSIS");
                 sessionHistory.push({ id: 'gap-analysis', author: speaker.name, authorType: speaker.authorType, content: gapAnalysis });
 
                 setSessionStatus(SessionStatus.DEBATING);
-                // CHANGED: Removed .slice(0,3) to include ALL enabled councilors/specialists
-                await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                // Round 2 Batch
+                const round2Results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
                     const depthPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_2).replace('{{GAP_CONTEXT}}', gapAnalysis)} Persona: ${bot.persona}`;
-                    return await processBotTurn(bot, sessionHistory, depthPrompt, "RESEARCH AGENT (PHASE 2)");
+                    const res = await processBotTurn(bot, sessionHistory, depthPrompt, "RESEARCH AGENT (PHASE 2)");
+                    return { bot, res };
                 }, maxConcurrency);
+
+                round2Results.forEach(({ bot, res }) => {
+                    sessionHistory.push({ id: `r2-${bot.id}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "RESEARCHER" });
+                });
                 
                 setSessionStatus(SessionStatus.RESOLVING);
                 await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_REPORT)} Persona: ${speaker.persona}`, "FINAL DOSSIER");
@@ -413,13 +460,20 @@ const App: React.FC = () => {
                  closingRole = "SUMMARY";
              }
  
-             if (speaker) await processBotTurn(speaker, sessionHistory, `${injectTopic(openingPrompt)} Persona: ${speaker.persona}`, "SPEAKER");
+             if (speaker) {
+                 const openRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(openingPrompt)} Persona: ${speaker.persona}`, "SPEAKER");
+                 sessionHistory.push({ id: `open-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: openRes, roleLabel: "SPEAKER" });
+             }
              
              setSessionStatus(SessionStatus.DEBATING);
-             // CHANGED: Removed .slice(0,3) to include ALL enabled councilors/specialists
-             await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
-                 return await processBotTurn(bot, sessionHistory, `${injectTopic(councilorPrompt)} Persona: ${bot.persona}`, bot.role);
+             const debateResults = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const res = await processBotTurn(bot, sessionHistory, `${injectTopic(councilorPrompt)} Persona: ${bot.persona}`, bot.role);
+                 return { bot, res };
              }, maxConcurrency);
+
+             debateResults.forEach(({ bot, res }) => {
+                 sessionHistory.push({ id: `deb-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "COUNCILOR" });
+             });
              
              setSessionStatus(SessionStatus.RESOLVING);
              if (speaker) {
