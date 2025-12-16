@@ -94,8 +94,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Background Overlay */}
         <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
         
-        {/* HEADER */}
-        <header className="bg-slate-900 border-b border-amber-900/50 shadow-lg z-20 shrink-0 relative transition-all duration-300">
+        {/* IMMERSIVE HEADER: Padding applied directly to header to cover notch */}
+        <header className="bg-slate-900 border-b border-amber-900/50 shadow-lg z-20 shrink-0 relative transition-all duration-300 pt-[env(safe-area-inset-top)]">
             <div className="flex items-center justify-between px-2 md:px-4 h-14 md:h-16 w-full max-w-7xl mx-auto">
                 
                 {/* LEFT */}
@@ -174,7 +174,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                         <span className="hidden sm:inline">New</span>
                     </button>
                     
-                    {/* SETTINGS TOGGLE (NEW) */}
+                    {/* SETTINGS TOGGLE */}
                     <button 
                         onClick={onToggleSettings}
                         title="Settings"
@@ -246,9 +246,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Legislative Record Sidebar */}
       <div className={`absolute top-0 right-0 h-full w-full md:w-80 bg-slate-900 shadow-2xl transform transition-transform duration-300 z-30 border-l border-slate-700 ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900 h-14 md:h-16 pt-[calc(0.5rem+env(safe-area-inset-top))] md:pt-4">
-              <h2 className="text-amber-500 font-serif font-bold uppercase tracking-wider text-sm">Legislative Record</h2>
-              <button onClick={() => setIsHistoryOpen(false)} className="text-slate-400 hover:text-white px-2 py-1">✕ Close</button>
+          {/* Sidebar Header: safe-area padding applied here */}
+          <div className="bg-slate-900 border-b border-slate-700 pt-[env(safe-area-inset-top)]">
+              <div className="p-4 flex justify-between items-center h-14 md:h-16">
+                  <h2 className="text-amber-500 font-serif font-bold uppercase tracking-wider text-sm">Legislative Record</h2>
+                  <button onClick={() => setIsHistoryOpen(false)} className="text-slate-400 hover:text-white px-2 py-1">✕ Close</button>
+              </div>
           </div>
           <div className="p-4 overflow-y-auto h-full space-y-4 pb-20">
               {voteHistory.length === 0 ? (

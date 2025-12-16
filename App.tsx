@@ -364,29 +364,6 @@ const App: React.FC = () => {
                  sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: finalRes });
              }
         }
-        else if (mode === SessionMode.RESEARCH) {
-             if (speaker) {
-                await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_PLANNING)} Persona: ${speaker.persona}`, "LEAD INVESTIGATOR");
-                setSessionStatus(SessionStatus.DEBATING);
-                const round1Results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
-                    const res = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_1)} Persona: ${bot.persona}`, "RESEARCH AGENT (PHASE 1)");
-                    return { bot, res };
-                }, maxConcurrency);
-                round1Results.forEach(({ bot, res }) => { sessionHistory.push({ id: `r1-${bot.id}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "RESEARCHER" }); });
-                setSessionStatus(SessionStatus.RECONCILING);
-                const gapAnalysis = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_GAP_ANALYSIS)} Persona: ${speaker.persona}`, "GAP ANALYSIS");
-                sessionHistory.push({ id: 'gap-analysis', author: speaker.name, authorType: speaker.authorType, content: gapAnalysis });
-                setSessionStatus(SessionStatus.DEBATING);
-                const round2Results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
-                    const depthPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.COUNCILOR_ROUND_2).replace('{{GAP_CONTEXT}}', gapAnalysis)} Persona: ${bot.persona}`;
-                    const res = await processBotTurn(bot, sessionHistory, depthPrompt, "RESEARCH AGENT (PHASE 2)");
-                    return { bot, res };
-                }, maxConcurrency);
-                round2Results.forEach(({ bot, res }) => { sessionHistory.push({ id: `r2-${bot.id}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "RESEARCHER" }); });
-                setSessionStatus(SessionStatus.RESOLVING);
-                await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.RESEARCH.SPEAKER_REPORT)} Persona: ${speaker.persona}`, "FINAL DOSSIER");
-             }
-        }
         else if (mode === SessionMode.INQUIRY || mode === SessionMode.DELIBERATION) {
              let openingPrompt = ""; let councilorPrompt = ""; let closingPrompt = ""; let closingRole = "FINAL";
              if (mode === SessionMode.INQUIRY) {
@@ -545,7 +522,7 @@ const App: React.FC = () => {
   const showCodingUI = isCodingMode && (settings.ui.proCodingUI ?? false);
 
   return (
-    <div className="fixed inset-0 h-[100dvh] w-full bg-slate-950 flex flex-col font-sans text-slate-200 overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed inset-0 w-full h-full bg-slate-950 text-slate-200 font-sans overflow-hidden flex flex-col">
       
       {showCodingUI ? (
           <div className="flex-1 min-h-0 relative flex flex-col">

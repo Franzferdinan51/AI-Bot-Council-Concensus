@@ -94,7 +94,7 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
         <div className="flex flex-1 min-h-0 w-full bg-[#1e1e1e] text-slate-300 font-mono overflow-hidden">
             
             {/* LEFT: EXPLORER */}
-            <div className="w-64 bg-[#252526] border-r border-[#333] flex flex-col shrink-0 hidden md:flex">
+            <div className="w-64 bg-[#252526] border-r border-[#333] flex flex-col shrink-0 hidden md:flex pt-[env(safe-area-inset-top)]">
                 <div className="h-10 flex items-center justify-between px-4 text-xs font-bold uppercase tracking-widest text-slate-500 bg-[#252526]">
                     <span>Explorer</span>
                     <button onClick={onToggleSettings} title="Settings">
@@ -120,7 +120,7 @@ const CodingInterface: React.FC<CodingInterfaceProps> = ({
             </div>
 
             {/* CENTER: EDITOR */}
-            <div className="flex-1 flex flex-col min-w-0 bg-[#1e1e1e]">
+            <div className="flex-1 flex flex-col min-w-0 bg-[#1e1e1e] pt-[env(safe-area-inset-top)]">
                 {/* Tabs */}
                 <div className="flex bg-[#252526] border-b border-[#333] overflow-x-auto scrollbar-hide">
                     {activeFile && (
