@@ -42,7 +42,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   useEffect(() => {
     if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 160) + 'px';
+        textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
     }
   }, [content]);
 
@@ -155,29 +155,29 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
   const containerClasses = compact 
       ? `w-full bg-[#1e1e1e] border-t border-[#333] px-2 py-2`
-      : `w-full bg-slate-950 pb-[env(safe-area-inset-bottom)] pt-2 px-2 md:px-4 relative z-10 transition-all duration-300 border-t border-transparent shrink-0`;
+      : `w-full bg-slate-950 pb-[env(safe-area-inset-bottom)] pt-4 px-2 md:px-6 relative z-10 transition-all duration-300 border-t border-transparent shrink-0`;
       
   const inputSurfaceClasses = compact
       ? `flex flex-col bg-[#252526] border border-[#333] rounded-md`
-      : `bg-slate-900 border border-slate-700 rounded-[20px] shadow-2xl transition-all duration-300 focus-within:border-${activeColor}-500/50 focus-within:ring-1 focus-within:ring-${activeColor}-500/20 flex flex-col relative overflow-visible group`;
+      : `bg-slate-900 border border-slate-700 rounded-[26px] shadow-2xl transition-all duration-300 focus-within:border-${activeColor}-500/50 focus-within:ring-1 focus-within:ring-${activeColor}-500/20 flex flex-col relative overflow-visible group`;
 
   return (
     <div className={containerClasses}>
-      <div className={compact ? "w-full" : "max-w-4xl mx-auto relative"}>
+      <div className={compact ? "w-full" : "max-w-5xl mx-auto relative"}>
         
         {!compact && (
-            <div className="absolute -top-6 left-2 flex items-center gap-2 pointer-events-none">
+            <div className="absolute -top-8 left-4 flex items-center gap-2 pointer-events-none">
                 {isLoading && (
-                    <div className="flex items-center gap-1.5 bg-slate-800/90 backdrop-blur px-2 py-0.5 rounded-full border border-slate-700 shadow-sm">
-                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
-                        <span className="text-[9px] text-slate-300 font-mono uppercase tracking-wider">{statusText}</span>
+                    <div className="flex items-center gap-2 bg-slate-800/90 backdrop-blur px-3 py-1 rounded-full border border-slate-700 shadow-lg">
+                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                        <span className="text-[10px] text-slate-300 font-mono uppercase tracking-wider">{statusText}</span>
                     </div>
                 )}
             </div>
         )}
 
         {showLinkInput && (
-            <div className={`absolute left-0 mb-2 w-full max-w-md bg-slate-800 border border-slate-600 p-2 rounded-xl shadow-2xl flex gap-2 z-50 animate-fade-in-up ${compact ? 'bottom-full' : 'bottom-full'}`}>
+            <div className={`absolute left-0 mb-4 w-full max-w-lg bg-slate-800 border border-slate-600 p-3 rounded-xl shadow-2xl flex gap-2 z-50 animate-fade-in-up ${compact ? 'bottom-full' : 'bottom-full'}`}>
                 <input autoFocus type="text" placeholder="Paste URL..." value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none" onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddLink(); } }} />
                 <button onClick={handleAddLink} className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 rounded-lg font-bold">Add</button>
                 <button onClick={() => setShowLinkInput(false)} className="text-slate-400 hover:text-white px-2">✕</button>
@@ -186,19 +186,19 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
         <div className={inputSurfaceClasses}>
             {/* Top Bar: Mode Selector & Tool Toggles */}
-            <div className="flex items-center gap-2 px-3 pt-2 flex-wrap">
+            <div className="flex items-center gap-2 px-4 pt-3 flex-wrap">
                 <div className="relative">
-                    <button onClick={() => setIsModeMenuOpen(!isModeMenuOpen)} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all ${compact ? 'bg-[#333] text-slate-300 hover:bg-[#444]' : `bg-${activeColor}-900/30 text-${activeColor}-400 hover:bg-${activeColor}-900/50 border border-${activeColor}-900/50`}`}>
+                    <button onClick={() => setIsModeMenuOpen(!isModeMenuOpen)} className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all ${compact ? 'bg-[#333] text-slate-300 hover:bg-[#444]' : `bg-${activeColor}-900/30 text-${activeColor}-400 hover:bg-${activeColor}-900/50 border border-${activeColor}-900/50`}`}>
                         <span>{currentMode.replace('_', ' ')}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${isModeMenuOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     {isModeMenuOpen && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setIsModeMenuOpen(false)}></div>
-                            <div className="absolute bottom-full left-0 mb-2 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-y-auto max-h-60 py-1 scrollbar-thin scrollbar-thumb-slate-600">
+                            <div className="absolute bottom-full left-0 mb-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-y-auto max-h-72 py-1 scrollbar-thin scrollbar-thumb-slate-600">
                                 {availableModes.map((opt) => (
                                     <button key={opt.m} onClick={() => { onModeChange(opt.m); setIsModeMenuOpen(false); }} className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors flex items-center gap-3 ${currentMode === opt.m ? `text-${opt.color}-400 bg-slate-700/50` : 'text-slate-400'}`}>
-                                        <div className={`w-2 h-2 rounded-full bg-${opt.color}-500 shrink-0`}></div>{opt.label}
+                                        <div className={`w-2.5 h-2.5 rounded-full bg-${opt.color}-500 shrink-0`}></div>{opt.label}
                                     </button>
                                 ))}
                             </div>
@@ -208,14 +208,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
                 {/* SERVER / TOOL PILLS */}
                 {settings && onSettingsChange && (
-                    <div className="flex gap-1.5 items-center pl-2 border-l border-slate-700/50 ml-1">
+                    <div className="flex gap-2 items-center pl-2 border-l border-slate-700/50 ml-1">
                         {PUBLIC_MCP_REGISTRY.slice(0, 3).map(tool => {
                             const isActive = settings.mcp.publicToolIds?.includes(tool.id);
                             return (
                                 <button 
                                     key={tool.id} 
                                     onClick={() => togglePublicTool(tool.id)}
-                                    className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider transition-all border ${isActive ? 'bg-emerald-900/30 text-emerald-400 border-emerald-800' : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-800'}`}
+                                    className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all border ${isActive ? 'bg-emerald-900/30 text-emerald-400 border-emerald-800' : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-800'}`}
                                     title={tool.description}
                                 >
                                     {tool.name.replace('fetch_', '').replace('web_', '').replace('get_', '')}
@@ -225,33 +225,42 @@ const MessageInput: React.FC<MessageInputProps> = ({
                     </div>
                 )}
 
-                <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide">
+                <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide justify-end">
                     {attachments.map((att, i) => (
-                        <div key={i} className="flex items-center gap-1.5 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700 max-w-[120px]">
-                            <span className="text-[9px] text-slate-300 truncate flex-1">{att.type === 'link' ? att.data : 'File'}</span>
+                        <div key={i} className="flex items-center gap-2 bg-slate-800 px-3 py-1 rounded-md border border-slate-700 max-w-[150px]">
+                            <span className="text-[10px] text-slate-300 truncate flex-1">{att.type === 'link' ? att.data : 'File'}</span>
                             <button onClick={() => removeAttachment(i)} className="text-slate-500 hover:text-red-400">×</button>
                         </div>
                     ))}
                 </div>
             </div>
 
-            <textarea ref={textareaRef} value={content} onChange={(e) => setContent(e.target.value)} onKeyDown={handleKeyDown} placeholder={isLoading ? "Processing..." : (compact ? "Enter command..." : "Message the Council...")} disabled={isLoading} rows={1} className={`w-full bg-transparent border-none text-slate-200 placeholder-slate-500 px-4 py-3 focus:ring-0 resize-none max-h-48 leading-relaxed ${compact ? 'text-sm font-mono' : 'text-sm md:text-base font-serif'}`} />
+            <textarea 
+                ref={textareaRef} 
+                value={content} 
+                onChange={(e) => setContent(e.target.value)} 
+                onKeyDown={handleKeyDown} 
+                placeholder={isLoading ? "Processing..." : (compact ? "Enter command..." : "Message the Council...")} 
+                disabled={isLoading} 
+                rows={1} 
+                className={`w-full bg-transparent border-none text-slate-200 placeholder-slate-500 px-5 py-4 focus:ring-0 resize-none max-h-64 leading-relaxed ${compact ? 'text-sm font-mono' : 'text-base md:text-lg font-serif'}`} 
+            />
 
-            <div className="flex justify-between items-center px-2 pb-2">
-                <div className="flex items-center gap-1">
-                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,video/*,audio/*" />
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors" title="Upload File"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
-                    <button type="button" onClick={() => setShowLinkInput(!showLinkInput)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors" title="Add Link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
-                </div>
+            <div className="flex justify-between items-center px-3 pb-3">
                 <div className="flex items-center gap-2">
-                    <button type="button" onClick={toggleRecording} className={`p-2 rounded-full transition-all ${isRecording ? 'bg-red-500/20 text-red-500' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>{isRecording ? <span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>}</button>
-                    <button type="button" onClick={() => handleSubmit()} disabled={!content.trim() || isLoading} className={`h-7 w-7 md:h-8 md:w-8 flex items-center justify-center rounded-full transition-all duration-300 shadow-lg ${content.trim() && !isLoading ? compact ? 'bg-pink-600 hover:bg-pink-500 text-white' : `bg-gradient-to-br from-${activeColor}-500 to-${activeColor}-700 text-white hover:scale-105` : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,video/*,audio/*" />
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors" title="Upload File"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                    <button type="button" onClick={() => setShowLinkInput(!showLinkInput)} className="p-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors" title="Add Link"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button type="button" onClick={toggleRecording} className={`p-2.5 rounded-full transition-all ${isRecording ? 'bg-red-500/20 text-red-500' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>{isRecording ? <span className="flex h-4 w-4 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span></span> : <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>}</button>
+                    <button type="button" onClick={() => handleSubmit()} disabled={!content.trim() || isLoading} className={`h-10 w-10 md:h-12 md:w-12 flex items-center justify-center rounded-full transition-all duration-300 shadow-xl ${content.trim() && !isLoading ? compact ? 'bg-pink-600 hover:bg-pink-500 text-white' : `bg-gradient-to-br from-${activeColor}-500 to-${activeColor}-700 text-white hover:scale-105` : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
                 </div>
             </div>
         </div>
         
         {!compact && (
-            <div className="text-center mt-1"><p className="text-[9px] text-slate-600 font-mono">AI Council • {currentMode.replace('_', ' ').toUpperCase()} Mode Active</p></div>
+            <div className="text-center mt-2 pb-2"><p className="text-[10px] text-slate-600 font-mono">AI Council • {currentMode.replace('_', ' ').toUpperCase()} Mode Active</p></div>
         )}
       </div>
     </div>
