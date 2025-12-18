@@ -522,7 +522,7 @@ const App: React.FC = () => {
   const showCodingUI = isCodingMode && (settings.ui.proCodingUI ?? false);
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-slate-950 text-slate-200 font-sans overflow-hidden flex flex-col">
+    <div className="fixed inset-0 w-full h-full bg-[#0a0c10] text-slate-200 font-sans overflow-hidden flex flex-col bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950/80 to-[#050608]">
       
       {showCodingUI ? (
           <div className="flex-1 min-h-0 relative flex flex-col">
@@ -567,33 +567,34 @@ const App: React.FC = () => {
       {isLiveSessionOpen && <LiveSession onClose={() => setIsLiveSessionOpen(false)} />}
       
       {showCostWarning && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-amber-600 rounded-xl shadow-2xl max-w-md w-full p-6">
-                <h2 className="text-xl font-bold uppercase tracking-wider text-amber-500 mb-4">High Usage Warning</h2>
-                <p className="text-slate-300 text-sm mb-6">Modes like Swarm Coding perform multiple API calls. Use local providers to save costs.</p>
-                <button onClick={handleAckCost} className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-lg uppercase text-sm">I Understand</button>
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-amber-600/50 rounded-xl shadow-2xl max-w-md w-full p-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-900/10 to-transparent pointer-events-none"></div>
+                <h2 className="text-xl font-serif font-bold uppercase tracking-wider text-amber-500 mb-4 relative z-10">High Usage Warning</h2>
+                <p className="text-slate-300 text-sm mb-6 relative z-10">Modes like Swarm Coding perform multiple API calls. Use local providers to save costs.</p>
+                <button onClick={handleAckCost} className="w-full bg-amber-700/80 hover:bg-amber-600 text-white font-bold py-3 rounded-lg uppercase text-sm relative z-10 backdrop-blur-sm border border-amber-600/50 transition-all shadow-lg hover:shadow-amber-500/20">I Understand</button>
             </div>
         </div>
       )}
       {/* Private Counsel Modal ... */}
       {privateCouncilorId && activePrivateBot && (
-          <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-end">
-              <div className="w-full md:w-96 h-full bg-slate-950 border-l border-amber-900/50 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-end">
+              <div className="w-full md:w-96 h-full bg-slate-950/95 border-l border-amber-900/50 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
                   <div className={`p-4 border-b border-slate-800 bg-gradient-to-r ${activePrivateBot.color} bg-opacity-10 flex justify-between items-center`}>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Direct Consultation ({activePrivateBot.name})</h3>
+                      <h3 className="text-sm font-serif font-bold text-white uppercase tracking-wider">Direct Consultation ({activePrivateBot.name})</h3>
                       <button onClick={closePrivateCounsel} className="text-slate-400 hover:text-white">✕</button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
                       {activePrivateHistory.map((msg, i) => (
                           <div key={i} className={`flex flex-col ${msg.authorType === AuthorType.HUMAN ? 'items-end' : 'items-start'}`}>
-                              <div className={`max-w-[85%] p-3 rounded text-sm ${msg.authorType === AuthorType.HUMAN ? 'bg-slate-800 text-slate-200' : 'bg-slate-900 border border-slate-700 text-amber-100 italic'}`}>{msg.content}</div>
+                              <div className={`max-w-[85%] p-3 rounded-xl text-sm shadow-md ${msg.authorType === AuthorType.HUMAN ? 'bg-slate-800 text-slate-200 rounded-tr-sm' : 'bg-slate-900 border border-slate-700/50 text-amber-100 italic rounded-tl-sm'}`}>{msg.content}</div>
                           </div>
                       ))}
                   </div>
-                  <div className="p-3 border-t border-slate-800 bg-slate-900">
+                  <div className="p-3 border-t border-slate-800 bg-slate-900/50 backdrop-blur-md">
                       <form onSubmit={(e) => { e.preventDefault(); if(privateInput.trim()) handlePrivateSend(privateInput); }} className="flex gap-2">
-                          <input autoFocus value={privateInput} onChange={(e) => setPrivateInput(e.target.value)} className="flex-1 bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:border-amber-500 outline-none" />
-                          <button type="submit" className="bg-amber-700 hover:bg-amber-600 text-white px-3 rounded">➤</button>
+                          <input autoFocus value={privateInput} onChange={(e) => setPrivateInput(e.target.value)} className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none" placeholder="Whisper to councilor..." />
+                          <button type="submit" className="bg-amber-700/80 hover:bg-amber-600 text-white px-3 rounded-lg">➤</button>
                       </form>
                   </div>
               </div>

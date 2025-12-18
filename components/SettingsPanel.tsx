@@ -67,7 +67,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
           name: "New Member",
           role: "councilor",
           authorType: AuthorType.GEMINI,
-          model: "gemini-2.5-flash",
+          model: "gemini-3-flash-preview",
           persona: "You are a new member of the council.",
           color: "from-slate-500 to-slate-700",
           enabled: true,
@@ -379,7 +379,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                         </div>
                         <div>
                             <label className="text-xs text-slate-400">Model ID</label>
-                            <input value={editingBot.model} onChange={e => setEditingBot({...editingBot, model: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" placeholder="e.g. gemini-2.5-flash" />
+                            <input value={editingBot.model} onChange={e => setEditingBot({...editingBot, model: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white" placeholder="e.g. gemini-3-flash-preview" />
                         </div>
                     </div>
 
