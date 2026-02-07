@@ -1,178 +1,101 @@
 # AI Council Chamber - Agent API Server
 
-This directory contains the backend API server that allows AI agents to interact with the AI Council Chamber programmatically.
+Cross-platform REST API for AI Council Chamber using LM Studio local models.
 
-## Purpose
+## Requirements
 
-The AI Council Chamber is a client-side React application. This API server provides REST endpoints that agents can use to:
-- Create deliberation sessions
-- Submit topics for council review  
-- Retrieve results programmatically
-- Make direct inquiries to specific councilors
+- Node.js 18+ (Windows or Linux)
+- LM Studio running with API server enabled
+- npm or yarn
 
-## Setup
-
-### Option 1: Node.js/Express Server
+## Installation
 
 ```bash
 cd agent-api-server
 npm install
+```
+
+## Configuration
+
+Set environment variables (optional - defaults shown):
+
+```bash
+# Linux/Mac
+export PORT=3001
+export LM_STUDIO_HOST=localhost
+export LM_STUDIO_PORT=1234
+
+# Windows PowerShell
+$env:PORT=3001
+$env:LM_STUDIO_HOST="localhost"
+$env:LM_STUDIO_PORT=1234
+
+# Windows CMD
+set PORT=3001
+set LM_STUDIO_HOST=localhost
+set LM_STUDIO_PORT=1234
+```
+
+## Running the Server
+
+### Windows
+```powershell
+node server.js
+```
+
+### Linux/Mac
+```bash
 node server.js
 # or
-node server.cjs
-```
-
-### Option 2: Python/Flask Server
-
-```bash
-cd agent-api-server
-pip install flask flask-cors
-python api_server.py
-```
-
-The server will run on http://localhost:3001
-
-## API Endpoints
-
-### Health Check
-```bash
-GET http://localhost:3001/health
-```
-
-Response:
-```json
-{
-  "status": "ok",
-  "service": "ai-council-agent-api",
-  "timestamp": "2026-02-06T22:55:00"
-}
-```
-
-### Create Session
-```bash
-POST http://localhost:3001/api/session
-Content-Type: application/json
-
-{
-  "mode": "legislative",
-  "topic": "Should we implement feature X?",
-  "councilors": ["technocrat", "ethicist", "skeptic"]
-}
-```
-
-Response:
-```json
-{
-  "sessionId": "uuid-here",
-  "mode": "legislative",
-  "topic": "Should we implement feature X?",
-  "status": "created"
-}
-```
-
-### Get Session Status
-```bash
-GET http://localhost:3001/api/session/{sessionId}
-```
-
-Response:
-```json
-{
-  "sessionId": "uuid-here",
-  "mode": "legislative",
-  "topic": "Should we implement feature X?",
-  "status": "completed",
-  "createdAt": "2026-02-06T22:55:00",
-  "messageCount": 5
-}
-```
-
-### Get Session Messages
-```bash
-GET http://localhost:3001/api/session/{sessionId}/messages
-```
-
-Response:
-```json
-[
-  {
-    "author": "High Speaker",
-    "role": "speaker",
-    "content": "The Council is now in session...",
-    "timestamp": "2026-02-06T22:55:01"
-  }
-]
-```
-
-### Direct Inquiry
-```bash
-POST http://localhost:3001/api/inquire
-Content-Type: application/json
-
-{
-  "question": "What are the security risks?",
-  "councilor": "sentinel"
-}
-```
-
-Response:
-```json
-{
-  "question": "What are the security risks?",
-  "councilor": "sentinel",
-  "answer": "The risks include...",
-  "timestamp": "2026-02-06T22:55:00"
-}
+chmod +x server.js
+./server.js
 ```
 
 ## Testing
 
-Test the API:
+Once running, test with:
+
 ```bash
 # Health check
 curl http://localhost:3001/health
 
-# Create session
-curl -X POST http://localhost:3001/api/session \
-  -H "Content-Type: application/json" \
-  -d '{"topic": "Test topic", "mode": "deliberation"}'
+# Test LM Studio connection
+curl http://localhost:3001/test-lm
 
 # Direct inquiry
 curl -X POST http://localhost:3001/api/inquire \
   -H "Content-Type: application/json" \
-  -d '{"question": "What do you think?", "councilor": "speaker"}'
+  -d '{"question":"What is your purpose?","councilor":"speaker"}'
+
+# Create deliberation session
+curl -X POST http://localhost:3001/api/session \
+  -H "Content-Type: application/json" \
+  -d '{"topic":"Should we use local AI models?","mode":"legislative"}'
 ```
 
-## Integration with DuckBot
+## API Endpoints
 
-Use the Python client in the repository root:
-```python
-from ai_council_client import AICouncilClient
-
-client = AICouncilClient("http://localhost:3001")
-result = client.quick_deliberate("Should we implement X?")
-print(result['content'])
-```
-
-## Notes
-
-- The server requires LM Studio to be running on http://localhost:1234 for full functionality
-- Session data is stored in-memory (use Redis/database for production)
-- The Node.js server (server.js) has full LM Studio integration
-- The Python server (api_server.py) is a simpler implementation
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Server health check |
+| `/test-lm` | GET | Test LM Studio connectivity |
+| `/api/inquire` | POST | Ask a single councilor |
+| `/api/session` | POST | Create new deliberation |
+| `/api/session/:id` | GET | Get session status |
+| `/api/session/:id/messages` | GET | Get deliberation messages |
+| `/api/sessions` | GET | List all sessions |
 
 ## Troubleshooting
 
-**Port already in use:**
-```bash
-# Use different port
-PORT=3002 node server.js
-```
+### Connection refused to LM Studio
+- Verify LM Studio is running
+- Check API server is enabled in LM Studio settings
+- Verify `LM_STUDIO_HOST` and `LM_STUDIO_PORT` match LM Studio's settings
 
-**LM Studio not connected:**
-- Ensure LM Studio is running: http://localhost:1234
-- Check models are loaded in LM Studio UI
+### Port already in use
+- Change `PORT` environment variable
+- Or kill process using port 3001
 
-**Server won't start:**
-- Check port 3001 is not in use: `lsof -i :3001`
-- Try the alternative server (Python if Node fails, or vice versa)
+### Windows Defender/Firewall
+- Allow Node.js through Windows Defender
+- Or run in WSL2 for Linux environment
