@@ -540,7 +540,7 @@ export const DEFAULT_SETTINGS: Settings = {
         geminiApiKey: "",
         openRouterKey: "",
         ollamaEndpoint: "http://localhost:11434/v1/chat/completions",
-        lmStudioEndpoint: "http://100.74.88.40:1234/v1/chat/completions",
+        lmStudioEndpoint: "http://100.74.88.40:1234/v1",
         janAiEndpoint: "http://localhost:1337/v1/chat/completions",
         genericOpenAIEndpoint: "",
         genericOpenAIKey: "",
