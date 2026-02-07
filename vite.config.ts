@@ -17,7 +17,9 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
-        }
+        },
+        // Mark react-is as external to fix React Router dependency issue
+        external: ['react-is'],
       }
     };
 });
