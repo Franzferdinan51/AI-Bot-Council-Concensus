@@ -139,6 +139,8 @@ async function generateCouncilorResponse(councilorKey, topic, context = "") {
   }
 
   try {
+    console.log(`[${new Date().toISOString()}] Querying LM Studio for ${councilorKey}...`);
+    
     const response = await fetch('http://localhost:1234/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -160,6 +162,8 @@ async function generateCouncilorResponse(councilorKey, topic, context = "") {
     }
 
     const data = await response.json();
+    console.log(`[${new Date().toISOString()}] Response received for ${councilorKey}`);
+    
     return {
       author: councilor.name,
       role: councilor.role,
@@ -167,7 +171,7 @@ async function generateCouncilorResponse(councilorKey, topic, context = "") {
       timestamp: new Date().toISOString()
     };
   } catch (error) {
-    console.error(`Error generating response for ${councilorKey}:`, error);
+    console.error(`[${new Date().toISOString()}] Error generating response for ${councilorKey}:`, error);
     return {
       author: councilor.name,
       role: councilor.role,
@@ -301,15 +305,18 @@ app.get('/api/session/:sessionId/messages', (req, res) => {
 // Direct inquiry endpoint
 app.post('/api/inquire', async (req, res) => {
   try {
+    console.log(`[${new Date().toISOString()}] Inquiry received:`, req.body);
     const { question, councilor = 'speaker' } = req.body;
 
     if (!question) {
+      console.log(`[${new Date().toISOString()}] Error: Question is required`);
       return res.status(400).json({ error: 'Question is required' });
     }
 
     const response = await generateCouncilorResponse(councilor, question);
     
     if (response) {
+      console.log(`[${new Date().toISOString()}] Inquiry response ready`);
       res.json({
         question,
         councilor: response.author,
@@ -317,11 +324,12 @@ app.post('/api/inquire', async (req, res) => {
         timestamp: response.timestamp
       });
     } else {
+      console.log(`[${new Date().toISOString()}] Error: Failed to generate response`);
       res.status(500).json({ error: 'Failed to generate response' });
     }
 
   } catch (error) {
-    console.error('Error in inquire:', error);
+    console.error(`[${new Date().toISOString()}] Error in inquire:`, error);
     res.status(500).json({ error: error.message });
   }
 });
