@@ -1,0 +1,26 @@
+{
+  "routing": {
+    "complex_reasoning": "MiniMax-M2.5",
+    "deep_research": "MiniMax-M2.5", 
+    "fast_simple": "jan-v3-4b-base-instruct",
+    "vision": "qwen3-vl-8b-thinking",
+    "coding": "qwen/qwen3-14b"
+  },
+  "councilor_mapping": {
+    "speaker": "MiniMax-M2.5",
+    "moderator": "jan-v3-4b-base-instruct",
+    "technocrat": "MiniMax-M2.5",
+    "ethicist": "MiniMax-M2.5",
+    "pragmatist": "MiniMax-M2.5",
+    "visionary": "MiniMax-M2.5",
+    "sentinel": "MiniMax-M2.5",
+    "historian": "MiniMax-M2.5",
+    "diplomat": "MiniMax-M2.5",
+    "skeptic": "MiniMax-M2.5",
+    "conspiracist": "jan-v3-4b-base-instruct",
+    "journalist": "MiniMax-M2.5",
+    "propagmatist": "jan-v3-4b-base-instruct",
+    "psychologist": "MiniMax-M2.5",
+    "specialist_coder": "qwen/qwen3-14b"
+  }
+}
