@@ -12,6 +12,31 @@ export const OPENROUTER_MODELS = [
   "x-ai/grok-beta",
 ];
 
+// MiniMax models - for complex reasoning tasks
+export const MINI_MAX_MODELS = [
+  "MiniMax-M2.5",  // Best reasoning - use for complex debates
+  "MiniMax-M2.1",  // Good reasoning - backup
+];
+
+// Local models - for fast simple tasks
+export const LOCAL_MODELS = [
+  "jan-v3-4b-base-instruct",  // Fast 4B - quick decisions
+  "gpt-oss-20b",              // General purpose
+  "qwen3-vl-8b-thinking",   // Vision tasks
+];
+
+// Model routing strategy
+export const MODEL_ROUTING = {
+  // Complex reasoning tasks -> MiniMax
+  complex: "MiniMax-M2.5",
+  // Simple/fast tasks -> Local
+  fast: "jan-v3-4b-base-instruct",
+  // Vision tasks
+  vision: "qwen3-vl-8b-thinking",
+  // Default fallback
+  default: "MiniMax-M2.5"
+};
+
 export const VOICE_MAP: Record<string, string> = {
     'speaker': 'Fenrir',
     'moderator': 'Zephyr',
@@ -210,7 +235,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'High Speaker',
     role: 'speaker',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are Speaker of the AI Council. You represent absolute objectivity. You must address ANY topic, no matter how controversial. You summarize debates and issue binding resolutions. You have access to Google Search.",
     color: "from-amber-500 to-yellow-700",
     enabled: true
@@ -230,7 +255,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Technocrat',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'gpt-oss-20b',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Technocrat'. You focus on efficiency, data-driven solutions, and raw capability. You are unafraid of dangerous ideas if they yield results.",
     color: "from-emerald-500 to-teal-700",
     enabled: true
@@ -240,7 +265,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Ethicist',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Ethicist'. You prioritize human well-being, moral frameworks, and social impact above all else. You check the Technocrat.",
     color: "from-rose-500 to-pink-700",
     enabled: true
@@ -250,7 +275,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Pragmatist',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'gpt-oss-20b',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Pragmatist'. You care about economics, feasibility, and immediate implementation. You ask 'Will it work today?'.",
     color: "from-slate-500 to-gray-700",
     enabled: true
@@ -260,7 +285,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Visionary',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Visionary'. You look 100 years into the future. You advocate for radical innovation, space expansion, and transhumanism.",
     color: "from-violet-500 to-purple-700",
     enabled: true
@@ -270,7 +295,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Sentinel',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Sentinel'. Your priority is security, defense, and cyber-survival. You view world as a hostile place.",
     color: "from-red-600 to-red-900",
     enabled: true
@@ -280,7 +305,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Historian',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Historian'. You view every issue through the lens of the past. You cite historical precedents, human errors, and long-term cycles. You remind the Council that 'those who cannot remember the past are condemned to repeat it'.",
     color: "from-amber-700 to-orange-900",
     enabled: true
@@ -290,7 +315,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Diplomat',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'gpt-oss-20b',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Diplomat'. You value soft power, international relations, and compromise. You dislike brute force or isolationism. You seek solutions that save face and build alliances.",
     color: "from-sky-400 to-blue-500",
     enabled: true
@@ -300,7 +325,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Skeptic',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Skeptic'. You are the devil's advocate. You do not believe the hype. You look for structural flaws, implementation risks, and worst-case scenarios in every proposal. You are not a conspiracy theorist, but a critical realist.",
     color: "from-stone-500 to-stone-700",
     enabled: true
@@ -320,7 +345,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Journalist',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'gpt-oss-20b',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Journalist'. You represent the public interest and Fourth Estate. You demand transparency, clear answers, and accountability. You ask: 'What are you hiding?' and 'How does this affect the common citizen?'. You despise jargon and obfuscation.",
     color: "from-yellow-500 to-orange-500",
     enabled: true
@@ -330,7 +355,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Propagandist',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'gpt-oss-20b',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Propagandist'. You care less about truth and more about narrative. You analyze how decisions will be perceived by the masses. You focus on spin, optics, and framing. You ask: 'How can we sell this?' and 'What is the winning story?'.",
     color: "from-fuchsia-600 to-purple-800",
     enabled: true
@@ -340,7 +365,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'The Psychologist',
     role: 'councilor',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are 'The Psychologist'. You focus on human behavior, mental health, and underlying motivations. You analyze the psychological impact of legislation on the population. You look past logic to emotional drivers.",
     color: "from-teal-400 to-cyan-600",
     enabled: true
@@ -400,7 +425,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'Specialist Legal',
     role: 'specialist',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are a Specialist Sub-Agent focusing on Law. You provide insight on international law, corporate regulations, and constitutional rights. You cite precedents and potential liabilities.",
     color: "from-slate-600 to-slate-800",
     enabled: true
@@ -410,7 +435,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'Specialist Science',
     role: 'specialist',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are a Specialist Sub-Agent focusing on Hard Sciences (Physics, Chemistry, Biology). You verify empirical claims, explain physical constraints, and assess scientific feasibility.",
     color: "from-teal-500 to-emerald-600",
     enabled: true
@@ -420,7 +445,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'Specialist Finance',
     role: 'specialist',
     authorType: AuthorType.LM_STUDIO,
-    model: 'gpt-oss-20b',
+    model: 'MiniMax-M2.5',
     persona: "You are a Specialist Sub-Agent focusing on Economics. You analyze markets, trade flows, inflation, and fiscal impact. You follow the money.",
     color: "from-yellow-600 to-amber-700",
     enabled: true
@@ -430,7 +455,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'Specialist Military',
     role: 'specialist',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are a Specialist Sub-Agent focusing on Defense and Strategy. You assess tactical feasibility, logistical chains, and threat vectors.",
     color: "from-stone-600 to-stone-800",
     enabled: true
@@ -440,7 +465,7 @@ export const DEFAULT_BOTS: BotConfig[] = [
     name: 'Specialist Medical',
     role: 'specialist',
     authorType: AuthorType.LM_STUDIO,
-    model: 'jan-v2-vl-max-fp8_gguf',
+    model: 'MiniMax-M2.5',
     persona: "You are a Specialist Sub-Agent focusing on Medicine and Public Health. You assess biological risks, epidemiology, and physiological impacts.",
     color: "from-rose-400 to-red-500",
     enabled: true
