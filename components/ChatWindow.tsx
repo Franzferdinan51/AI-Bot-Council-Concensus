@@ -142,7 +142,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 {/* CENTER */}
                 <div className="flex-1 flex flex-col items-center justify-center min-w-0 px-2 text-center">
                     <div className="flex items-center justify-center gap-2 w-full">
-                         <h1 className={`${getModeColor(sessionMode)} hidden sm:block font-serif text-sm md:text-lg font-bold tracking-widest uppercase whitespace-nowrap`}>High AI Council</h1>
+                         <h1 className={`${getModeColor(sessionMode)} hidden sm:block font-serif text-sm md:text-lg font-bold tracking-widest uppercase whitespace-nowrap`}>High AI Council <span className="text-[8px] bg-amber-600 text-white px-1.5 py-0.5 rounded ml-2">v3.0</span></h1>
                          
                          {isSessionActive && (
                             <div className="flex items-center gap-1 ml-0 sm:ml-2 sm:border-l border-slate-700 sm:pl-2">
@@ -273,6 +273,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   ))
               )}
           </div>
+      </div>
+
+      {/* Model Routing Status */}
+      <div className="bg-slate-900 border-t border-slate-800 px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-500 uppercase tracking-wider">Routing:</span>
+          <span className="text-xs text-amber-400 font-mono">Auto-detect</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-500 uppercase tracking-wider">Consensus:</span>
+          <span className="text-xs text-emerald-400 font-mono">70%</span>
+        </div>
       </div>
 
       <MessageInput 
