@@ -35,6 +35,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -183,6 +184,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.78a2 2 0 0 1-.59 1.4l-4.12 4.12a2 2 0 0 0 0 2.82l4.12 4.12a2 2 0 0 1 .59 1.4v.78a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.78a2 2 0 0 1 .59-1.4l4.12-4.12a2 2 0 0 0 0-2.82l-4.12-4.12a2 2 0 0 1-.59-1.4V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
 
+                    {/* KEYBOARD SHORTCUTS */}
+                    <button 
+                        onClick={() => setShowShortcuts(!showShortcuts)}
+                        title="Keyboard Shortcuts"
+                        className="bg-slate-800 text-slate-400 hover:text-amber-400 transition-colors flex items-center justify-center p-2 rounded hover:bg-slate-700"
+                    >
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10"/></svg>
+                    </button>
+
                     <button 
                         onClick={() => setIsHistoryOpen(!isHistoryOpen)}
                         className="text-slate-400 hover:text-amber-400 transition-colors flex items-center justify-center p-1.5 rounded hover:bg-slate-800"
@@ -274,6 +284,35 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               )}
           </div>
       </div>
+
+      {/* Keyboard Shortcuts Modal */}
+      {showShortcuts && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowShortcuts(false)}>
+              <div className="bg-slate-900 border border-amber-600/50 rounded-xl shadow-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-amber-500 font-serif font-bold uppercase tracking-wider">Keyboard Shortcuts</h2>
+                      <button onClick={() => setShowShortcuts(false)} className="text-slate-400 hover:text-white">✕</button>
+                  </div>
+                  <div className="space-y-3 text-sm">
+                      <div className="flex justify-between items-center">
+                          <span className="text-slate-300">Send Message</span>
+                          <span className="bg-slate-800 px-2 py-1 rounded text-slate-400 font-mono text-xs">Ctrl + Enter</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                          <span className="text-slate-300">Close Settings</span>
+                          <span className="bg-slate-800 px-2 py-1 rounded text-slate-400 font-mono text-xs">Esc</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                          <span className="text-slate-300">Toggle History</span>
+                          <span className="bg-slate-800 px-2 py-1 rounded text-slate-400 font-mono text-xs">Alt + H</span>
+                      </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-slate-700">
+                      <p className="text-slate-500 text-xs">More shortcuts coming soon!</p>
+                  </div>
+              </div>
+          </div>
+      )}
 
       {/* Model Routing Status */}
       <div className="bg-slate-900 border-t border-slate-800 px-4 py-2 flex items-center justify-between">
