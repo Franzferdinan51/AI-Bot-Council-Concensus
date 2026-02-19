@@ -67,6 +67,9 @@ export interface UISettings {
     enableCodingMode?: boolean; // Toggle Swarm Coding Mode availability
     proCodingUI?: boolean; // Toggle IDE-style interface for coding mode
     chatViewMode?: 'list' | 'grid'; // Toggle between linear chat and grid layout
+    soundEnabled?: boolean; // Toggle sound effects
+    theme?: 'dark' | 'light'; // Theme toggle
+    animationsEnabled?: boolean; // Toggle animations
 }
 
 export interface CostSettings {
