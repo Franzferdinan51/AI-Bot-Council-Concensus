@@ -276,26 +276,39 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
 
   return (
     <>
-      <div className={`fixed top-0 right-0 h-full bg-slate-900/95 backdrop-blur-md shadow-2xl z-30 transition-transform duration-300 w-full max-w-lg flex flex-col pt-[env(safe-area-inset-top)] ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`
+        fixed z-40 bg-slate-900/95 backdrop-blur-md shadow-2xl transition-all duration-300 flex flex-col
+        /* Desktop: right sidebar */
+        md:right-0 md:top-0 md:h-full md:w-full md:max-w-lg md:translate-x-0
+        /* Mobile: bottom sheet */
+        bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl translate-y-0 md:translate-x-full
+        ${isOpen ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-x-full'}
+      `}>
         
-        {/* Header Tabs */}
-        <div className="flex border-b border-slate-700 pt-4 md:pt-16 px-4 md:px-6 bg-slate-900 overflow-x-auto scrollbar-hide relative">
-             <button onClick={onToggle} className="absolute top-4 right-4 text-slate-400 hover:text-white z-50 p-2">
+        {/* Mobile Handle / Desktop Header */}
+        <div className="flex flex-col items-center pt-3 pb-2 md:hidden">
+            <div className="w-12 h-1 bg-slate-600 rounded-full"></div>
+            <span className="text-slate-400 text-xs mt-2">Settings</span>
+        </div>
+        
+        {/* Header Tabs - Scrollable on mobile */}
+        <div className="flex border-b border-slate-700 pt-4 md:pt-16 px-2 md:px-6 bg-slate-900 overflow-x-auto scrollbar-hide relative gap-1">
+             <button onClick={onToggle} className="absolute top-4 right-4 text-slate-400 hover:text-white z-50 p-2 md:hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
             {[
-                { id: 'council', label: 'Council' },
-                { id: 'knowledge', label: 'Knowledge' },
-                { id: 'mcp', label: 'MCP' },
-                { id: 'cost', label: 'Cost' },
-                { id: 'providers', label: 'API' },
-                { id: 'audio', label: 'Voice' },
-                { id: 'ui', label: 'General' },
+                { id: 'council', label: '⚖️ Council' },
+                { id: 'knowledge', label: '📚 Knowledge' },
+                { id: 'mcp', label: '🔌 MCP' },
+                { id: 'cost', label: '💰 Cost' },
+                { id: 'providers', label: '🔑 API' },
+                { id: 'audio', label: '🎙️ Voice' },
+                { id: 'ui', label: '⚙️ UI' },
             ].map(tab => (
                 <button 
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)} 
-                    className={`pb-3 px-3 md:px-4 text-xs md:text-sm font-bold uppercase tracking-wider whitespace-nowrap ${activeTab === tab.id ? 'text-amber-500 border-b-2 border-amber-500' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`pb-3 px-2 md:px-4 text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeTab === tab.id ? 'text-amber-500 border-b-2 border-amber-500' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                     {tab.label}
                 </button>

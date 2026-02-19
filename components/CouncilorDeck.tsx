@@ -10,7 +10,7 @@ interface CouncilorDeckProps {
 
 const CouncilorDeck: React.FC<CouncilorDeckProps> = ({ councilors, activeBotIds, onCouncilorClick }) => {
   return (
-    <div className="flex gap-3 px-4 py-3 overflow-x-auto bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-800/50 z-20 scrollbar-hide items-center h-28 shrink-0">
+    <div className="flex gap-2 px-2 py-2 md:px-4 md:py-3 overflow-x-auto bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-800/50 z-20 scrollbar-hide items-center h-20 md:h-28 shrink-0">
       {councilors.map((bot) => {
         const isActive = activeBotIds.includes(bot.id);
         const isSpeaker = bot.role === 'speaker';
@@ -47,7 +47,7 @@ const CouncilorDeck: React.FC<CouncilorDeckProps> = ({ councilors, activeBotIds,
             key={bot.id} 
             onClick={() => onCouncilorClick && onCouncilorClick(bot.id)}
             className={`
-                relative flex-shrink-0 w-44 h-20 p-2.5 rounded-xl border backdrop-blur-sm transition-all duration-300 cursor-pointer group overflow-hidden
+                relative flex-shrink-0 w-32 md:w-44 h-14 md:h-20 p-2 md:p-2.5 rounded-lg md:rounded-xl border backdrop-blur-sm transition-all duration-300 cursor-pointer group overflow-hidden
                 ${borderColor} bg-gradient-to-br ${bgGradient}
                 ${isActive ? 'scale-105 shadow-[0_0_15px_rgba(245,158,11,0.2)] z-10' : 'hover:border-slate-500 hover:bg-slate-800/60 opacity-90'}
             `}
