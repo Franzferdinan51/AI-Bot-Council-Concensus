@@ -218,15 +218,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Quick Actions Toolbar */}
         <div className="bg-slate-900/80 border-b border-slate-800 px-4 py-2 flex items-center justify-between gap-2 overflow-x-auto">
             <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider">Quick Actions:</span>
-                <button onClick={onClearSession} className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded transition-colors">+ New Session</button>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider">Quick:</span>
+                <button onClick={onClearSession} className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded transition-colors">+ New</button>
                 <button onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')} className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded transition-colors">
-                    {viewMode === 'list' ? 'Grid View' : 'List View'}
+                    {viewMode === 'list' ? '▦ Grid' : '☰ List'}
                 </button>
                 <button onClick={onOpenLiveSession} className="text-xs bg-amber-900/50 hover:bg-amber-800 text-amber-400 px-2 py-1 rounded transition-colors">📡 Live</button>
             </div>
             <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-600">{activeBots.length} Councilors</span>
+                <span className="text-[10px] text-amber-600">💡 Tip: Click a councilor for private consultation</span>
             </div>
         </div>
 
