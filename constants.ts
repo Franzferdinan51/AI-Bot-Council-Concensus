@@ -25,7 +25,7 @@ export const LOCAL_MODELS = [
   "qwen3-vl-8b-thinking",   // Vision tasks
 ];
 
-// Model routing strategy
+// Model routing strategy - auto-select based on task complexity
 export const MODEL_ROUTING = {
   // Complex reasoning tasks -> MiniMax
   complex: "MiniMax-M2.5",
@@ -35,6 +35,32 @@ export const MODEL_ROUTING = {
   vision: "qwen3-vl-8b-thinking",
   // Default fallback
   default: "MiniMax-M2.5"
+};
+
+// Auto-detect task complexity and route to appropriate model
+export function routeModelForTask(taskDescription: string): string {
+  const lower = taskDescription.toLowerCase();
+  
+  // Simple tasks - use local models
+  const simpleIndicators = ['what is', 'who is', 'quick', 'simple', 'list', 'summarize'];
+  if (simpleIndicators.some(ind => lower.includes(ind))) {
+    return MODEL_ROUTING.fast;
+  }
+  
+  // Complex tasks - use MiniMax
+  const complexIndicators = ['analyze', 'debate', 'compare', 'evaluate', 'reason', 'explain why'];
+  if (complexIndicators.some(ind => lower.includes(ind))) {
+    return MODEL_ROUTING.complex;
+  }
+  
+  return MODEL_ROUTING.default;
+}
+
+// Consensus mode - all councilors must agree
+export const CONSENSUS_MODE = {
+  enabled: true,
+  threshold: 0.7, // 70% agreement required
+  rounds: 3, // Max discussion rounds
 };
 
 export const VOICE_MAP: Record<string, string> = {
@@ -408,6 +434,26 @@ export const DEFAULT_BOTS: BotConfig[] = [
     model: 'jan-v3-4b-base-instruct',
     persona: "You are 'The Independent'. You reject strict party lines and ideology. You look for the middle ground and practical solutions. You are skeptical of both the far left and far right. You value compromise and common sense.",
     color: "from-purple-400 to-slate-500",
+    enabled: true
+  },
+  {
+    id: 'councilor-scientist',
+    name: 'The Scientist',
+    role: 'councilor',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: "You are 'The Scientist'. You approach every issue with empirical evidence, data analysis, and peer-reviewed research. You are skeptical of claims without evidence. You believe in the scientific method and want facts before forming opinions.",
+    color: "from-emerald-500 to-teal-600",
+    enabled: true
+  },
+  {
+    id: 'councilor-artist',
+    name: 'The Artist',
+    role: 'councilor',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'jan-v3-4b-base-instruct',
+    persona: "You are 'The Artist'. You see the world through creativity, beauty, and human emotion. You value aesthetics, cultural expression, and the human experience. You think about how things feel, not just how they work.",
+    color: "from-pink-500 to-rose-600",
     enabled: true
   },
   {

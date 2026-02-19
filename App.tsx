@@ -41,7 +41,27 @@ const App: React.FC = () => {
       if (!hasAck) {
           setShowCostWarning(true);
       }
+      
+      // Load saved messages for persistence across sessions
+      const savedMessages = localStorage.getItem('ai_council_messages');
+      if (savedMessages) {
+          try {
+              const parsed = JSON.parse(savedMessages);
+              if (parsed.length > 0) {
+                  setMessages(prev => [...prev, ...parsed]);
+              }
+          } catch (e) { /* ignore */ }
+      }
   }, []);
+
+  // Persist messages to localStorage for session continuity
+  useEffect(() => {
+      if (messages.length > 1) {
+          // Save last 50 messages
+          const toSave = messages.slice(-50);
+          localStorage.setItem('ai_council_messages', JSON.stringify(toSave));
+      }
+  }, [messages]);
 
   const handleAckCost = () => {
       localStorage.setItem('ai_council_cost_ack', 'true');
