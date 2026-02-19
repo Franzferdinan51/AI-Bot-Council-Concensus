@@ -509,6 +509,8 @@ const App: React.FC = () => {
       setCurrentTopic(null);
       setThinkingBotIds([]);
       setActiveSessionBots([]);
+      // Clear localStorage persistence
+      localStorage.removeItem('ai_council_messages');
   };
   
   const openPrivateCounsel = (botId: string) => {
