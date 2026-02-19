@@ -357,6 +357,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         currentMode={sessionMode}
         onModeChange={onModeChange}
       />
+      
+      {/* Session Footer Stats */}
+      <div className="bg-slate-900 border-t border-slate-800 px-4 py-2 flex items-center justify-between text-xs text-slate-500">
+        <div className="flex items-center gap-4">
+            <span>Councilors: {activeBots.length}</span>
+            <span>Messages: {messages.length}</span>
+        </div>
+        <div className="flex items-center gap-2">
+            <span className="text-amber-600">v3.0</span>
+        </div>
+      </div>
     </div>
   );
 };
