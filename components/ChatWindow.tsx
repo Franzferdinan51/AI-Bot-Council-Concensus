@@ -90,7 +90,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full bg-slate-950 relative overflow-hidden min-h-0">
+    <div className="flex flex-col min-h-screen bg-slate-950 relative overflow-y-auto">
         {/* Background Overlay */}
         <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
         

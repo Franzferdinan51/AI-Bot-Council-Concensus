@@ -522,7 +522,7 @@ const App: React.FC = () => {
   const showCodingUI = isCodingMode && (settings.ui.proCodingUI ?? false);
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-[#0a0c10] text-slate-200 font-sans overflow-hidden flex flex-col bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950/80 to-[#050608]">
+    <div className="min-h-screen w-full bg-[#0a0c10] text-slate-200 font-sans overflow-y-auto bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950/80 to-[#050608]">
       
       {showCodingUI ? (
           <div className="flex-1 min-h-0 relative flex flex-col">
