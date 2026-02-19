@@ -55,25 +55,6 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-      // Keyboard shortcuts
-      const handleKeyDown = (e: KeyboardEvent) => {
-          // Ctrl/Cmd + Enter to submit
-          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-              const input = document.querySelector('input[placeholder*="motion"]') as HTMLInputElement;
-              if (input && input.value) {
-                  handleSendMessage(input.value, [], sessionMode);
-              }
-          }
-          // Escape to close settings
-          if (e.key === 'Escape' && isSettingsOpen) {
-              setIsSettingsOpen(false);
-          }
-      };
-      
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSendMessage, isSettingsOpen, sessionMode]);
-  useEffect(() => {
       if (messages.length > 1) {
           // Save last 50 messages
           const toSave = messages.slice(-50);
