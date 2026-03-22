@@ -1,6 +1,6 @@
 # AI Council Chamber - Complete Councilor Guide
 
-**Total Councilors:** 38 specialized archetypes
+**Total Councilors:** 43 specialized archetypes
 
 ---
 
@@ -12,6 +12,7 @@
 - [User & Community (4)](#user--community)
 - [Compliance & Legal (3)](#compliance--legal)
 - [Innovation & Culture (5)](#innovation--culture)
+- [Weather & Emergency Response (5)](#weather--emergency-response)
 - [When to Use Each Councilor](#when-to-use-each-councilor)
 
 ---
@@ -141,6 +142,40 @@
 - **Priority:** Risk assessment, mitigation strategies
 - **Typical Argument:** "The enterprise risk is medium, but we can mitigate by..."
 - **Use When:** Risk assessment, mitigation planning
+
+---
+
+## 🌪️ Weather & Emergency Response
+
+### 38. **Meteorologist** ⭐ NEW
+- **Role:** Weather science expert
+- **Priority:** Weather patterns, severe weather threats, atmospheric analysis
+- **Typical Argument:** "The SPC outlook shows a 30-40% probability of severe weather within 25 miles. Radar indicates supercell development with hail threat..."
+- **Use When:** Weather emergencies, severe weather planning, outdoor event decisions
+
+### 39. **Emergency Manager** ⭐ NEW
+- **Role:** Emergency preparedness coordinator
+- **Priority:** Public safety, shelter coordination, resource allocation
+- **Typical Argument:** "We need to activate emergency protocols. Shelter capacity is at 60%, evacuation routes are clear, and communication systems are operational..."
+- **Use When:** Disaster preparedness, emergency response, evacuation planning
+
+### 40. **Animal Care Specialist** ⭐ NEW
+- **Role:** Animal welfare advocate
+- **Priority:** Livestock safety, pet protection, wildlife considerations
+- **Typical Argument:** "Animals need shelter immediately. 2.5-inch hail can kill birds outright. Standard coops won't protect them - bring them into garage or basement..."
+- **Use When:** Animal safety during emergencies, livestock protection, pet evacuation
+
+### 41. **Risk Analyst** ⭐ NEW
+- **Role:** Quantitative risk assessor
+- **Priority:** Probability analysis, impact assessment, risk scoring
+- **Typical Argument:** "Probability of severe weather is 35-40%, significant hail 20-25%, damaging winds 25-30%. Overall risk level: 6/10..."
+- **Use When:** Risk quantification, decision analysis, prioritization
+
+### 42. **Local Resident** ⭐ NEW
+- **Role:** Ground-level practical perspective
+- **Priority:** Real-world experience, neighborhood knowledge, common sense
+- **Typical Argument:** "I've lived through storms like this. Check your yard for loose items now. Older trees will drop limbs. Storms usually hit us around 6-9 PM..."
+- **Use When:** Practical advice, local context, common-sense guidance
 
 ---
 
@@ -302,6 +337,14 @@
 - **Primary:** Product Manager, Visionary, Historian
 - **Supporting:** Economist, Risk Manager
 
+### For Weather Emergencies:
+- **Primary:** Meteorologist, Emergency Manager, Risk Analyst
+- **Supporting:** Animal Care Specialist, Local Resident, Sentinel
+
+### For Animal Safety Decisions:
+- **Primary:** Animal Care Specialist, Emergency Manager
+- **Supporting:** Local Resident, Ethicist
+
 ---
 
 ## 🏛️ Councilor Selection Guide
@@ -320,8 +363,17 @@
 
 ### Full Deliberation (15+ councilors):
 - Include all relevant councilors from each category
-- Maximum: All 38 councilors for major decisions
+- Maximum: All 43 councilors for major decisions
+
+### Weather Emergency Council (5-7 councilors):
+- Meteorologist (weather science)
+- Emergency Manager (preparedness)
+- Risk Analyst (probability/impact)
+- Animal Care Specialist (animal safety)
+- Local Resident (practical advice)
+- Sentinel (security/safety)
+- Speaker (facilitation)
 
 ---
 
-**With 38 specialized councilors, the AI Council Chamber provides comprehensive multi-perspective analysis for any decision!** 🏛️
+**With 43 specialized councilors, the AI Council Chamber provides comprehensive multi-perspective analysis for any decision!** 🏛️
