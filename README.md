@@ -14,7 +14,7 @@
 - [Overview](#overview)
 - [Features](#features)
 - [43 Councilors](#43-councilors)
-- [Deliberation Modes](#deliberation-modes)
+- [10 Deliberation Modes](#10-deliberation-modes)
 - [Smart Selection](#smart-councilor-selection)
 - [Multi-Provider Support](#multi-provider-support)
 - [Quick Start](#quick-start)
@@ -43,10 +43,18 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 
 ### 🏛️ Core Deliberation
 
-- **10 Deliberation Modes** (see [Deliberation Modes](#deliberation-modes))
-- **43 Specialized Councilors** (see [43 Councilors](#43-councilors))
+- **10 Deliberation Modes** including Swarm Coding, Emergency Response, Risk Assessment
+- **43 Specialized Councilors** across 7 categories
 - Auto-selected based on topic
 - Smart scaling (5-20+ councilors)
+
+### 💻 Swarm Coding (Advanced)
+
+- **6+ Specialized Roles** - Architect, Backend, Frontend, DevOps, Security, QA
+- **4-Phase Workflow** - Plan, Implement, Review, Deploy
+- **Quality Gates** - Code review, security audit, performance review
+- **Integrations** - GitHub, GitLab, VS Code, CI/CD
+- **See [SWARM-CODING.md](SWARM-CODING.md) for complete guide**
 
 ### 🎨 Web UI
 
@@ -136,7 +144,7 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 - **Environmental Specialist** - Sustainability, environmental impact, green tech
 - **Ethics Philosopher** - Deep ethical analysis, moral frameworks, philosophical perspectives
 
-### Weather & Emergency Response (5) 🌪️ NEW
+### Weather & Emergency Response (5) 🌪️
 
 - **Meteorologist** - Weather patterns, severe weather threats, atmospheric analysis
 - **Emergency Manager** - Emergency preparedness, public safety, shelter coordination
@@ -150,7 +158,7 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
 
 ---
 
-## 🎭 Deliberation Modes
+## 🎭 10 Deliberation Modes
 
 ### Core Modes (6)
 
@@ -169,10 +177,13 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
    - Parallel processing by specialized councilors
    - Best for: Large projects, system design
 
-4. **💻 Swarm Coding** - Dedicated software engineering workflow
-   - Code review, architecture, implementation
-   - Security and performance analysis
-   - Best for: Code reviews, technical decisions
+4. **💻 Swarm Coding** - Dedicated software engineering workflow ⭐ ENHANCED
+   - 6+ roles: Architect, Backend, Frontend, DevOps, Security, QA
+   - 4 phases: Plan, Implement, Review, Deploy
+   - Quality gates: Code review, security, performance, tests
+   - Integrations: GitHub, GitLab, VS Code, CI/CD
+   - Best for: Code development, code review, architecture design
+   - **See [SWARM-CODING.md](SWARM-CODING.md) for complete guide**
 
 5. **🔮 Prediction Market** - Superforecasting with probabilistic forecasts
    - Probability estimates with confidence intervals
@@ -189,22 +200,26 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
 7. **🌪️ Emergency Response** - Rapid crisis deliberation
    - Fast-track decision making for emergencies
    - Prioritizes safety and immediate action
-   - Best for: Weather emergencies, security incidents
+   - Councilors: Meteorologist, Emergency Manager, Risk Analyst, Local Resident
+   - Best for: Weather emergencies, security incidents, crisis management
 
 8. **📊 Risk Assessment** - Comprehensive risk analysis
    - Quantitative and qualitative risk scoring
    - Mitigation strategy development
-   - Best for: Project risks, security reviews
+   - Councilors: Risk Analyst, Security Expert, Finance Expert, Legal Expert
+   - Best for: Project risks, security reviews, financial risk assessment
 
 9. **🤝 Consensus Building** - Find common ground
    - Facilitated dialogue to find agreement
    - Documents areas of agreement/disagreement
-   - Best for: Team disputes, stakeholder alignment
+   - Councilors: Diplomat, Psychologist, Moderator, Ethicist
+   - Best for: Team disputes, stakeholder alignment, conflict resolution
 
 10. **🎯 Strategic Planning** - Long-term strategic thinking
     - Multi-year planning with scenario analysis
     - Competitive analysis and positioning
-    - Best for: Roadmap planning, strategy sessions
+    - Councilors: Visionary, Historian, Economist, Product Manager
+    - Best for: Roadmap planning, strategy sessions, competitive analysis
 
 ---
 
@@ -230,6 +245,7 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
 - **Compliance** → Legal, Compliance, Privacy
 - **Innovation** → Innovation Coach, Visionary, Conspiracist
 - **Weather/Emergency** → Meteorologist, Emergency Manager, Risk Analyst, Local Resident
+- **Coding** → Solutions Architect, Coder, Security Expert, QA, DevOps
 
 ### Smart Presets
 
@@ -248,6 +264,7 @@ council deliberate "topic" --preset technical
 council deliberate "topic" --preset business
 council deliberate "topic" --preset security
 council deliberate "topic" --preset emergency
+council deliberate "topic" --preset coding
 ```
 
 **See [COUNCILOR-SELECTION.md](COUNCILOR-SELECTION.md) for complete guide.**
