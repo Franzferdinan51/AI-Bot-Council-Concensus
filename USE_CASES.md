@@ -4,10 +4,10 @@
 
 ---
 
-## 🎯 Palantir at Home Decisions
+## 🎯 System Development Decisions
 
 ### Feature Development
-- "Should we add face recognition to Palantir?"
+- "Should we add face recognition to the system?"
 - "Should we implement real-time alerts?"
 - "Should we add cloud backup for camera feeds?"
 - "Is wireless camera deployment worth the complexity?"
@@ -19,13 +19,13 @@
 - "How do we scale to 10+ cameras?"
 
 ### Security Assessments
-- "Is it safe to expose Palantir to the internet?"
+- "Is it safe to expose the system to the internet?"
 - "What are the security risks of wireless cameras?"
 - "Should we add authentication to the dashboard?"
 - "Review our API security"
 
 ### Priority & Planning
-- "What should we build next for Palantir?"
+- "What should we build next for the system?"
 - "Should we prioritize features or bug fixes?"
 - "What's the roadmap for Q2 2026?"
 - "How do we allocate development time?"
