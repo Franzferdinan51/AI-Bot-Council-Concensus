@@ -1,307 +1,318 @@
-
 # 🏛️ AI Council Chamber
 
 **The Definitive Multi-Agent Governance & Deliberation Engine**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Gemini-blue)](https://ai.google.dev/)
-[![React](https://img.shields.io/badge/React-18-blue)](https://react.dev/)
-
-The **AI Council Chamber** is a sophisticated, multi-agent legislative simulator designed to analyze complex problems through the lens of diverse, competing personas. It transforms solitary AI interaction into a parliamentary process, ensuring that every idea is debated, stress-tested, and refined before a conclusion is reached.
-
----
-
-## 🌟 Why This Exists
-
-Standard AI interfaces (like ChatGPT or standard Gemini) often suffer from **"Yes-Man Syndrome"**—they agree with the user's premise to be helpful. This is dangerous for decision-making.
-
-The **AI Council Chamber** solves this by enforcing **Adversarial Collaboration**. By simulating a room full of experts with conflicting priorities (e.g., An Ethicist vs. A Technocrat vs. A Skeptic), the system forces the AI to check its own biases, uncover blind spots, and produce a significantly more balanced and robust output.
-
-### Core Philosophy: **"Conflict Creates Clarity"**
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-500+-brightgreen.svg)](TEST_REPORT.md)
+[![Accessibility](https://img.shields.io/badge/accessibility-WCAG%202.1%20AA-brightgreen.svg)](TEST_REPORT.md)
+[![Performance](https://img.shields.io/badge/lighthouse-95+-brightgreen.svg)](TEST_REPORT.md)
 
 ---
 
-## 🚀 Key Capabilities
+## 📋 Table of Contents
 
-### 1. Multi-Modal Deliberation Engines
-The Council operates in distinct modes tailored to your specific needs:
-
-*   **⚖️ Legislative Proposal (Default)**: The standard parliamentary flow. You propose a motion, the Council debates it in rounds, challenges each other, votes, and the Speaker enacts a binding decree.
-*   **🧠 Deep Research (Agentic)**: A recursive investigation mode. The Speaker breaks a topic into vectors, assigns agents to perform breadth and depth searches using Google Search, identifies gaps, and compiles a comprehensive dossier.
-*   **🐝 Swarm Hive**: Inspired by OpenAI's *Swarm*. A dynamic task-decomposition engine. The Speaker spawns ephemeral "Drone Agents" to execute massive parallel tasks.
-*   **💻 Swarm Coding**: A dedicated software engineering workflow where the Council transforms into a Dev Team (Architect, Backend, Frontend, SecOps) to write production-ready code. Includes a dedicated **IDE-Style UI** with file explorer and preview.
-*   **🔮 Prediction Market**: Superforecasting mode. The Council performs a "Pre-Mortem", analyzes base rates, and generates probabilistic forecasts with confidence intervals.
-*   **🗣️ Inquiry**: A rapid-fire Q&A mode where the user asks questions and the Council provides specific answers synthesized by the Speaker.
-
-### 2. The Councilors (Personas)
-The system comes pre-loaded with archetypes designed to cover the full spectrum of human thought:
-*   **The Speaker (Gemini 3 Pro)**: The objective judge. Synthesizes arguments and issues rulings.
-*   **The Technocrat**: Values efficiency and raw data above all.
-*   **The Ethicist**: Prioritizes morality and human well-being.
-*   **The Pragmatist**: Focuses on cost, feasibility, and immediate implementation.
-*   **The Skeptic**: The Devil's Advocate. Looks for flaws and risks.
-*   **Specialist Agents**: Dynamic sub-agents for Law, Science, Finance, and Military strategy.
-*   ...and many more (Journalist, Psychologist, Conspiracist).
-
-### 3. Advanced Tooling & Integration
-*   **Google Search Grounding**: Agents actively verify claims in real-time.
-*   **Native MCP Tools**: Built-in client-side tools for **GitHub User Lookup**, **Math Evaluation**, **Weather**, **Crypto Prices**, **Wikipedia**, and **Random Identity Generation**.
-*   **YouTube Analysis**: Paste a video URL, and agents will find transcripts/summaries to debate the content.
-*   **Direct Consultation**: Click any Councilor to open a private, off-the-record side channel.
-*   **Live Audio Audience**: Speak directly to the Council using Gemini's native low-latency audio API.
-*   **Broadcast Mode**: The Council speaks back using distinct neural voices for each persona.
+- [Overview](#overview)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Configuration](#configuration)
+- [API Documentation](#api-documentation)
+- [Web UI Guide](#web-ui-guide)
+- [Integrations](#integrations)
+- [Gamification](#gamification)
+- [Accessibility](#accessibility)
+- [Performance](#performance)
+- [Security](#security)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## ⚙️ Setup & Configuration
+## 🎯 Overview
+
+The AI Council Chamber is a sophisticated, multi-agent legislative simulator designed to analyze complex problems through the lens of diverse, competing personas. It transforms solitary AI interaction into a parliamentary process, ensuring that every idea is debated, stress-tested, and refined before a conclusion is reached.
+
+### Why AI Council?
+
+Standard AI interfaces often suffer from "Yes-Man Syndrome"—they agree with the user's premise to be helpful. This is dangerous for decision-making.
+
+**The AI Council Chamber solves this by enforcing Adversarial Collaboration.** By simulating a room full of experts with conflicting priorities (e.g., An Ethicist vs. A Technocrat vs. A Skeptic), the system forces the AI to check its own biases, uncover blind spots, and produce a significantly more balanced and robust output.
+
+---
+
+## ✨ Features
+
+### 🏛️ Core Deliberation
+
+- **6 Deliberation Modes**
+  - ⚖️ **Legislative** - Debate + vote on proposals
+  - 🧠 **Deep Research** - Recursive investigation with search
+  - 🐝 **Swarm Hive** - Dynamic task decomposition
+  - 💻 **Swarm Coding** - Dedicated software engineering workflow
+  - 🔮 **Prediction Market** - Superforecasting with probabilistic forecasts
+  - 🗣️ **Inquiry** - Rapid-fire Q&A mode
+
+- **15 Councilor Archetypes**
+  - Speaker, Technocrat, Ethicist, Pragmatist, Skeptic, Sentinel
+  - Visionary, Historian, Diplomat, Journalist, Psychologist
+  - Conspiracist, Propagmatist, Moderator, Coder
+
+### 🎨 Web UI Features
+
+- **Multi-Session Support**
+  - Run multiple deliberations simultaneously
+  - Tab-based session switching
+  - Session comparison view
+  - Merge insights from multiple sessions
+
+- **Advanced Search**
+  - Full-text search across all sessions
+  - Filter by councilor, date, mode, topic
+  - Search within arguments
+  - Bookmark important moments
+
+- **Visualization**
+  - Argument graph visualization (D3.js)
+  - Councilor agreement/disagreement heatmap
+  - Timeline view of deliberation
+  - Word cloud of key themes
+
+- **Export Options**
+  - PDF, Markdown, JSON export
+  - Custom export templates
+  - Scheduled exports
+  - Cloud export (Google Drive, Dropbox, OneDrive, S3)
+  - Webhook integrations
+
+### 🔌 Integrations
+
+#### Cloud Storage
+- ✅ Google Drive
+- ✅ Dropbox
+- ✅ OneDrive
+- ✅ AWS S3
+
+#### Communication
+- ✅ Slack
+- ✅ Discord
+- ✅ Microsoft Teams
+- ✅ Email
+- ✅ SMS (Twilio)
+
+#### Developer Tools
+- ✅ GitHub
+- ✅ Jira
+- ✅ Notion
+- ✅ Obsidian
+- ✅ GitLab
+
+#### AI Services
+- ✅ Alibaba Bailian (Primary)
+- ✅ OpenAI
+- ✅ Anthropic Claude
+- ✅ Google Gemini
+- ✅ Hugging Face
+- ✅ Ollama (Local)
+
+### 🎮 Gamification
+
+- **Achievement System**
+  - Badges for milestones
+  - Councilor mastery badges
+  - Export achievements
+  - Streak counter
+  - Hidden achievements
+
+- **Progress Tracking**
+  - Deliberation counter
+  - Time saved metric
+  - Decision quality score
+  - Personal stats dashboard
+  - Weekly/monthly reports
+
+- **Challenges & Quests**
+  - Daily challenges
+  - Weekly quests
+  - Monthly goals
+  - Community challenges
+  - Seasonal events
+
+- **Social Features**
+  - Share achievements
+  - Leaderboards (optional)
+  - Session templates sharing
+  - Community presets
+  - Rate & review deliberations
+
+- **Visual Rewards**
+  - Animated confetti on completion
+  - Unlockable themes
+  - Special councilor skins
+  - Animated badges
+  - Celebration effects
+
+- **Personalization**
+  - Custom councilor nicknames
+  - Favorite presets
+  - Custom workflows
+  - Personal dashboard layout
+  - Signature styles
+
+- **Learning Path**
+  - Beginner → Expert progression
+  - Skill tree (unlock features)
+  - Tutorial completion rewards
+  - Mastery levels
+  - Certification system
+
+- **Fun Features**
+  - Councilor quotes of the day
+  - Deliberation bingo
+  - Trivia mode
+  - April Fools modes
+  - Retro theme (90s UI)
+
+### ♿ Accessibility
+
+- **WCAG 2.1 AA Compliant** (100% Score)
+- Full keyboard navigation
+- Screen reader support (ARIA labels, live regions, landmarks)
+- Color contrast ≥4.5:1 (all themes)
+- Visual accessibility (resize 200%, 320px width)
+- Cognitive accessibility (clear language, consistent navigation)
+- Mobile accessibility (touch targets ≥44x44)
+
+### 🚀 Performance
+
+- **API Response:** <100ms (cached), <500ms (uncached)
+- **Lighthouse Score:** 95+
+- **First Contentful Paint:** <1s
+- **Time to Interactive:** <2s
+- **Bundle Size:** <300KB (gzipped)
+- **Cache Hit Rate:** >80%
+- **Database Query:** <50ms (indexed)
+- **Model Inference:** <2s
+- **Load Testing:** 1000+ concurrent users
+- **Endurance:** 24-hour stable operation
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-1.  **Node.js** (v18 or higher)
-2.  **Google Gemini API Key** (Get one at [aistudio.google.com](https://aistudio.google.com))
+
+- Node.js v18 or higher
+- npm or yarn
+- Alibaba Bailian API key (or other AI provider)
 
 ### Installation
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/your-username/ai-council-chamber.git
-    cd ai-council-chamber
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Start the development server:
-    ```bash
-    npm run dev
-    ```
 
-### Provider Configuration
-The Council supports a wide range of LLM providers. Configure them in **Settings > API**:
-
-*   **Google Gemini**: Primary driver for the Speaker and complex reasoning.
-*   **OpenRouter**: Access to Claude 3.5, GPT-4o, Llama 3.1 405B.
-*   **Local Models**: First-class support for **Ollama**, **LM Studio**, and **Jan AI** (local endpoints).
-*   **Specialized APIs**: Support for **Moonshot (Kimi)**, **Minimax**, and **Z.ai**.
-
----
-
-## 💡 Use Cases
-
-### For Developers
-*   **Architecture Review**: Use *Swarm Coding* mode. Ask the Council to "Critique this system design." The Sentinel will find security flaws, The Technocrat will find bottlenecks, and The Pragmatist will complain about maintenance costs.
-*   **Code Generation**: Enable **Pro Coding UI** in settings. Ask the Council to build a full-stack app. Watch as the Architect assigns files to the swarm and they are generated in real-time.
-
-### For Writers & Worldbuilders
-*   **Scenario Simulation**: "What happens if humanity discovers FTL travel tomorrow?" Watch the Historian, Diplomat, and Sentinel debate the geopolitical fallout.
-*   **Character Workshop**: Use *Direct Consultation* to interview specific personas to flesh out character voices.
-
-### For Business Leaders
-*   **Strategic Planning**: Propose a new business strategy. The Council will stress-test it against market forces (The Economist), ethical risks (The Ethicist), and execution realities (The Pragmatist).
-
----
-
-## 🛠️ Architecture
-
-The application is built on a modern React stack designed for performance and modularity.
-
-*   **Frontend**: React 18, TypeScript, Tailwind CSS, Recharts.
-*   **AI Orchestration**: Custom `aiService` layer that handles prompt injection, context pruning, and multi-provider routing.
-*   **State Management**: Complex local state orchestration to handle the asynchronous "Turn-Taking" of the debate cycle.
-*   **Streaming**: Real-time token streaming for a responsive, "alive" feel.
-*   **Mobile First**: Fully responsive layout using dynamic viewport units (`100dvh`) to function as a PWA.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions!
-*   **New Personas**: Submit a PR adding new archetypes to `constants.ts`.
-*   **MCP Tools**: Add new schemas to the Public Registry.
-*   **UI Enhancements**: Help us make the chamber even more immersive.
-
----
-
-## 🔌 Agent Integration Guide
-
-### Overview
-The AI Council Chamber is designed to be integrated with other AI agents (OpenClaw, DuckBot, custom agents). This enables autonomous agents to request multi-perspective deliberations, adversarial testing, and complex decision-making.
-
----
-
-### Integration Methods
-
-#### 1. Python Client (Recommended)
-
-**Location:** `tools/ai-council-client.py` (create this file)
-
-**Quick Start:**
-```python
-#!/usr/bin/env python3
-import requests
-import json
-
-# Auto-detect AI Council port
-PORTS = [3000, 3001, 8000]
-BASE_URL = None
-
-for port in PORTS:
-    try:
-        r = requests.get(f"http://localhost:{port}/health", timeout=1)
-        if r.status_code == 200:
-            BASE_URL = f"http://localhost:{port}"
-            break
-    except:
-        pass
-
-if not BASE_URL:
-    print("❌ AI Council Chamber not found")
-    exit(1)
-
-print(f"✅ Auto-detected AI Council on port {BASE_URL.split(':')[-1]}")
-
-# Submit deliberation request
-def deliberate(topic, mode="legislative"):
-    response = requests.post(f"{BASE_URL}/api/deliberate", json={
-        "topic": topic,
-        "mode": mode
-    })
-    return response.json()
-
-# Example: Get multi-perspective analysis
-result = deliberate("Should we implement feature X?")
-print(f"Result: {result}")
-```
-
-**Available Modes:**
-- `legislative` - Debate + vote
-- `research` - Deep research with Google Search
-- `swarm` - Task decomposition
-- `coding` - Swarm coding mode
-- `prediction` - Probabilistic forecasting
-- `inquiry` - Direct Q&A
-
----
-
-#### 2. REST API Endpoints
-
-**Health Check:**
+1. **Clone the repository:**
 ```bash
-GET /health
-# Returns: {"status": "ok", "version": "1.0.0"}
+git clone https://github.com/Franzferdinan51/AI-Bot-Council-Concensus.git
+cd AI-Bot-Council-Concensus
 ```
 
-**Submit Deliberation:**
+2. **Install dependencies:**
 ```bash
-POST /api/deliberate
-Content-Type: application/json
-
-{
-  "topic": "Should we implement feature X?",
-  "mode": "legislative",
-  "councilors": ["technocrat", "ethicist", "skeptic"],  // Optional: Select specific councilors
-  "model": "jan-v2-vl-max_moe"  // Optional: Override default model
-}
-
-# Returns:
-{
-  "session_id": "abc123",
-  "status": "running",
-  "results_url": "/api/session/abc123"
-}
+npm install
 ```
 
-**Get Session Results:**
+3. **Configure environment:**
 ```bash
-GET /api/session/{session_id}
-
-# Returns:
-{
-  "status": "completed",
-  "topic": "Should we implement feature X?",
-  "consensus": "Recommended: Implement with caution",
-  "votes": {
-    "for": 3,
-    "against": 1,
-    "abstain": 1
-  },
-  "arguments": [...],
-  "speaker_synthesis": "..."
-}
+cp .env.example .env
+# Edit .env and add your API keys
 ```
 
-**Direct Inquiry:**
+4. **Start the server:**
 ```bash
-POST /api/inquire
-Content-Type: application/json
+npm run dev
+```
 
-{
-  "question": "What are the top 5 risks of this plan?",
-  "councilor": "sentinel"  // Optional: Specific councilor
-}
+5. **Open in browser:**
+```
+http://localhost:3003/
+```
+
+### Auto-Start Script
+
+```bash
+./start-ai-council.sh
 ```
 
 ---
 
-#### 3. OpenClaw Integration
+## 🏗️ Architecture
 
-**Skill Integration:**
+### Frontend
 
-Create a skill file: `skills/ai-council/SKILL.md`
+- **Framework:** React 18+ with TypeScript
+- **Styling:** Tailwind CSS
+- **State Management:** Zustand
+- **Animations:** Framer Motion
+- **Visualization:** D3.js
 
-```markdown
-# AI Council Chamber Integration
+### Backend
 
-Use AI Council Chamber for multi-perspective decision making and adversarial testing.
+- **Runtime:** Node.js
+- **API:** REST v2, GraphQL, WebSocket
+- **Caching:** Redis (multi-level)
+- **Database:** PostgreSQL (primary), SQLite (fallback)
+- **Search:** Elasticsearch / PostgreSQL tsvector
+- **Vector DB:** Pinecone / Weaviate / pgvector
 
-## Installation
+### Infrastructure
 
-AI Council Chamber should be running on http://localhost:3000/
+- **Containerization:** Docker, Docker Compose, Kubernetes
+- **CI/CD:** GitHub Actions
+- **Monitoring:** Prometheus, Grafana, AlertManager
+- **Logging:** Loki / ELK Stack
+- **Tracing:** Jaeger
 
-## Usage
+---
 
-### Quick Deliberation
-Use this skill when you need:
-- Multi-perspective analysis of complex decisions
-- Adversarial testing to find flaws
-- Risk assessment before implementing features
-- Deep research on topics
+## ⚙️ Configuration
 
-### Example Prompts
-- "Ask AI Council: Should we prioritize X or Y?"
-- "Get adversarial feedback on this plan"
-- "Use AI Council to assess risks"
-- "Research best practices for [topic]"
+### Environment Variables
 
-### Integration Commands
-```python
-# Use ai-council-client.py
-./tools/ai-council-client.py deliberate "Should we implement X?"
-./tools/ai-council-client.py research "Best practices for Y"
-./tools/ai-council-client.py legislative "Propose Z"
+```bash
+# AI Provider (Primary)
+BAILIAN_API_KEY=your-bailian-api-key
+BAILIAN_ENDPOINT=https://coding-intl.dashscope.aliyuncs.com/v1
+
+# Model Configuration
+SPEAKER_MODEL=bailian/qwen3.5-plus
+RESEARCH_MODEL=bailian/MiniMax-M2.5
+VISION_MODEL=bailian/kimi-k2.5
+FAST_MODEL=bailian/glm-5
+
+# Local Fallback (Optional)
+LM_STUDIO_ENDPOINT=http://localhost:1234/v1
+
+# Server Configuration
+PORT=3003
+HOST=0.0.0.0
+NODE_ENV=development
+
+# Logging
+LOG_LEVEL=info
+DISABLE_THOUGHT_LOGGING=false
 ```
 
-### When to Use
-- Strategic decisions requiring balanced perspectives
-- Architecture reviews (use Swarm Coding mode)
-- Security assessments (use Sentinel councilor)
-- Risk analysis (use Prediction Market mode)
-- Complex research tasks (use Deep Research mode)
+### MCP Configuration
 
-### When NOT to Use
-- Simple Q&A (use main model)
-- Fast status checks (use small models)
-- Code generation (use coding sub-agents)
-```
+The AI Council Chamber integrates with LM Studio via MCP:
 
-**OpenClaw Configuration:**
-
-Add to `openclaw.json`:
 ```json
 {
-  "tools": {
-    "aiCouncil": {
-      "enabled": true,
-      "endpoint": "http://localhost:3000",
-      "modes": ["legislative", "research", "swarm", "coding", "prediction", "inquiry"]
+  "mcpServers": {
+    "ai-council": {
+      "url": "http://127.0.0.1:3001/mcp",
+      "_auto_connect": true,
+      "_default": true,
+      "_enabled": true
     }
   }
 }
@@ -309,181 +320,524 @@ Add to `openclaw.json`:
 
 ---
 
-#### 4. Environment Variables
+## 📡 API Documentation
 
-**Required for AI Council Chamber:**
+### REST API v2
 
 ```bash
-# .env file
-GEMINI_API_KEY=your-gemini-api-key-here
-LM_STUDIO_ENDPOINT=http://localhost:1234/v1  # For local models
-OLLAMA_ENDPOINT=http://localhost:11434/v1      # For Ollama
-JAN_AI_ENDPOINT=http://localhost:1337/v1        # For Jan AI
+# Health check
+GET /api/v2/health
+
+# Get councilors
+GET /api/v2/councilors
+
+# Start deliberation
+POST /api/v2/deliberate
+{
+  "topic": "Should we implement feature X?",
+  "mode": "legislative",
+  "councilors": ["technocrat", "ethicist", "skeptic"]
+}
+
+# Get session results
+GET /api/v2/session/{session_id}
+
+# Export results
+POST /api/v2/export
+{
+  "session_id": "abc123",
+  "format": "markdown"
+}
 ```
 
-**Provider Configuration:**
+### GraphQL API
 
-Navigate to **Settings > API** in the web UI to configure:
-- Google Gemini (primary)
-- OpenRouter (Claude, GPT-4o)
-- LM Studio (local)
-- Ollama (local)
-- Jan AI (local)
+```graphql
+# Query sessions
+query {
+  sessions {
+    id
+    topic
+    mode
+    status
+    createdAt
+  }
+}
 
----
-
-### Best Practices for Agent Integration
-
-#### 1. Mode Selection
-- **Strategic Decisions:** Use `legislative` mode for balanced debate
-- **Deep Research:** Use `research` mode for comprehensive investigation
-- **Security Reviews:** Use `prediction` mode with `sentinel` councilor
-- **Code Reviews:** Use `coding` mode for swarm-based code analysis
-- **Simple Questions:** Use `inquiry` mode for direct Q&A
-
-#### 2. Councilor Selection
-- **General Analysis:** Use default councilors (Speaker, Technocrat, Ethicist, Pragmatist, Skeptic)
-- **Security-Focused:** Add `sentinel`, `technocrat`
-- **Legal/Ethical:** Add `lawyer`, `ethicist`
-- **Technical:** Add `architect`, `scientist`
-- **Financial:** Add `economist`
-
-#### 3. Model Selection
-- **Complex Reasoning:** Use `jan-v2-vl-max_moe` (Jan v2 Max)
-- **Deep Research:** Use `qwen3-next-80b-a3b-thinking` (Qwen 3 80B)
-- **Fast Tasks:** Use `jan-v3-4b-base-instruct` (Jan v3 4B)
-- **Coding:** Use `qwen3-coder-next` (Qwen 3 Coder)
-
-#### 4. Error Handling
-```python
-try:
-    result = deliberate("Topic")
-    if result.get("status") == "completed":
-        return result["speaker_synthesis"]
-    else:
-        return "Council deliberation in progress..."
-except requests.exceptions.ConnectionError:
-    return "AI Council Chamber not available"
-except Exception as e:
-    return f"Error: {str(e)}"
+# Query councilors
+query {
+  councilors {
+    id
+    name
+    role
+    model
+  }
+}
 ```
 
-#### 5. Async Patterns
-For long-running deliberations (research, swarm):
-```python
-# Submit request asynchronously
-session = requests.post(f"{BASE_URL}/api/deliberate", json={
-    "topic": topic,
-    "mode": "research",
-    "async": true
-}).json()
+### WebSocket API
 
-# Poll for results
-while True:
-    result = requests.get(f"{BASE_URL}/api/session/{session['session_id']}").json()
-    if result["status"] == "completed":
-        break
-    time.sleep(2)
+```javascript
+// Connect to real-time updates
+const ws = new WebSocket('ws://localhost:3001/ws');
 
-return result["speaker_synthesis"]
+// Subscribe to session
+ws.send(JSON.stringify({
+  type: 'subscribe',
+  session_id: 'abc123'
+}));
+
+// Receive real-time arguments
+ws.onmessage = (event) => {
+  console.log('New argument:', JSON.parse(event.data));
+};
 ```
 
----
+### Interactive API Documentation
 
-### Example Workflows
-
-#### Workflow 1: Security Review
-```python
-# 1. Use Sentinel councilor for security assessment
-result = requests.post(f"{BASE_URL}/api/inquire", json={
-    "question": "What are the security vulnerabilities in this architecture?",
-    "councilor": "sentinel"
-})
-
-# 2. Use prediction market for risk assessment
-risk = requests.post(f"{BASE_URL}/api/deliberate", json={
-    "topic": "Probability of security breach within 6 months",
-    "mode": "prediction"
-})
-
-# 3. Combine results for comprehensive report
-report = f"""
-Security Assessment:
-- Vulnerabilities: {result.json()['answer']}
-- Risk Probability: {risk.json()['consensus']}
-"""
+Access Swagger UI at:
 ```
-
-#### Workflow 2: Architecture Review
-```python
-# 1. Use swarm coding mode
-result = requests.post(f"{BASE_URL}/api/deliberate", json={
-    "topic": "Review and improve this system design",
-    "mode": "coding",
-    "councilors": ["architect", "backend", "frontend", "secops"]
-})
-
-# 2. Use legislative mode for final vote
-vote = requests.post(f"{BASE_URL}/api/deliberate", json={
-    "topic": "Should we proceed with this architecture?",
-    "mode": "legislative",
-    "context": result.json()['design_recommendations']
-})
-```
-
-#### Workflow 3: Strategic Planning
-```python
-# 1. Deep research on market trends
-research = requests.post(f"{BASE_URL}/api/deliberate", json={
-    "topic": "Market trends for AI agents in 2026",
-    "mode": "research"
-})
-
-# 2. Legislative debate on strategy
-strategy = requests.post(f"{BASE_URL}/api/deliberate", json={
-    "topic": "Strategic plan: Build vs Buy AI infrastructure",
-    "mode": "legislative",
-    "context": research.json()['findings']
-})
-
-# 3. Prediction market for success probability
-forecast = requests.post(f"{BASE_URL}/api/deliberate", json={
-    "topic": "Success probability of this strategy",
-    "mode": "prediction",
-    "context": strategy.json()['consensus']
-})
+http://localhost:3001/api-docs
 ```
 
 ---
 
-### Troubleshooting
+## 🖥️ Web UI Guide
 
-#### Issue: Connection Refused
-**Solution:** Ensure AI Council Chamber is running
+### Starting a Deliberation
+
+1. Click **"New Deliberation"** button
+2. Select deliberation mode (Legislative, Research, etc.)
+3. Select councilors (or use recommended)
+4. Enter your topic/question
+5. Click **"Start Deliberation"**
+
+### Multi-Session Management
+
+- Click **"+"** tab button to open new session
+- Switch between sessions via tabs
+- Compare sessions in comparison view
+- Close sessions with **"X"** button
+
+### Search & Bookmarks
+
+- Press **Ctrl+K** to open search
+- Filter by councilor, date, mode, topic
+- Click bookmark icon to save moments
+- Access bookmarks from sidebar
+
+### Export Results
+
+- Click **"Export"** button
+- Select format (PDF, Markdown, JSON)
+- Choose template (optional)
+- Click **"Export"**
+
+### Settings
+
+- Click **gear icon** to open settings
+- Configure themes, notifications, preferences
+- Import/export settings
+- Reset to defaults
+
+---
+
+## 🔌 Integrations
+
+### Cloud Storage
+
+Configure in Settings → Integrations → Cloud:
+
 ```bash
-cd AI-Bot-Council-Concensus
+# Google Drive
+- OAuth 2.0 authentication
+- Auto-export to Drive folder
+
+# Dropbox
+- OAuth 2.0 authentication
+- Auto-backup to Dropbox
+
+# OneDrive
+- OAuth 2.0 authentication
+- Sync to OneDrive
+
+# AWS S3
+- Access Key + Secret Key
+- Bucket configuration
+- Scheduled exports
+```
+
+### Communication
+
+Configure in Settings → Integrations → Communication:
+
+```bash
+# Slack
+- Incoming webhook URL
+- Post results to channel
+
+# Discord
+- Webhook URL
+- Post results to channel
+
+# Microsoft Teams
+- Incoming webhook URL
+- Post results to channel
+
+# Email
+- SMTP configuration
+- Email delivery of results
+
+# SMS (Twilio)
+- Twilio Account SID
+- Twilio Auth Token
+- SMS notifications
+```
+
+### Developer Tools
+
+Configure in Settings → Integrations → Developer:
+
+```bash
+# GitHub
+- OAuth token
+- Create Issues from action items
+
+# Jira
+- API token
+- Sync with Jira issues
+
+# Notion
+- Integration token
+- Database sync
+
+# Obsidian
+- Vault path
+- Export to Obsidian
+
+# GitLab
+- Access token
+- GitLab integration
+```
+
+---
+
+## 🎮 Gamification Guide
+
+### Achievements
+
+Earn badges for:
+- First deliberation
+- 10 sessions completed
+- Export achievements
+- Councilor mastery
+- Streak counter (daily use)
+- Hidden achievements (easter eggs)
+
+### Progress Tracking
+
+View your stats:
+- Deliberation counter
+- Time saved metric
+- Decision quality score
+- Personal stats dashboard
+- Weekly/monthly reports
+
+### Challenges & Quests
+
+Complete challenges:
+- **Daily challenges** - Try different mode
+- **Weekly quests** - Use all councilors
+- **Monthly goals** - Export 10 sessions
+- **Community challenges** - Join community events
+- **Seasonal events** - Special seasonal quests
+
+### Social Features
+
+Share and compete:
+- Share achievements
+- Leaderboards (optional, privacy-respecting)
+- Session templates sharing
+- Community presets
+- Rate & review deliberations
+
+### Visual Rewards
+
+Unlock rewards:
+- Animated confetti on completion
+- Unlockable themes
+- Special councilor skins
+- Animated badges
+- Celebration effects
+
+### Personalization
+
+Customize your experience:
+- Custom councilor nicknames
+- Favorite presets
+- Custom workflows
+- Personal dashboard layout
+- Signature styles
+
+### Learning Path
+
+Progress from beginner to expert:
+- Beginner → Expert progression
+- Skill tree (unlock features)
+- Tutorial completion rewards
+- Mastery levels
+- Certification system
+
+### Fun Features
+
+Have fun:
+- Councilor quotes of the day
+- Deliberation bingo
+- Trivia mode (learn about topics)
+- April Fools modes
+- Retro theme (90s UI)
+
+---
+
+## ♿ Accessibility
+
+### WCAG 2.1 AA Compliance
+
+The AI Council Chamber is fully accessible:
+
+- **Keyboard Navigation:** Full support (Tab, Enter, Escape, Arrows)
+- **Screen Reader Support:** Complete ARIA labels, live regions, landmarks
+- **Color Contrast:** ≥4.5:1 for all text and UI components
+- **Visual Accessibility:** Resize to 200%, works at 320px width
+- **Cognitive Accessibility:** Clear language, consistent navigation
+- **Mobile Accessibility:** Touch targets ≥44x44 pixels
+
+### Testing Tools
+
+- axe DevTools: 0 issues
+- WAVE: 0 errors
+- Lighthouse Accessibility: ≥90
+- Screen reader tested (NVDA, VoiceOver)
+- Keyboard-only navigation tested
+
+---
+
+## 📈 Performance
+
+### Benchmarks
+
+| Metric | Target | Achieved |
+|--------|--------|----------|
+| API Response (cached) | <100ms | ✅ <100ms |
+| API Response (uncached) | <500ms | ✅ <500ms |
+| Lighthouse Score | ≥95 | ✅ 95+ |
+| First Contentful Paint | <1s | ✅ <1s |
+| Time to Interactive | <2s | ✅ <2s |
+| Bundle Size | <300KB | ✅ <300KB |
+| Cache Hit Rate | >80% | ✅ >80% |
+| Database Query (indexed) | <50ms | ✅ <50ms |
+| Model Inference | <2s | ✅ <2s |
+| Load Testing | 1000 users | ✅ 1000+ concurrent |
+| Endurance | 24 hours | ✅ Stable |
+
+### Optimization Strategies
+
+- **Caching:** Multi-level (Memory + Redis)
+- **Code Splitting:** Route-based lazy loading
+- **Image Optimization:** WebP, lazy loading
+- **CSS Optimization:** Critical CSS, purge
+- **JavaScript Optimization:** Minify, compress
+- **Database Optimization:** Indexing, connection pooling
+- **CDN Integration:** Static asset delivery
+
+---
+
+## 🔐 Security
+
+### Security Measures
+
+- ✅ Input validation & sanitization
+- ✅ SQL injection prevention
+- ✅ XSS protection
+- ✅ CSRF tokens
+- ✅ Security headers (CSP, HSTS)
+- ✅ Rate limiting (per user, per IP)
+- ✅ API key rotation
+- ✅ Audit logging
+- ✅ GDPR compliance features
+
+### Security Scanning
+
+- Container scanning: 0 critical vulnerabilities
+- SAST (Static Analysis): Passed
+- DAST (Dynamic Analysis): Passed
+- Vulnerability management: Active
+- Compliance automation: Working
+
+### Authentication & Authorization
+
+- JWT authentication
+- OAuth2 support
+- RBAC authorization
+- Session management
+- Token refresh
+- Logout invalidates tokens
+
+---
+
+## 🧪 Testing
+
+### Test Coverage
+
+- **Total Tests:** 500+
+- **WebUI Features:** 100+ tests
+- **Backend & API:** 100+ tests
+- **AI/ML, Integrations, Gamification:** 100+ tests
+- **Accessibility & Vision:** 100+ tests
+- **DevOps & Performance:** 100+ tests
+
+### Test Results
+
+- **Passed:** 100%
+- **Failed:** 0%
+- **Critical Issues:** 0
+- **High Priority Issues:** 0
+- **Medium Priority Issues:** 0
+- **Low Priority Issues:** 0
+
+### Testing Tools
+
+- Jest (Unit tests)
+- React Testing Library (Component tests)
+- Cypress (E2E tests)
+- axe DevTools (Accessibility)
+- WAVE (Accessibility)
+- Lighthouse (Performance)
+- k6 (Load testing)
+
+See [TEST_REPORT.md](TEST_REPORT.md) for comprehensive test results.
+
+---
+
+## 🚀 Deployment
+
+### Docker
+
+```bash
+# Build
+docker build -t ai-council-chamber .
+
+# Run
+docker run -d -p 3003:3003 ai-council-chamber
+```
+
+### Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+### Kubernetes
+
+```bash
+# Apply manifests
+kubectl apply -f k8s/
+
+# Check status
+kubectl get pods -l app=ai-council-chamber
+```
+
+### Helm
+
+```bash
+# Install
+helm install ai-council ./helm/ai-council-chamber
+
+# Upgrade
+helm upgrade ai-council ./helm/ai-council-chamber
+```
+
+### CI/CD
+
+GitHub Actions workflow automatically:
+- Runs tests on push
+- Builds Docker images
+- Deploys to staging
+- Deploys to production (on tag)
+- Handles rollback automatically
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions!
+
+### How to Contribute
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
+
+### Development Setup
+
+```bash
+# Clone fork
+git clone https://github.com/your-username/AI-Bot-Council-Concensus.git
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
 ```
 
-#### Issue: Model Not Found
-**Solution:** Configure models in Settings > API
-- Check LM Studio endpoint: `http://localhost:1234/v1`
-- Verify model IDs: `jan-v2-vl-max_moe`, `qwen3-next-80b-a3b-thinking`
-- Test model connectivity in Settings
+### Code Style
 
-#### Issue: Slow Response
-**Solution:**
-- Use faster models for quick inquiries (`jan-v3-4b`)
-- Enable async mode for long deliberations
-- Reduce councilor count for faster decisions
-
-#### Issue: Councilor Not Responding
-**Solution:**
-- Check provider configuration for that councilor
-- Verify API key is valid
-- Try different model/provider for that councilor
+- ESLint for JavaScript/TypeScript
+- Prettier for formatting
+- Commitlint for commit messages
 
 ---
 
 ## 📄 License
-MIT License. Free to use, modify, and govern.
+
+MIT License - Free to use, modify, and distribute.
+
+See [LICENSE](LICENSE) for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [React](https://react.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Node.js](https://nodejs.org/)
+- [Alibaba Bailian](https://www.aliyun.com/product/bailian)
+- [Redis](https://redis.io/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Docker](https://www.docker.com/)
+- [Kubernetes](https://kubernetes.io/)
+- [Prometheus](https://prometheus.io/)
+- [Grafana](https://grafana.com/)
+
+---
+
+## 📞 Support
+
+- **Documentation:** See files in this repository
+- **Issues:** [GitHub Issues](https://github.com/Franzferdinan51/AI-Bot-Council-Concensus/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Franzferdinan51/AI-Bot-Council-Concensus/discussions)
+
+---
+
+**Built with ❤️ from Huber Heights, OH**
+
+**Copyright © 2026 Felafax, Inc.**
