@@ -758,3 +758,99 @@ council deliberate "topic" --preset thorough
 See [ADVANCED-TOPIC-SELECTION.md](ADVANCED-TOPIC-SELECTION.md) for complete topic analysis guide.
 
 ---
+
+---
+
+## 🤖 Multi-Provider Support
+
+The AI Council Chamber supports **10+ AI providers** - use what works best for you!
+
+### Supported Providers
+
+#### Primary Providers
+- ✅ **Alibaba Bailian** (Default) - Best performance, comprehensive models
+- ✅ **LM Studio** (Local) - FREE, private, offline
+- ✅ **OpenAI** - GPT-4, GPT-3.5, reliable
+- ✅ **Anthropic** - Claude 3, long context
+- ✅ **Google** - Gemini Pro, multimodal
+
+#### Additional Providers
+- ✅ **Ollama** - Local, open source models
+- ✅ **Together AI** - Cloud, open source
+- ✅ **Anyscale** - Enterprise open source
+- ✅ **Groq** - Fastest inference
+- ✅ **DeepSeek** - Cost-effective
+- ✅ **Moonshot** - Long context (128K)
+
+### Quick Provider Switch
+
+```bash
+# Use LM Studio (free, local)
+council config set provider lmstudio
+
+# Use OpenAI
+council config set provider openai
+
+# Use Bailian (default)
+council config set provider bailian
+```
+
+### Provider Comparison
+
+| Provider | Best For | Cost | Latency |
+|----------|----------|------|---------|
+| **LM Studio** | Privacy, free | FREE | 100-500ms |
+| **Ollama** | Open source, free | FREE | 200-800ms |
+| **Groq** | Speed | $ | 50-100ms |
+| **DeepSeek** | Cost-effective | $$ | 500-1000ms |
+| **Bailian** | Performance | $$$ | 500-1500ms |
+| **OpenAI** | Quality | $$$$ | 1000-2000ms |
+| **Anthropic** | Long context | $$$$ | 1000-2500ms |
+
+### Configuration
+
+Edit `.env` to configure providers:
+
+```bash
+# Primary provider
+DEFAULT_PROVIDER=bailian
+
+# API keys
+BAILIAN_API_KEY=your-bailian-key
+OPENAI_API_KEY=your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+LM_STUDIO_ENDPOINT=http://localhost:1234/v1
+
+# Model configuration
+SPEAKER_MODEL=bailian/qwen3.5-plus
+FAST_MODEL=lmstudio/phi-3-mini
+```
+
+### Multi-Provider Features
+
+**Failover:**
+```bash
+# Automatic failover
+ENABLE_FAILOVER=true
+FALLBACK_PROVIDER_1=lmstudio
+FALLBACK_PROVIDER_2=openai
+```
+
+**Load Balancing:**
+```bash
+# Distribute requests
+LOAD_BALANCING=round-robin
+PROVIDER_WEIGHTS=bailian:0.5,lmstudio:0.3,openai:0.2
+```
+
+**Cost Optimization:**
+```bash
+# Route by complexity
+COST_OPTIMIZATION=true
+SIMPLE_QUERIES_PROVIDER=lmstudio
+COMPLEX_QUERIES_PROVIDER=bailian
+```
+
+See [PROVIDERS.md](PROVIDERS.md) for complete provider guide with setup instructions for all 10+ providers!
+
+---
