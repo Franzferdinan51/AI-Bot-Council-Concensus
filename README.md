@@ -649,3 +649,112 @@ This provides the best balance of:
 See [COUNCILOR-SELECTION.md](COUNCILOR-SELECTION.md) for complete selection guide.
 
 ---
+
+---
+
+## 🧠 Advanced Topic Analysis
+
+The AI Council uses intelligent topic analysis to automatically select the most relevant councilors.
+
+### Topic Analysis Process
+
+1. **Keyword Extraction** - Identify key terms and domain terminology
+2. **Category Classification** - Primary and secondary categories
+3. **Impact Assessment** - Scope, urgency, risk, cost, user impact
+4. **Councilor Selection** - Core + specialists + impact-based additions
+
+### Topic Categories
+
+**Business & Strategy**
+- Keywords: revenue, cost, ROI, market, competition, investment, budget, strategy
+- Auto-Select: Economist, Product Manager, Finance Expert, Risk Manager
+
+**Technical & Architecture**
+- Keywords: architecture, microservices, API, database, cloud, infrastructure, scalability
+- Auto-Select: Solutions Architect, DevOps Engineer, Performance Engineer, Security Expert
+
+**Security & Compliance**
+- Keywords: security, vulnerability, threat, compliance, GDPR, audit, privacy, encryption
+- Auto-Select: Security Expert, Sentinel, Risk Manager, Legal Expert, Compliance Officer
+
+**User Experience & Design**
+- Keywords: UX, UI, design, user, customer, accessibility, usability, interface
+- Auto-Select: User Advocate, Accessibility Expert, Customer Support, Psychologist
+
+**Product & Features**
+- Keywords: feature, product, roadmap, release, launch, MVP, beta, prioritize
+- Auto-Select: Product Manager, User Advocate, Economist, Marketing Expert
+
+**Innovation & Research**
+- Keywords: innovation, research, experiment, breakthrough, disruption, AI, ML
+- Auto-Select: Innovation Coach, Visionary, Conspiracist, Data Scientist
+
+**Team & Organization**
+- Keywords: team, hiring, culture, org, management, leadership, remote, diversity
+- Auto-Select: HR Specialist, Ethicist, Legal Expert, Community Manager
+
+**Legal & Regulatory**
+- Keywords: legal, contract, agreement, policy, regulation, compliance, lawsuit
+- Auto-Select: Legal Expert, Compliance Officer, Risk Manager, Privacy Officer
+
+**Environmental & Social**
+- Keywords: environment, sustainability, carbon, green, climate, social, ESG, ethical
+- Auto-Select: Environmental Specialist, Ethics Philosopher, Legal Expert
+
+### Impact-Based Scaling
+
+| Impact Level | Criteria | Councilors | Use For |
+|-------------|----------|------------|---------|
+| **Low** | <10 people, <$1K, reversible | 5-7 | Simple questions |
+| **Medium** ⭐ | 10-100 people, $1K-10K | 7-10 | Most decisions (DEFAULT) |
+| **High** | 100-1000 people, $10K-100K | 10-15 | Major decisions |
+| **Critical** | 1000+ people, >$100K | 15-20+ | Critical decisions |
+
+### Smart Presets
+
+```bash
+# Balanced (default) - 7-10 councilors
+council deliberate "topic" --preset balanced
+
+# Conservative - 10-15 councilors (more risk-averse)
+council deliberate "topic" --preset conservative
+
+# Innovative - 7-10 councilors (more creative)
+council deliberate "topic" --preset innovative
+
+# Technical - 7-10 councilors (technical focus)
+council deliberate "topic" --preset technical
+
+# Business - 7-10 councilors (business focus)
+council deliberate "topic" --preset business
+
+# Security - 10-12 councilors (security focus)
+council deliberate "topic" --preset security
+
+# Minimal - 3-5 councilors (fastest)
+council deliberate "topic" --preset minimal
+
+# Thorough - 15-20 councilors (comprehensive)
+council deliberate "topic" --preset thorough
+```
+
+### Topic Analysis Examples
+
+**"Should we migrate to microservices?"**
+- Categories: Technical (primary), Business (secondary)
+- Impact: High (costly, hard to reverse)
+- Auto-Selected: 13 councilors (Solutions Architect, DevOps, Performance, Economist, etc.)
+
+**"Is our feature GDPR compliant?"**
+- Categories: Compliance (primary), Legal (primary)
+- Impact: High (regulatory risk)
+- Auto-Selected: 12 councilors (Legal Expert, Compliance Officer, Privacy Officer, etc.)
+
+**"Fix the login bug"**
+- Categories: Technical (primary), UX (secondary)
+- Impact: Low (reversible)
+- Auto-Selected: 5 councilors (Coder, User Advocate, core councilors)
+
+See [ADVANCED-TOPIC-SELECTION.md](ADVANCED-TOPIC-SELECTION.md) for complete topic analysis guide.
+
+---
