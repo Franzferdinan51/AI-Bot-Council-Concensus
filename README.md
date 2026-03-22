@@ -5,7 +5,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-compatible-brightgreen.svg)](https://github.com/openclaw/openclaw)
 [![Providers](https://img.shields.io/badge/providers-10+-brightgreen.svg)](PROVIDERS.md)
-[![Councilors](https://img.shields.io/badge/councilors-38-brightgreen.svg)](COUNCILORS.md)
+[![Councilors](https://img.shields.io/badge/councilors-43-brightgreen.svg)](COUNCILORS.md)(COUNCILORS.md)
 
 ---
 
@@ -50,7 +50,7 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
   - 🔮 Prediction Market - Probabilistic forecasting
   - 🗣️ Inquiry - Rapid-fire Q&A
 
-- **38 Specialized Councilors**
+- **43 Specialized Councilors**
   - 5 categories: Business, Technical, User, Compliance, Innovation
   - Auto-selected based on topic
   - Smart scaling (5-20+ councilors)
