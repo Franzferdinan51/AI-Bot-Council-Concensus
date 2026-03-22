@@ -1,26 +1,33 @@
 {
   "routing": {
-    "complex_reasoning": "MiniMax-M2.5",
-    "deep_research": "MiniMax-M2.5", 
-    "fast_simple": "jan-v3-4b-base-instruct",
-    "vision": "qwen3-vl-8b-thinking",
-    "coding": "qwen/qwen3-14b"
+    "complex_reasoning": "bailian/qwen3.5-plus",
+    "deep_research": "bailian/MiniMax-M2.5",
+    "fast_simple": "bailian/glm-5",
+    "vision": "bailian/kimi-k2.5",
+    "coding": "bailian/qwen3-coder-plus"
   },
   "councilor_mapping": {
-    "speaker": "MiniMax-M2.5",
-    "moderator": "jan-v3-4b-base-instruct",
-    "technocrat": "MiniMax-M2.5",
-    "ethicist": "MiniMax-M2.5",
-    "pragmatist": "MiniMax-M2.5",
-    "visionary": "MiniMax-M2.5",
-    "sentinel": "MiniMax-M2.5",
-    "historian": "MiniMax-M2.5",
-    "diplomat": "MiniMax-M2.5",
-    "skeptic": "MiniMax-M2.5",
-    "conspiracist": "jan-v3-4b-base-instruct",
-    "journalist": "MiniMax-M2.5",
-    "propagmatist": "jan-v3-4b-base-instruct",
-    "psychologist": "MiniMax-M2.5",
-    "specialist_coder": "qwen/qwen3-14b"
-  }
+    "speaker": "bailian/qwen3.5-plus",
+    "moderator": "bailian/MiniMax-M2.5",
+    "technocrat": "bailian/MiniMax-M2.5",
+    "ethicist": "bailian/MiniMax-M2.5",
+    "pragmatist": "bailian/MiniMax-M2.5",
+    "visionary": "bailian/qwen3.5-plus",
+    "sentinel": "bailian/qwen3.5-plus",
+    "historian": "bailian/MiniMax-M2.5",
+    "diplomat": "bailian/MiniMax-M2.5",
+    "skeptic": "bailian/qwen3.5-plus",
+    "conspiracist": "bailian/glm-5",
+    "journalist": "bailian/MiniMax-M2.5",
+    "propagmatist": "bailian/glm-5",
+    "psychologist": "bailian/MiniMax-M2.5",
+    "specialist_coder": "bailian/qwen3-coder-plus"
+  },
+  "provider_config": {
+    "primary": "bailian",
+    "disabled_providers": ["openai", "google", "anthropic", "openrouter"],
+    "bailian_endpoint": "https://coding-intl.dashscope.aliyuncs.com/v1",
+    "bailian_api_key_env": "BAILIAN_API_KEY"
+  },
+  "_notes": "BAILIAN ONLY - No ChatGPT/OpenAI/Google (March 22, 2026)"
 }
