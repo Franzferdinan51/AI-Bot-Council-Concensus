@@ -50,7 +50,7 @@
 
 ### After Upgrade
 - **100% Bailian**
-- **10/15 councilors use FREE MiniMax-M2.5**
+- **10/15 councilors use (included in plan) MiniMax-M2.5**
 - **4/15 use quota-based qwen3.5-plus**
 - **2/15 use API credit glm-5**
 - **ZERO ChatGPT/OpenAI costs**
@@ -58,7 +58,7 @@
 ### Monthly Cost Breakdown
 | Model | Usage | Cost |
 |-------|-------|------|
-| MiniMax-M2.5 | 10 councilors | ✅ FREE |
+| MiniMax-M2.5 | 10 councilors | Included in plan |
 | qwen3.5-plus | 4 councilors | 18K/mo quota |
 | glm-5 | 2 councilors | API credits |
 | **Total** | **15 councilors** | **~$20-30/month** |
