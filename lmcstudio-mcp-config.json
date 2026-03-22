@@ -1,0 +1,140 @@
+{
+    "mcpServers": {
+        "ai-council": {
+            "url": "http://127.0.0.1:3001/mcp",
+            "_auto_connect": true,
+            "_enabled": true,
+            "_description": "AI Council Chamber - Multi-agent deliberation (15 councilors)",
+            "_councilors": 15,
+            "_provider": "Alibaba Bailian",
+            "_default": true,
+            "_priority": 1
+        },
+        "gameboy": {
+            "command": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "args": [
+                "/Users/duckets/.openclaw/workspace/ai-Py-boy-emulation-main/ai-game-server/generic_mcp_server.py"
+            ],
+            "_tools": {
+                "load_rom": "Load ROM",
+                "press_a": "A button",
+                "press_b": "B button",
+                "press_up": "UP",
+                "press_down": "DOWN",
+                "press_left": "LEFT",
+                "press_right": "RIGHT",
+                "press_start": "START",
+                "press_select": "SELECT",
+                "get_screen": "Get screen",
+                "tick": "Advance frames",
+                "get_memory": "Read RAM",
+                "get_state": "Get state",
+                "save_state": "Save state",
+                "load_state": "Load state",
+                "get_party": "Pokemon party",
+                "get_inventory": "Inventory",
+                "get_position": "X,Y position",
+                "get_map": "Current map",
+                "get_money": "Money",
+                "get_badges": "Badges",
+                "screenshot": "Screenshot",
+                "get_game_info": "Game info",
+                "press_button_combo": "Button combo",
+                "hold_button": "Hold button",
+                "quick_save": "Quick save",
+                "quick_load": "Quick load",
+                "list_save_slots": "List saves",
+                "get_wild_pokemon": "Wild Pokemon",
+                "get_enemy_info": "Enemy info",
+                "get_health": "HP/Health",
+                "get_score": "Score (Tetris etc)",
+                "get_level": "Level/Area",
+                "get_lives": "Lives",
+                "get_game_time": "Timer",
+                "read_ram": "Read RAM range",
+                "write_ram": "Write RAM",
+                "search_ram": "Search RAM",
+                "get_tile_data": "Tile data",
+                "get_system_info": "System info",
+                "compare_screens": "Compare screens"
+            },
+            "_features": [
+                "42 tools - Pokemon + generic",
+                "Works with ANY GB game",
+                "Connects to backend:5002"
+            ]
+        },
+        "runescape": {
+            "command": "python3",
+            "args": [
+                "/Users/duckets/.openclaw/workspace/rs-agent-tools/mcp-launcher.py"
+            ],
+            "cwd": "/Users/duckets/.openclaw/workspace/rs-agent-tools"
+        },
+        "brave-search": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-brave-search"
+            ],
+            "env": {
+                "BRAVE_API_KEY": "BSA5j7E0FgEj-CkoWkC4cCbgnVNg0pr"
+            }
+        },
+        "browseros": {
+            "url": "http://127.0.0.1:9000/mcp"
+        },
+        "weather": {
+            "command": "uvx",
+            "args": [
+                "--from",
+                "git+https://github.com/isdaniel/mcp_weather_server.git",
+                "mcp_weather_server"
+            ]
+        },
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "/Users/duckets/.openclaw/workspace"
+            ]
+        },
+        "time": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-time"
+            ]
+        },
+        "fetch": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-fetch"
+            ]
+        },
+        "git": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-git"
+            ]
+        },
+        "memory": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-memory"
+            ],
+            "env": {
+                "MEMORY_FILE_PATH": "/Users/duckets/.lmstudio/memory.jsonl"
+            }
+        },
+        "sequential-thinking": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-sequential-thinking"
+            ]
+        }
+    }
+}
