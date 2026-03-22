@@ -5,7 +5,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-compatible-brightgreen.svg)](https://github.com/openclaw/openclaw)
 [![Providers](https://img.shields.io/badge/providers-10+-brightgreen.svg)](PROVIDERS.md)
-[![Councilors](https://img.shields.io/badge/councilors-43-brightgreen.svg)](COUNCILORS.md)(COUNCILORS.md)
+[![Councilors](https://img.shields.io/badge/councilors-43-brightgreen.svg)](COUNCILORS.md)
 
 ---
 
@@ -86,7 +86,7 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 
 ---
 
-## 🏛️ 38 Councilors
+## 🏛️ 43 Councilors
 
 ### Original (15)
 Speaker, Technocrat, Ethicist, Pragmatist, Skeptic, Sentinel, Visionary, Historian, Diplomat, Journalist, Psychologist, Conspiracist, Propagmatist, Moderator, Coder
@@ -425,3 +425,11 @@ See [LICENSE](LICENSE) for details.
 **Built with ❤️ from Huber Heights, OH**
 
 **Copyright © 2026 Felafax, Inc.**
+
+### Weather & Emergency Response (5) 🌪️ NEW
+
+- **Meteorologist** - Weather patterns, severe weather threats, atmospheric analysis
+- **Emergency Manager** - Emergency preparedness, public safety, shelter coordination
+- **Animal Care Specialist** - Livestock safety, pet protection, wildlife considerations
+- **Risk Analyst** - Probability analysis, impact assessment, risk scoring
+- **Local Resident** - Ground-level perspective, neighborhood knowledge, common sense
