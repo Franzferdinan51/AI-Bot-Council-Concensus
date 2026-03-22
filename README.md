@@ -13,7 +13,8 @@
 
 - [Overview](#overview)
 - [Features](#features)
-- [38 Councilors](#38-councilors)
+- [43 Councilors](#43-councilors)
+- [Deliberation Modes](#deliberation-modes)
 - [Smart Selection](#smart-councilor-selection)
 - [Multi-Provider Support](#multi-provider-support)
 - [Quick Start](#quick-start)
@@ -42,18 +43,10 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 
 ### 🏛️ Core Deliberation
 
-- **6 Deliberation Modes**
-  - ⚖️ Legislative - Debate + vote
-  - 🧠 Deep Research - Recursive investigation
-  - 🐝 Swarm Hive - Task decomposition
-  - 💻 Swarm Coding - Software engineering
-  - 🔮 Prediction Market - Probabilistic forecasting
-  - 🗣️ Inquiry - Rapid-fire Q&A
-
-- **43 Specialized Councilors**
-  - 5 categories: Business, Technical, User, Compliance, Innovation
-  - Auto-selected based on topic
-  - Smart scaling (5-20+ councilors)
+- **10 Deliberation Modes** (see [Deliberation Modes](#deliberation-modes))
+- **43 Specialized Councilors** (see [43 Councilors](#43-councilors))
+- Auto-selected based on topic
+- Smart scaling (5-20+ councilors)
 
 ### 🎨 Web UI
 
@@ -89,30 +82,135 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 ## 🏛️ 43 Councilors
 
 ### Original (15)
-Speaker, Technocrat, Ethicist, Pragmatist, Skeptic, Sentinel, Visionary, Historian, Diplomat, Journalist, Psychologist, Conspiracist, Propagmatist, Moderator, Coder
+
+- **Speaker** - Facilitator, neutral synthesis
+- **Technocrat** - Efficiency, data, optimization
+- **Ethicist** - Morality, human well-being
+- **Pragmatist** - Cost, feasibility, implementation
+- **Skeptic** - Devil's advocate, finds flaws
+- **Sentinel** - Security, threats, safety
+- **Visionary** - Innovation, long-term thinking
+- **Historian** - Historical context, lessons from past
+- **Diplomat** - Compromise, middle ground
+- **Journalist** - Facts, investigation, truth
+- **Psychologist** - Human behavior, motivations
+- **Conspiracist** - Alternative theories
+- **Propagmatist** - Messaging, communication
+- **Moderator** - Process, rules, fairness
+- **Coder** - Code quality, technical implementation
 
 ### Business & Strategy (5)
-Economist, Product Manager, Marketing Expert, Finance Expert, Risk Manager
+
+- **Economist** - Financial impact, cost-benefit, market forces, ROI
+- **Product Manager** - Product strategy, roadmap, prioritization, user value
+- **Marketing Expert** - Go-to-market, positioning, messaging, brand
+- **Finance Expert** - Budget, financial planning, cash flow, funding
+- **Risk Manager** - Enterprise risk, mitigation strategies, risk assessment
 
 ### Technical & Engineering (6)
-DevOps Engineer, Security Expert, Data Scientist, Performance Engineer, Quality Assurance, Solutions Architect
+
+- **DevOps Engineer** - Infrastructure, scalability, deployment, monitoring, SRE
+- **Security Expert** - Cybersecurity, threat modeling, security best practices
+- **Data Scientist** - Data analysis, ML/AI implications, metrics, analytics
+- **Performance Engineer** - Performance optimization, bottlenecks, profiling
+- **Quality Assurance** - Testing strategy, edge cases, quality standards
+- **Solutions Architect** - System design, integration patterns, enterprise architecture
 
 ### User & Community (4)
-User Advocate, Customer Support, Community Manager, Accessibility Expert
+
+- **User Advocate** - User experience, accessibility, user needs, pain points
+- **Customer Support** - Customer pain points, support burden, documentation
+- **Community Manager** - Community impact, open source considerations, feedback
+- **Accessibility Expert** - WCAG compliance, inclusive design, assistive technology
 
 ### Compliance & Legal (3)
-Legal Expert, Compliance Officer, Privacy Officer
+
+- **Legal Expert** - Compliance, regulations, liability, legal risks, contracts
+- **Compliance Officer** - Regulatory compliance, audits, standards, certifications
+- **Privacy Officer** - Data privacy, GDPR, CCPA, privacy by design
 
 ### Innovation & Culture (5)
-Innovation Coach, HR Specialist, Environmental Specialist, Ethics Philosopher
 
-**See [COUNCILORS.md](COUNCILORS.md) for complete guide.**
+- **Innovation Coach** - Creative thinking, breakthrough ideas, disruption
+- **HR Specialist** - Team impact, hiring, organizational culture, change management
+- **Environmental Specialist** - Sustainability, environmental impact, green tech
+- **Ethics Philosopher** - Deep ethical analysis, moral frameworks, philosophical perspectives
+
+### Weather & Emergency Response (5) 🌪️ NEW
+
+- **Meteorologist** - Weather patterns, severe weather threats, atmospheric analysis
+- **Emergency Manager** - Emergency preparedness, public safety, shelter coordination
+- **Animal Care Specialist** - Livestock safety, pet protection, wildlife considerations
+- **Risk Analyst** - Probability analysis, impact assessment, risk scoring
+- **Local Resident** - Ground-level perspective, neighborhood knowledge, common sense
+
+**Total: 43 specialized councilors for comprehensive deliberation!**
+
+See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, and use cases.
+
+---
+
+## 🎭 Deliberation Modes
+
+### Core Modes (6)
+
+1. **⚖️ Legislative** - Debate + vote on proposals
+   - Councilors debate, then vote
+   - Majority rules with minority opinion recorded
+   - Best for: Policy decisions, feature approvals
+
+2. **🧠 Deep Research** - Recursive investigation with search
+   - Multi-round research with verification
+   - Source citation and fact-checking
+   - Best for: Complex topics, market research
+
+3. **🐝 Swarm Hive** - Dynamic task decomposition
+   - Breaks complex problems into subtasks
+   - Parallel processing by specialized councilors
+   - Best for: Large projects, system design
+
+4. **💻 Swarm Coding** - Dedicated software engineering workflow
+   - Code review, architecture, implementation
+   - Security and performance analysis
+   - Best for: Code reviews, technical decisions
+
+5. **🔮 Prediction Market** - Superforecasting with probabilistic forecasts
+   - Probability estimates with confidence intervals
+   - Base rate analysis and pre-mortem
+   - Best for: Risk assessment, forecasting
+
+6. **🗣️ Inquiry** - Rapid-fire Q&A mode
+   - Quick answers from relevant councilors
+   - Minimal deliberation, maximum speed
+   - Best for: Quick questions, fact-finding
+
+### Advanced Modes (4) 🆕
+
+7. **🌪️ Emergency Response** - Rapid crisis deliberation
+   - Fast-track decision making for emergencies
+   - Prioritizes safety and immediate action
+   - Best for: Weather emergencies, security incidents
+
+8. **📊 Risk Assessment** - Comprehensive risk analysis
+   - Quantitative and qualitative risk scoring
+   - Mitigation strategy development
+   - Best for: Project risks, security reviews
+
+9. **🤝 Consensus Building** - Find common ground
+   - Facilitated dialogue to find agreement
+   - Documents areas of agreement/disagreement
+   - Best for: Team disputes, stakeholder alignment
+
+10. **🎯 Strategic Planning** - Long-term strategic thinking
+    - Multi-year planning with scenario analysis
+    - Competitive analysis and positioning
+    - Best for: Roadmap planning, strategy sessions
 
 ---
 
 ## 🎯 Smart Councilor Selection
 
-**Never run all 38 councilors!** The AI Council auto-selects the most relevant councilors for each decision.
+**Never run all 43 councilors!** The AI Council auto-selects the most relevant councilors for each decision.
 
 ### Selection Tiers
 
@@ -131,6 +229,7 @@ Innovation Coach, HR Specialist, Environmental Specialist, Ethics Philosopher
 - **UX** → User Advocate, Accessibility, Support
 - **Compliance** → Legal, Compliance, Privacy
 - **Innovation** → Innovation Coach, Visionary, Conspiracist
+- **Weather/Emergency** → Meteorologist, Emergency Manager, Risk Analyst, Local Resident
 
 ### Smart Presets
 
@@ -148,6 +247,7 @@ council deliberate "topic" --preset thorough
 council deliberate "topic" --preset technical
 council deliberate "topic" --preset business
 council deliberate "topic" --preset security
+council deliberate "topic" --preset emergency
 ```
 
 **See [COUNCILOR-SELECTION.md](COUNCILOR-SELECTION.md) for complete guide.**
@@ -363,8 +463,6 @@ ws.onmessage = (e) => console.log(JSON.parse(e.data));
 - **Export:** Click "Export" button
 - **Settings:** Click gear icon
 
-**See full guide in repository.**
-
 ---
 
 ## 🤝 Contributing
@@ -422,14 +520,6 @@ See [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with ❤️ from Huber Heights, OH**
+**Built with ❤️ for better decision-making**
 
-**Copyright © 2026 Felafax, Inc.**
-
-### Weather & Emergency Response (5) 🌪️ NEW
-
-- **Meteorologist** - Weather patterns, severe weather threats, atmospheric analysis
-- **Emergency Manager** - Emergency preparedness, public safety, shelter coordination
-- **Animal Care Specialist** - Livestock safety, pet protection, wildlife considerations
-- **Risk Analyst** - Probability analysis, impact assessment, risk scoring
-- **Local Resident** - Ground-level perspective, neighborhood knowledge, common sense
+**Copyright © 2026 AI Council Chamber Team**
