@@ -568,3 +568,84 @@ See [LICENSE](LICENSE) for details.
 See [COUNCILORS.md](COUNCILORS.md) for complete councilor guide.
 
 ---
+
+---
+
+## 🎯 Smart Councilor Selection
+
+**Important:** The AI Council automatically selects the most relevant councilors for each decision - you don't need to run all 38 every time!
+
+### Selection Tiers
+
+#### Quick Review (3-5 councilors)
+- **Use for:** Simple decisions, quick feedback
+- **Councilors:** Speaker + 4 core (Technocrat, Ethicist, Skeptic, Pragmatist)
+- **API Calls:** ~5
+- **Response Time:** Fast (<30s)
+- **Cost:** ~$0.01-0.05
+
+#### Standard Review (7-10 councilors) ⭐ **DEFAULT**
+- **Use for:** Most decisions, feature reviews
+- **Councilors:** Core 5 + specialists based on topic
+- **API Calls:** ~7-10
+- **Response Time:** Moderate (30-60s)
+- **Cost:** ~$0.02-0.10
+
+#### Comprehensive Review (12-15 councilors)
+- **Use for:** Major decisions, architecture reviews
+- **Councilors:** Core + domain experts
+- **API Calls:** ~12-15
+- **Response Time:** Slower (60-90s)
+- **Cost:** ~$0.05-0.20
+
+#### Full Deliberation (20+ councilors)
+- **Use for:** Critical decisions, company-wide impact
+- **Councilors:** All relevant councilors
+- **API Calls:** 20+
+- **Response Time:** Slow (90s+)
+- **Cost:** ~$0.10-0.50+
+
+### Automatic Selection
+
+The AI Council automatically selects councilors based on your topic:
+
+**Business Decision** → Economist, Product Manager, Finance Expert, Risk Manager  
+**Technical Decision** → Solutions Architect, DevOps Engineer, Security Expert  
+**Security Review** → Security Expert, Sentinel, Risk Manager, Legal Expert  
+**UX Decision** → User Advocate, Accessibility Expert, Customer Support  
+**Compliance** → Legal Expert, Compliance Officer, Privacy Officer  
+**Innovation** → Innovation Coach, Visionary, Conspiracist  
+
+### Manual Selection
+
+You can also manually select councilors:
+
+```bash
+# Select specific councilors
+council deliberate "topic" --councilors "Speaker,Technocrat,Ethicist,Skeptic,Pragmatist,Sentinel"
+
+# Use preset
+council deliberate "topic" --preset quick    # 5 councilors
+council deliberate "topic" --preset standard # 7-10 councilors
+council deliberate "topic" --preset comprehensive # 12-15 councilors
+```
+
+### Cost Optimization
+
+**Default behavior:** 7-10 councilors (Standard Review)
+
+This provides the best balance of:
+- ✅ Diverse perspectives
+- ✅ Reasonable API cost
+- ✅ Fast response time
+- ✅ Manageable context size
+
+**Save money by:**
+- Using Quick Review for simple questions
+- Using Standard Review for most decisions (default)
+- Using Comprehensive only for major decisions
+- Avoiding Full Deliberation unless critical
+
+See [COUNCILOR-SELECTION.md](COUNCILOR-SELECTION.md) for complete selection guide.
+
+---
