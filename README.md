@@ -521,3 +521,50 @@ See [LICENSE](LICENSE) for details.
 **Built with ❤️ from Huber Heights, OH**
 
 **Copyright © 2026 Felafax, Inc.**
+
+---
+
+## 🏛️ Councilor Archetypes (38 Total)
+
+### Original Councilors (15)
+- Speaker, Technocrat, Ethicist, Pragmatist, Skeptic
+- Sentinel, Visionary, Historian, Diplomat, Journalist
+- Psychologist, Conspiracist, Propagmatist, Moderator, Coder
+
+### Business & Strategy (5) ⭐ NEW
+- **Economist** - Financial impact, cost-benefit, market forces, ROI
+- **Product Manager** - Product strategy, roadmap, prioritization, user value
+- **Marketing Expert** - Go-to-market, positioning, messaging, brand
+- **Finance Expert** - Budget, financial planning, cash flow, funding
+- **Risk Manager** - Enterprise risk, mitigation strategies, risk assessment
+
+### Technical & Engineering (6) ⭐ NEW
+- **DevOps Engineer** - Infrastructure, scalability, deployment, monitoring, SRE
+- **Security Expert** - Cybersecurity, threat modeling, security best practices
+- **Data Scientist** - Data analysis, ML/AI implications, metrics, analytics
+- **Performance Engineer** - Performance optimization, bottlenecks, profiling
+- **Quality Assurance** - Testing strategy, edge cases, quality standards
+- **Solutions Architect** - System design, integration patterns, enterprise architecture
+
+### User & Community (4) ⭐ NEW
+- **User Advocate** - User experience, accessibility, user needs, pain points
+- **Customer Support** - Customer pain points, support burden, documentation
+- **Community Manager** - Community impact, open source considerations, feedback
+- **Accessibility Expert** - WCAG compliance, inclusive design, assistive technology
+
+### Compliance & Legal (3) ⭐ NEW
+- **Legal Expert** - Compliance, regulations, liability, legal risks, contracts
+- **Compliance Officer** - Regulatory compliance, audits, standards, certifications
+- **Privacy Officer** - Data privacy, GDPR, CCPA, privacy by design
+
+### Innovation & Culture (5) ⭐ NEW
+- **Innovation Coach** - Creative thinking, breakthrough ideas, disruption
+- **HR Specialist** - Team impact, hiring, organizational culture, change management
+- **Environmental Specialist** - Sustainability, environmental impact, green tech
+- **Ethics Philosopher** - Deep ethical analysis, moral frameworks, philosophical perspectives
+
+**Total: 38 specialized councilors for comprehensive deliberation!**
+
+See [COUNCILORS.md](COUNCILORS.md) for complete councilor guide.
+
+---
