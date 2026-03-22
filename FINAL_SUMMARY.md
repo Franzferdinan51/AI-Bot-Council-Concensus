@@ -69,7 +69,7 @@
 
 **Created comprehensive use cases for:**
 
-### Palantir Decisions
+### System Development
 - Feature development
 - Architecture reviews
 - Security assessments

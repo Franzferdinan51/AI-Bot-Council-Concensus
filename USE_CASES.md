@@ -13,7 +13,7 @@
 - "Is wireless camera deployment worth the complexity?"
 
 ### Architecture Reviews
-- "Review Palantir's current architecture"
+- "Review current system architecture"
 - "Should we use microservices or monolith?"
 - "What database should we use for motion events?"
 - "How do we scale to 10+ cameras?"
