@@ -5,7 +5,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-compatible-brightgreen.svg)](https://github.com/openclaw/openclaw)
 [![Providers](https://img.shields.io/badge/providers-10+-brightgreen.svg)](PROVIDERS.md)
-[![Councilors](https://img.shields.io/badge/councilors-43-brightgreen.svg)](COUNCILORS.md)
+[![Councilors](https://img.shields.io/badge/councilors-45-brightgreen.svg)](COUNCILORS.md)
 
 ---
 
@@ -87,7 +87,7 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 
 ---
 
-## 🏛️ 43 Councilors
+## 🏛️ 45 Councilors
 
 ### Original (15)
 
@@ -152,7 +152,12 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 - **Risk Analyst** - Probability analysis, impact assessment, risk scoring
 - **Local Resident** - Ground-level perspective, neighborhood knowledge, common sense
 
-**Total: 43 specialized councilors for comprehensive deliberation!**
+### Agriculture & Plant Science (2) 🌿🧬 **NEW (2026-03-22)**
+
+- **🌿 Botanist** - Plant physiology, nutrient management, pest/disease ID, recovery protocols, environmental optimization (VPD, humidity, temperature), growth stage guidance
+- **🧬 Geneticist** - Genetics, trait inheritance, breeding programs, strain development, phenotype tracking, generation management (F1, F2, backcrossing), seed viability
+
+**Total: 45 specialized councilors for comprehensive deliberation!**
 
 See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, and use cases.
 
@@ -246,6 +251,9 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
 - **Innovation** → Innovation Coach, Visionary, Conspiracist
 - **Weather/Emergency** → Meteorologist, Emergency Manager, Risk Analyst, Local Resident
 - **Coding** → Solutions Architect, Coder, Security Expert, QA, DevOps
+- **🌿 Plant Health** → Botanist, Scientist, Sentinel, Pragmatist
+- **🧬 Breeding Programs** → Geneticist, Botanist, Scientist
+- **🌾 Agriculture** → Botanist, Geneticist, Environmental Specialist
 
 ### Smart Presets
 
@@ -265,6 +273,8 @@ council deliberate "topic" --preset business
 council deliberate "topic" --preset security
 council deliberate "topic" --preset emergency
 council deliberate "topic" --preset coding
+council deliberate "topic" --preset agriculture
+council deliberate "topic" --preset breeding
 ```
 
 **See [COUNCILOR-SELECTION.md](COUNCILOR-SELECTION.md) for complete guide.**
