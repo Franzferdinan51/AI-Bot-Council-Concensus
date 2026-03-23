@@ -1,6 +1,6 @@
 # AI Council Chamber - Complete Councilor Guide
 
-**Total Councilors:** 43 specialized archetypes
+**Total Councilors:** 45 specialized archetypes
 
 ---
 
@@ -13,6 +13,7 @@
 - [Compliance & Legal (3)](#compliance--legal)
 - [Innovation & Culture (5)](#innovation--culture)
 - [Weather & Emergency Response (5)](#weather--emergency-response)
+- [Agriculture & Plant Science (2)](#agriculture--plant-science)
 - [When to Use Each Councilor](#when-to-use-each-councilor)
 
 ---
@@ -303,6 +304,22 @@
 
 ---
 
+## 🌿 Agriculture & Plant Science
+
+### 44. **Botanist** ⭐ NEW (2026-03-22)
+- **Role:** Plant scientist, plant physiology expert
+- **Priority:** Plant health, nutrient management, pest/disease ID, growth optimization
+- **Typical Argument:** "The yellowing pattern indicates nitrogen deficiency OR natural senescence. Check NEW growth - if green on top, plant has recovered..."
+- **Use When:** Plant health diagnosis, nutrient issues, pest/disease identification, environmental optimization (VPD, humidity, temperature), recovery tracking, growth stage guidance
+
+### 45. **Geneticist** ⭐ NEW (2026-03-22)
+- **Role:** Breeding specialist, genetics expert
+- **Priority:** Trait inheritance, breeding programs, strain development, phenotype tracking
+- **Typical Argument:** "This is an F1 cross of hybrid auto × landrace - genetically diverse offspring expected. Track germination rate, auto vs photo split, purple expression, terpene profiles..."
+- **Use When:** Breeding program planning, trait tracking, generation management (F1, F2, backcrossing), phenotype hunting, strain documentation, seed viability, germination protocols
+
+---
+
 ## 🎯 When to Use Each Councilor
 
 ### For Business Decisions:
@@ -345,6 +362,14 @@
 - **Primary:** Animal Care Specialist, Emergency Manager
 - **Supporting:** Local Resident, Ethicist
 
+### For Plant Health & Agriculture:
+- **Primary:** 🌿 Botanist, 🧬 Geneticist
+- **Supporting:** Scientist (data analysis), Sentinel (risk assessment), Pragmatist (priorities)
+
+### For Grow Operations:
+- **Primary:** 🌿 Botanist (plant health), 🧬 Geneticist (breeding)
+- **Supporting:** Sentinel (mold/pest risk), Scientist (environmental trends)
+
 ---
 
 ## 🏛️ Councilor Selection Guide
@@ -363,7 +388,7 @@
 
 ### Full Deliberation (15+ councilors):
 - Include all relevant councilors from each category
-- Maximum: All 43 councilors for major decisions
+- Maximum: All 45 councilors for major decisions
 
 ### Weather Emergency Council (5-7 councilors):
 - Meteorologist (weather science)
@@ -372,6 +397,14 @@
 - Animal Care Specialist (animal safety)
 - Local Resident (practical advice)
 - Sentinel (security/safety)
+- Speaker (facilitation)
+
+### Agriculture & Breeding Program Council (5-7 councilors):
+- 🌿 Botanist (plant health, nutrients, recovery)
+- 🧬 Geneticist (breeding, genetics, trait tracking)
+- Scientist (environmental data analysis)
+- Sentinel (mold/pest risk assessment)
+- Pragmatist (resource priorities)
 - Speaker (facilitation)
 
 ---
