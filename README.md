@@ -13,7 +13,7 @@
 
 - [Overview](#overview)
 - [Features](#features)
-- [43 Councilors](#43-councilors)
+- [45 Councilors](#43-councilors)
 - [10 Deliberation Modes](#10-deliberation-modes)
 - [Smart Selection](#smart-councilor-selection)
 - [Multi-Provider Support](#multi-provider-support)
@@ -44,7 +44,7 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 ### 🏛️ Core Deliberation
 
 - **10 Deliberation Modes** including Swarm Coding, Emergency Response, Risk Assessment
-- **43 Specialized Councilors** across 7 categories
+- **45 Specialized Councilors** across 8 categories
 - Auto-selected based on topic
 - Smart scaling (5-20+ councilors)
 
@@ -230,7 +230,7 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
 
 ## 🎯 Smart Councilor Selection
 
-**Never run all 43 councilors!** The AI Council auto-selects the most relevant councilors for each decision.
+**Never run all 45 councilors!** The AI Council auto-selects the most relevant councilors for each decision.
 
 ### Selection Tiers
 
@@ -273,6 +273,8 @@ council deliberate "topic" --preset business
 council deliberate "topic" --preset security
 council deliberate "topic" --preset emergency
 council deliberate "topic" --preset coding
+council deliberate "topic" --preset agriculture
+council deliberate "topic" --preset breeding
 council deliberate "topic" --preset agriculture
 council deliberate "topic" --preset breeding
 ```
