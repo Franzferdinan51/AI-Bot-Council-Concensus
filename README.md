@@ -539,4 +539,4 @@ See [LICENSE](LICENSE) for details.
 
 **Built with ❤️ for better decision-making**
 
-**Copyright © 2026 AI Council Chamber Team**
+**MIT License - Free to use, modify, and distribute**
