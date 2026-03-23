@@ -348,6 +348,7 @@ function toggleTheme() {
 | iPhone SE (2nd gen) | 4.7" | ✅ Perfect |
 | iPhone 13 | 6.1" | ✅ Perfect |
 | iPhone 14 Pro Max | 6.7" | ✅ Perfect |
+| iPhone 17 Air | Ultra-thin | ✅ Perfect |
 | Pixel 7 | 6.3" | ✅ Perfect |
 | Samsung Galaxy S23 | 6.1" | ✅ Perfect |
 
