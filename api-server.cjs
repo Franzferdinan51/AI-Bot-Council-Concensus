@@ -1155,7 +1155,7 @@ Provide a thoughtful 2-3 sentence response from your perspective as ${councilor.
       if (response.ok) {
         const data = await response.json();
         const text = data.choices?.[0]?.message?.content;
-        if (text && text.trim() && !text.includes('Thinking Process')) {
+        if (text && text.trim() && !text.includes('Thinking Process') && !text.includes('The user wants')) {
           return text;
         }
       }
@@ -1184,7 +1184,7 @@ Provide a thoughtful 2-3 sentence response from your perspective as ${councilor.
       const data = await response.json();
       const text = data.choices?.[0]?.message?.content || 
                    data.choices?.[0]?.message?.reasoning_content;
-      if (text && text.trim() && !text.includes('Thinking Process')) {
+      if (text && text.trim() && !text.includes('Thinking Process') && !text.includes('The user wants')) {
         return text;
       }
     }
