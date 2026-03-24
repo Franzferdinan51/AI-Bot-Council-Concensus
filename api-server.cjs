@@ -104,7 +104,10 @@ async function callBrowserOS(toolName, args = {}) {
   };
   const res = await fetch(BROWSEROS_MCP_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json, text/event-stream'
+    },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`BrowserOS MCP error ${res.status}`);
@@ -1154,7 +1157,20 @@ app.patch('/api/audio', (req, res) => {
 app.get('/api/tools/status', async (req, res) => {
   let browseros = false;
   try {
-    const r = await fetch(BROWSEROS_MCP_URL, { method: 'GET' });
+    const probe = {
+      jsonrpc: '2.0',
+      id: 'status-probe',
+      method: 'tools/list',
+      params: {}
+    };
+    const r = await fetch(BROWSEROS_MCP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/event-stream'
+      },
+      body: JSON.stringify(probe),
+    });
     browseros = r.ok;
   } catch {}
   res.json({
@@ -1175,7 +1191,7 @@ app.post('/api/tools/web-search', async (req, res) => {
 
 app.post('/api/tools/browser-open', async (req, res) => {
   try {
-    const result = await callBrowserOS('browser_new_page', { url: req.body.url });
+    const result = await callBrowserOS('new_page', { url: req.body.url });
     res.json({ ok: true, result });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
@@ -1184,7 +1200,7 @@ app.post('/api/tools/browser-open', async (req, res) => {
 
 app.get('/api/tools/browser-active', async (req, res) => {
   try {
-    const result = await callBrowserOS('browser_get_active_page', {});
+    const result = await callBrowserOS('get_active_page', {});
     res.json({ ok: true, result });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
@@ -1193,7 +1209,7 @@ app.get('/api/tools/browser-active', async (req, res) => {
 
 app.post('/api/tools/browser-content', async (req, res) => {
   try {
-    const result = await callBrowserOS('browser_get_page_content', { page: req.body.page });
+    const result = await callBrowserOS('get_page_content', { page: req.body.page });
     res.json({ ok: true, result });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
