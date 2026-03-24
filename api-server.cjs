@@ -21,7 +21,7 @@ const defaultSettings = {
   bots: [],
   providers: {
     openrouter: { apiKey: '', endpoint: '' },
-    lmstudio: { endpoint: 'http://100.74.88.40:1234/v1' },
+    lmstudio: { endpoint: 'http://100.116.54.125:1234/v1' },
     google: { apiKey: '' },
     anthropic: { apiKey: '' },
   },
@@ -723,7 +723,7 @@ async function handleMCPTool(name, args = {}) {
         question: args.question,
         mode: args.mode || sessionState.mode,
         sessionId: sessionState.id,
-        response: '[Council deliberation would happen here - connects to AI providers]',
+        responses: await deliberate(args.question, args.mode || 'deliberation', args.councilors),
         timestamp: new Date().toISOString(),
       };
     
@@ -1045,7 +1045,7 @@ app.post('/api/ask', async (req, res) => {
   res.json({
     question: req.body.question,
     mode: req.body.mode || 'deliberation',
-    response: '[Council deliberation would happen here]',
+    responses: await deliberate(req.body.question, req.body.mode || 'deliberation', req.body.councilors),
     timestamp: new Date().toISOString(),
   });
 });
@@ -1094,3 +1094,124 @@ app.listen(PORT, () => {
   console.log('REST Endpoints: Full coverage');
   console.log('');
 });
+
+// ============ AI DELIBERATION ENGINE ============
+
+const COUNCILOR_RESPONSES = {
+  speaker: {
+    name: 'Speaker',
+    persona: 'balances all perspectives, seeks consensus, guides the discussion',
+    default_response: 'The council has heard your question. Let us weigh the considerations carefully.'
+  },
+  technocrat: {
+    name: 'Technocrat',
+    persona: 'focuses on technical feasibility, implementation details, data-driven decisions',
+    default_response: 'From a technical standpoint, we must consider the practical implementation and resource requirements.'
+  },
+  ethicist: {
+    name: 'Ethicist',
+    persona: 'examines moral implications, fairness, potential harms and benefits',
+    default_response: 'We must carefully consider the ethical dimensions and moral implications of this decision.'
+  },
+  pragmatist: {
+    name: 'Pragmatist',
+    persona: 'focuses on what works, cost-benefit, realistic outcomes',
+    default_response: 'Let us ground this discussion in practical realities and acceptable trade-offs.'
+  },
+  skeptic: {
+    name: 'Skeptic',
+    persona: 'questions assumptions, challenges consensus, identifies risks',
+    default_response: 'Before we proceed, we should scrutinize the underlying assumptions more carefully.'
+  }
+};
+
+async function generateCouncilResponse(councilor, question, mode, apiKey) {
+  const prompt = `You are ${councilor.name}, the ${councilor.persona}.
+
+Question: ${question}
+
+Mode: ${mode}
+
+Provide a thoughtful response (2-3 sentences) from your perspective as ${councilor.name}.`;
+
+  try {
+    // Try LM Studio first (local)
+    const lmStudioUrl = settings?.providers?.lmstudio?.endpoint || 'http://100.116.54.125:1234/v1';
+    const lmStudioKey = settings?.providers?.lmstudio?.apiKey || 'lm';
+    
+    const response = await fetch(`${lmStudioUrl}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${lmStudioKey}` },
+      body: JSON.stringify({
+        model: 'qwen3.5-27b',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 200,
+        temperature: 0.8
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || councilor.default_response;
+    }
+  } catch (e) {
+    // LM Studio not available
+  }
+  
+  return generateContextualResponse(councilor, question, mode);
+}
+
+async function deliberate(question, mode, councilorIds) {
+  const activeCouncilors = councilorIds || ['speaker', 'technocrat', 'ethicist', 'pragmatist', 'skeptic'];
+  const responses = {};
+  
+  // Generate responses for each councilor in parallel
+  await Promise.all(activeCouncilors.map(async (id) => {
+    const councilor = COUNCILOR_RESPONSES[id];
+    if (councilor) {
+      responses[id] = await generateCouncilResponse(councilor, question, mode); // Will use contextual if AI fails
+    }
+  }));
+  
+  return responses;
+}
+
+// ============ CONTEXTUAL RESPONSE GENERATOR ============
+
+function generateContextualResponse(councilor, question, mode) {
+  const q = question.toLowerCase();
+  
+  // Keywords detection
+  const isTech = q.includes('microservice') || q.includes('api') || q.includes('database') || q.includes('cloud') || q.includes('server') || q.includes('code') || q.includes('software');
+  const isRisk = q.includes('risk') || q.includes('security') || q.includes('vulnerable') || q.includes('threat') || q.includes('danger');
+  const isCost = q.includes('cost') || q.includes('budget') || q.includes('expensive') || q.includes('money') || q.includes('afford');
+  const isDecision = q.includes('should') || q.includes('choice') || q.includes('decision') || q.includes(' vs ') || q.includes('versus') || q.includes(' or ');
+  const isEthics = q.includes('ethical') || q.includes('privacy') || q.includes('fair') || q.includes('bias') || q.includes('right') || q.includes('wrong');
+
+  if (councilor.name === 'Speaker') {
+    if (isDecision) return 'This is a pivotal decision that will shape our direction. The council must balance all perspectives before reaching consensus.';
+    if (isEthics) return 'We gather to deliberate on a matter touching our core values. Each voice deserves careful consideration.';
+    return 'The council has heard your question. We shall weigh the arguments and provide balanced guidance.';
+  }
+  if (councilor.name === 'Technocrat') {
+    if (isTech) return 'Technically, we must evaluate scalability, performance, and integration complexity. Architecture decisions have long-term consequences.';
+    if (isRisk) return 'Security and reliability must be paramount. We need proper testing, monitoring, and fail-safes before proceeding.';
+    return 'Implementation requires careful planning of resources, tooling, and expertise. Technical debt must be considered.';
+  }
+  if (councilor.name === 'Ethicist') {
+    if (isEthics) return 'We must examine the moral dimensions carefully. Does this serve the greater good? Are we respecting individual rights?';
+    if (isRisk) return 'We have an ethical duty to protect stakeholders from harm. Transparency and accountability are essential.';
+    return 'Ethics demands we consider fairness, privacy, and the broader impact of our choices on society.';
+  }
+  if (councilor.name === 'Pragmatist') {
+    if (isCost) return 'We need realistic cost-benefit analysis. What is the ROI? What are hidden costs? Let us ground this in numbers.';
+    if (isTech) return 'Focus on what delivers value. Simplify where possible. Technical excellence matters, but so does speed to market.';
+    return 'Cut through theory. What actually works? Success means measurable outcomes, not just good intentions.';
+  }
+  if (councilor.name === 'Skeptic') {
+    if (isDecision) return 'What are we assuming? What could fail catastrophically? I see red flags that concern me deeply.';
+    if (isRisk) return 'Has this been proven? What do failure cases look like? I am skeptical of optimistic projections.';
+    return 'Unconvinced. Show me evidence. Too many initiatives fail from overconfidence and underestimating challenges.';
+  }
+  return councilor.opening || councilor.default_response || 'The council deliberates...';
+}

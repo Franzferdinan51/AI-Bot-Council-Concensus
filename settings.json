@@ -1,0 +1,8 @@
+{
+  "providers": {
+    "lmstudio": {
+      "endpoint": "http://100.116.54.125:1234/v1",
+      "apiKey": "sk-lm-zO7bswIc:WkHEMTUfVNkq5WYNyFOW"
+    }
+  }
+}
