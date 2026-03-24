@@ -32,3 +32,4 @@ session_*.json
 
 # Local settings
 settings.local.json
+settings.json

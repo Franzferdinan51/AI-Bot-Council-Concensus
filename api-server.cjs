@@ -1143,7 +1143,7 @@ Provide a thoughtful response (2-3 sentences) from your perspective as ${council
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${lmStudioKey}` },
       body: JSON.stringify({
-        model: 'qwen3.5-27b',
+        model: 'zai-org/glm-4.7-flash',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 200,
         temperature: 0.8
