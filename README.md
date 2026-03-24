@@ -646,6 +646,148 @@ VISION_MODEL=bailian/kimi-k2.5
 
 ---
 
+## 🤖 MCP Server
+
+**Full Model Context Protocol support for AI agents**
+
+Connect AI Council to LM Studio, OpenClaw, Claude Desktop, and any MCP-compatible client.
+
+### Quick Connect
+
+```json
+{
+  "mcpServers": {
+    "ai-council": {
+      "command": "node",
+      "args": ["/path/to/ai-council-chamber/api-server.cjs"],
+      "env": { "PORT": "3001" }
+    }
+  }
+}
+```
+
+### 38 Available Tools
+
+#### Vision Council (5 tools)
+| Tool | Description |
+|------|-------------|
+| `vision_analyze` | Analyze images with vision councilors |
+| `vision_deliberate` | Start deliberation on vision session |
+| `vision_upload` | Upload image for analysis |
+| `vision_get_models` | List available vision models |
+| `get_vision_session` | Get vision analysis results |
+
+#### Councilor Management (6 tools)
+| Tool | Description |
+|------|-------------|
+| `list_councilors` | List all 25 councilors |
+| `list_councilors_by_role` | Filter by role (vision, coding, emergency) |
+| `get_councilor` | Get specific councilor details |
+| `add_councilor` | Add custom councilor |
+| `update_councilor` | Update councilor config |
+| `remove_councilor` | Remove councilor |
+
+#### Deliberation & Voting (7 tools)
+| Tool | Description |
+|------|-------------|
+| `list_modes` | List 11 deliberation modes |
+| `start_deliberation` | Start new deliberation session |
+| `ask_council` | Ask the council a question |
+| `vote` | Cast vote in deliberation |
+| `get_votes` | Get current vote tally |
+| `get_consensus` | Get consensus analysis |
+| `get_session` | Get session status |
+| `stop_session` | Stop current session |
+
+#### Providers & Settings (6 tools)
+| Tool | Description |
+|------|-------------|
+| `get_providers` | List configured AI providers |
+| `update_provider` | Configure provider API key/endpoint |
+| `test_provider` | Test provider connection |
+| `get_settings` | Get all settings |
+| `update_settings` | Update settings |
+| `health` | Check API status |
+
+#### UI & Audio (4 tools)
+| Tool | Description |
+|------|-------------|
+| `get_ui_settings` | Get theme, animations, compact mode |
+| `update_ui_settings` | Update UI preferences |
+| `get_audio_settings` | Get TTS/voice settings |
+| `update_audio_settings` | Configure voice per councilor |
+
+#### Export (1 tool)
+| Tool | Description |
+|------|-------------|
+| `export_session` | Export deliberation (markdown/json/pdf) |
+
+### JSON-RPC Example
+
+```bash
+POST http://localhost:3001/mcp
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "ask_council",
+    "arguments": {
+      "question": "Should we adopt microservices?",
+      "mode": "legislative"
+    }
+  },
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [{
+      "type": "text",
+      "text": "{\n  \"question\": \"Should we adopt microservices?\",\n  \"mode\": \"legislative\",\n  \"response\": \"[Council deliberation...]\"\n}"
+    }]
+  }
+}
+```
+
+### LM Studio Integration
+
+Add to `~/.lmstudio/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "ai-council": {
+      "command": "node",
+      "args": ["/Users/duckets/AI-Bot-Council-Concensus/api-server.cjs"],
+      "env": { "PORT": "3001" }
+    }
+  }
+}
+```
+
+### OpenClaw Integration
+
+Add to your OpenClaw config `mcporter.json`:
+
+```json
+{
+  "mcpServers": {
+    "ai-council": {
+      "command": "node",
+      "args": ["/path/to/ai-council-chamber/api-server.cjs"]
+    }
+  }
+}
+```
+
+---
+
 ## 📡 API Documentation
 
 ### REST API
