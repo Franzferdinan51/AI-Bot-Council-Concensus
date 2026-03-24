@@ -1216,6 +1216,39 @@ app.post('/api/tools/browser-content', async (req, res) => {
   }
 });
 
+app.get('/api/tools/browser-tools', async (req, res) => {
+  try {
+    const payload = {
+      jsonrpc: '2.0',
+      id: Date.now(),
+      method: 'tools/list',
+      params: {}
+    };
+    const response = await fetch(BROWSEROS_MCP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/event-stream'
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error(`BrowserOS MCP error ${response.status}`);
+    const data = await response.json();
+    res.json({ ok: true, tools: data.result?.tools || [] });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/tools/browser-call', async (req, res) => {
+  try {
+    const result = await callBrowserOS(req.body.name, req.body.arguments || {});
+    res.json({ ok: true, result });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ============ START ============
 
 app.listen(PORT, () => {
