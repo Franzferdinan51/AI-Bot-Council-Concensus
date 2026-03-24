@@ -93,7 +93,7 @@ async function braveWebSearch(query, count = 5) {
   }));
 }
 
-const BROWSEROS_MCP_URL = process.env.BROWSEROS_MCP_URL || 'http://127.0.0.1:9200/mcp';
+const BROWSEROS_MCP_URL = process.env.BROWSEROS_MCP_URL || 'http://127.0.0.1:9000/mcp';
 
 async function callBrowserOS(toolName, args = {}) {
   const payload = {
