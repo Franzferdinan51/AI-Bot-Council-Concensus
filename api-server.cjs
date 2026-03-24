@@ -53,6 +53,66 @@ function saveSettings(settings) {
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
 }
 
+function loadOpenClawConfig() {
+  try {
+    const p = path.join(process.env.HOME || '', '.openclaw', 'openclaw.json');
+    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (e) {
+    console.error('Error loading OpenClaw config:', e);
+  }
+  return null;
+}
+
+function getBraveApiKey() {
+  if (process.env.BRAVE_API_KEY) return process.env.BRAVE_API_KEY;
+  if (process.env.BRAVE_SEARCH_API_KEY) return process.env.BRAVE_SEARCH_API_KEY;
+  try {
+    const cfg = loadOpenClawConfig();
+    return cfg?.plugins?.entries?.brave?.config?.webSearch?.apiKey || null;
+  } catch {
+    return null;
+  }
+}
+
+async function braveWebSearch(query, count = 5) {
+  const apiKey = getBraveApiKey();
+  if (!apiKey) throw new Error('Brave Search API key not configured');
+  const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${count}`;
+  const res = await fetch(url, {
+    headers: {
+      'Accept': 'application/json',
+      'X-Subscription-Token': apiKey,
+    },
+  });
+  if (!res.ok) throw new Error(`Brave Search error ${res.status}`);
+  const data = await res.json();
+  return (data.web?.results || []).map(r => ({
+    title: r.title,
+    url: r.url,
+    description: r.description,
+  }));
+}
+
+const BROWSEROS_MCP_URL = process.env.BROWSEROS_MCP_URL || 'http://127.0.0.1:9200/mcp';
+
+async function callBrowserOS(toolName, args = {}) {
+  const payload = {
+    jsonrpc: '2.0',
+    id: Date.now(),
+    method: 'tools/call',
+    params: { name: toolName, arguments: args }
+  };
+  const res = await fetch(BROWSEROS_MCP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`BrowserOS MCP error ${res.status}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'BrowserOS MCP call failed');
+  return data.result;
+}
+
 // ============ COUNCILOR REGISTRY ============
 
 const COUNCILOR_REGISTRY = [
@@ -1088,6 +1148,56 @@ app.patch('/api/audio', (req, res) => {
   settings.audio = { ...settings.audio, ...req.body };
   saveSettings(settings);
   res.json({ ok: true, audio: settings.audio });
+});
+
+// Internal tool broker
+app.get('/api/tools/status', async (req, res) => {
+  let browseros = false;
+  try {
+    const r = await fetch(BROWSEROS_MCP_URL, { method: 'GET' });
+    browseros = r.ok;
+  } catch {}
+  res.json({
+    brave: !!getBraveApiKey(),
+    browseros,
+    browserosUrl: BROWSEROS_MCP_URL,
+  });
+});
+
+app.post('/api/tools/web-search', async (req, res) => {
+  try {
+    const results = await braveWebSearch(req.body.query, req.body.count || 5);
+    res.json({ ok: true, provider: 'brave', query: req.body.query, results });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/tools/browser-open', async (req, res) => {
+  try {
+    const result = await callBrowserOS('browser_new_page', { url: req.body.url });
+    res.json({ ok: true, result });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.get('/api/tools/browser-active', async (req, res) => {
+  try {
+    const result = await callBrowserOS('browser_get_active_page', {});
+    res.json({ ok: true, result });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/tools/browser-content', async (req, res) => {
+  try {
+    const result = await callBrowserOS('browser_get_page_content', { page: req.body.page });
+    res.json({ ok: true, result });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 // ============ START ============
