@@ -670,7 +670,7 @@ async function handleMCPTool(name, args = {}) {
     
     case 'remove_councilor':
       if (settings.bots) {
-        settings.bots = settings.bots.filter(b => b.id !== args.id);
+        settings.bots = (settings.bots || []).filter(b => b.id !== args.id);
         saveSettings(settings);
       }
       return { ok: true };
@@ -1005,7 +1005,7 @@ app.patch('/api/councilors/:id', (req, res) => {
 
 app.delete('/api/councilors/:id', (req, res) => {
   const settings = loadSettings();
-  settings.bots = settings.bots.filter(b => b.id !== req.params.id);
+  settings.bots = (settings.bots || []).filter(b => b.id !== req.params.id);
   saveSettings(settings);
   res.json({ ok: true });
 });
@@ -1096,6 +1096,23 @@ app.listen(PORT, () => {
 });
 
 // ============ AI DELIBERATION ENGINE ============
+
+
+// Response cache (5 minute TTL)
+const responseCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCached(key) {
+  const cached = responseCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.value;
+  }
+  return null;
+}
+
+function setCached(key, value) {
+  responseCache.set(key, { value, timestamp: Date.now() });
+}
 
 const COUNCILOR_RESPONSES = {
   speaker: {
@@ -1197,17 +1214,24 @@ Provide a thoughtful 2-3 sentence response from your perspective as ${councilor.
 }
 
 async function deliberate(question, mode, councilorIds) {
+  // Check cache first
+  const cacheKey = `${question}:${mode}:${(councilorIds || []).join(',')}`;
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+  
   const activeCouncilors = councilorIds || ['speaker', 'technocrat', 'ethicist', 'pragmatist', 'skeptic'];
   const responses = {};
   
-  // Generate responses for each councilor in parallel
-  await Promise.all(activeCouncilors.map(async (id) => {
+  // Sequential calls for stability (faster than parallel for MiniMax)
+  for (const id of activeCouncilors) {
     const councilor = COUNCILOR_RESPONSES[id];
     if (councilor) {
-      responses[id] = await generateCouncilResponse(councilor, question, mode); // Will use contextual if AI fails
+      responses[id] = await generateCouncilResponse(councilor, question, mode);
     }
-  }));
+  }
   
+  // Cache the result
+  setCached(cacheKey, responses);
   return responses;
 }
 
