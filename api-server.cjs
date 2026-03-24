@@ -1148,13 +1148,11 @@ const COUNCILOR_RESPONSES = {
 
 async function generateCouncilResponse(councilor, question, mode, apiKey) {
   const settings = loadSettings();
-  const prompt = `You are ${councilor.name}, the ${councilor.persona}.
+  const prompt = `You are ${councilor.name}. ${councilor.persona}.
 
-Question: ${question}
+Answer this question directly with specific facts or recommendations: ${question}
 
-Mode: ${mode}
-
-Provide a thoughtful 2-3 sentence response from your perspective as ${councilor.name}.`;
+Give 2-3 specific, actionable items or facts. No preamble.`;
 
   // Try MiniMax M2.7 first (primary)
   try {
@@ -1167,6 +1165,7 @@ Provide a thoughtful 2-3 sentence response from your perspective as ${councilor.
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${miniMaxKey}` },
         body: JSON.stringify({
           model: 'MiniMax-M2.7',
+          thinking: { type: 'off' },
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 150,
           temperature: 0.8
@@ -1176,8 +1175,17 @@ Provide a thoughtful 2-3 sentence response from your perspective as ${councilor.
       if (response.ok) {
         const data = await response.json();
         const text = data.choices?.[0]?.message?.content;
-        if (text && text.trim() && !text.includes('Thinking Process') && !text.includes('The user wants')) {
-          return text;
+        if (text && text.trim()) {
+          // Remove AI thinking tags (content between <think> and �モン)
+          let clean = text.trim();
+          const thinkStart = clean.indexOf('<think>');
+          const thinkEnd = clean.indexOf('<think>');
+          if (thinkStart !== -1 && thinkEnd !== -1 && thinkEnd > thinkStart) {
+            clean = clean.substring(0, thinkStart) + clean.substring(thinkEnd + '<think>'.length);
+          }
+          // Also remove angle bracket tags like <content>
+          clean = clean.replace(/<[^>]*>/g, '').trim();
+          if (clean.length > 10) return clean;
         }
       }
     }
