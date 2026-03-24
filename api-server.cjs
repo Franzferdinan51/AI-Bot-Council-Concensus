@@ -1137,7 +1137,7 @@ Provide a thoughtful 2-3 sentence response from your perspective as ${councilor.
 
   // Try MiniMax M2.7 first (primary)
   try {
-    const miniMaxUrl = settings?.providers?.minimax?.endpoint || 'https://api.minimax.chat/v1/chat/completions';
+    const miniMaxUrl = settings?.providers?.minimax?.endpoint || 'https://api.minimax.io/v1/chat/completions';
     const miniMaxKey = settings?.providers?.minimax?.apiKey;
     
     if (miniMaxKey) {
