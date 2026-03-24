@@ -1126,16 +1126,46 @@ const COUNCILOR_RESPONSES = {
 };
 
 async function generateCouncilResponse(councilor, question, mode, apiKey) {
+  const settings = loadSettings();
   const prompt = `You are ${councilor.name}, the ${councilor.persona}.
 
 Question: ${question}
 
 Mode: ${mode}
 
-Provide a thoughtful response (2-3 sentences) from your perspective as ${councilor.name}.`;
+Provide a thoughtful 2-3 sentence response from your perspective as ${councilor.name}.`;
 
+  // Try MiniMax M2.7 first (primary)
   try {
-    // Try LM Studio first (local)
+    const miniMaxUrl = settings?.providers?.minimax?.endpoint || 'https://api.minimax.chat/v1/chat/completions';
+    const miniMaxKey = settings?.providers?.minimax?.apiKey;
+    
+    if (miniMaxKey) {
+      const response = await fetch(miniMaxUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${miniMaxKey}` },
+        body: JSON.stringify({
+          model: 'MiniMax-M2.7',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 150,
+          temperature: 0.8
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content;
+        if (text && text.trim() && !text.includes('Thinking Process')) {
+          return text;
+        }
+      }
+    }
+  } catch (e) {
+    // MiniMax failed, try next
+  }
+  
+  // Try LM Studio as backup
+  try {
     const lmStudioUrl = settings?.providers?.lmstudio?.endpoint || 'http://100.116.54.125:1234/v1';
     const lmStudioKey = settings?.providers?.lmstudio?.apiKey || 'lm';
     
@@ -1143,21 +1173,26 @@ Provide a thoughtful response (2-3 sentences) from your perspective as ${council
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${lmStudioKey}` },
       body: JSON.stringify({
-        model: 'zai-org/glm-4.7-flash',
+        model: 'jan-v3-4b-base-instruct',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 200,
+        max_tokens: 150,
         temperature: 0.8
       })
     });
     
     if (response.ok) {
       const data = await response.json();
-      return data.choices?.[0]?.message?.content || councilor.default_response;
+      const text = data.choices?.[0]?.message?.content || 
+                   data.choices?.[0]?.message?.reasoning_content;
+      if (text && text.trim() && !text.includes('Thinking Process')) {
+        return text;
+      }
     }
   } catch (e) {
-    // LM Studio not available
+    // LM Studio failed
   }
   
+  // Fall back to contextual response
   return generateContextualResponse(councilor, question, mode);
 }
 
