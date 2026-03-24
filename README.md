@@ -9,6 +9,7 @@
 [![Mobile Friendly](https://img.shields.io/badge/mobile-friendly-brightgreen.svg)](MOBILE-UI.md)
 [![PWA](https://img.shields.io/badge/PWA-enabled-brightgreen.svg)](PWA-GUIDE.md)
 [![Vision Mode](https://img.shields.io/badge/vision-mode-brightgreen.svg)](VISION-COUNCIL.md)
+[![MCP](https://img.shields.io/badge/MCP-enabled-brightgreen.svg)]
 
 ---
 
@@ -650,47 +651,93 @@ VISION_MODEL=bailian/kimi-k2.5
 ### REST API
 
 ```bash
-# Health
-GET /api/v2/health
+# Health Check
+GET /api/health
 
-# Councilors
-GET /api/v2/councilors
+# Councilors Management
+GET /api/councilors           # List all councilors
+POST /api/councilors           # Add councilor
+PATCH /api/councilors/:id      # Update councilor
+DELETE /api/councilors/:id    # Remove councilor
 
-# Deliberate
-POST /api/v2/deliberate
+# Session Management
+GET /api/session              # Get current session
+POST /api/session/start       # Start session { mode, topic }
+POST /api/session/stop         # Stop session
+
+# Ask the Council
+POST /api/ask                 # { question, mode }
+
+# Providers
+GET /api/providers            # List providers
+PUT /api/providers/:name      # Update provider
+
+# Settings
+GET /api/settings            # Get all settings
+PUT /api/settings            # Update settings
+
+# UI Settings
+GET /api/ui                  # Get UI settings
+PATCH /api/ui               # Update UI { theme, animationsEnabled }
+
+# Audio Settings
+GET /api/audio               # Get audio settings
+PATCH /api/audio            # Update audio { enabled, useGeminiTTS, autoPlay }
+```
+
+### MCP Protocol (Model Context Protocol)
+
+**Connect via LM Studio, OpenClaw, Claude Desktop, etc.:**
+
+```json
 {
-  "topic": "Should we implement X?",
-  "mode": "legislative"
-}
-
-# Vision Analyze
-POST /api/v2/vision/analyze
-{
-  "image": "base64_encoded_image",
-  "prompt": "Analyze this image"
-}
-
-# Session
-GET /api/v2/session/{id}
-
-# Export
-POST /api/v2/export
-{
-  "session_id": "abc123",
-  "format": "markdown"
+  "mcpServers": {
+    "ai-council": {
+      "command": "node",
+      "args": ["/path/to/ai-council-chamber/api-server.cjs"],
+      "env": { "PORT": "3001" }
+    }
+  }
 }
 ```
 
-### GraphQL
+**Available MCP Tools:**
 
-```graphql
-query {
-  sessions { id, topic, status }
-  councilors { id, name, role }
+| Tool | Description |
+|------|-------------|
+| `health` | Check API status |
+| `list_councilors` | List all councilors |
+| `add_councilor` | Add new councilor |
+| `update_councilor` | Update councilor settings |
+| `remove_councilor` | Remove councilor |
+| `start_session` | Start deliberation session |
+| `stop_session` | Stop current session |
+| `get_session` | Get session status |
+| `ask_council` | Ask the council a question |
+| `get_providers` | List AI providers |
+| `update_provider` | Configure provider |
+| `get_settings` | Get settings |
+| `update_settings` | Update settings |
+| `get_ui_settings` | Get UI config |
+| `update_ui_settings` | Update UI { theme, animations } |
+| `get_audio_settings` | Get audio config |
+| `update_audio_settings` | Update audio { enabled, voiceMap } |
+
+**JSON-RPC Format:**
+```bash
+POST /mcp
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "list_councilors",
+    "arguments": {}
+  },
+  "id": 1
 }
 ```
 
-### WebSocket
+### WebSocket (Coming Soon)
 
 ```javascript
 const ws = new WebSocket('ws://localhost:3001/ws');
@@ -698,9 +745,6 @@ ws.send(JSON.stringify({ type: 'subscribe', session_id: 'abc' }));
 ws.onmessage = (e) => console.log(JSON.parse(e.data));
 ```
 
-**Swagger UI:** http://localhost:3001/api-docs
-
----
 
 ## 🖥️ Web UI Guide
 
