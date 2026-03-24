@@ -101,12 +101,16 @@ const DELIBERATION_MODES = [
   { id: 'collaborative', name: 'Collaborative', description: 'Team-based problem solving' },
 ];
 
-// Vision Models
+// Vision Models - ALL Qwen3.5 support vision!
 const VISION_MODELS = [
   { id: 'bailian/kimi-k2.5', name: 'Kimi K2.5 Vision', provider: 'Bailian', latency: '500-1500ms' },
   { id: 'openai/gpt-4-vision', name: 'GPT-4 Vision', provider: 'OpenAI', latency: '1000-2000ms' },
   { id: 'google/gemini-pro-vision', name: 'Gemini Pro Vision', provider: 'Google', latency: '500-1500ms' },
   { id: 'qwen-vl', name: 'Qwen-VL', provider: 'Local', latency: '100-500ms' },
+  // ALL Qwen3.5 models have vision!
+  { id: 'qwen/qwen3.5-9b', name: 'Qwen3.5-9B Vision', provider: 'Local', latency: '100-500ms' },
+  { id: 'qwen3.5-27b', name: 'Qwen3.5-27B Vision', provider: 'Local', latency: '200-800ms' },
+  { id: 'qwen3.5-9b', name: 'Qwen3.5-9B Vision', provider: 'Local', latency: '100-500ms' },
 ];
 
 // ============ SESSION STATE ============
