@@ -26,3 +26,9 @@ dist-ssr
 # Environment variables - NEVER COMMIT
 .env
 *.env
+
+# Session files
+session_*.json
+
+# Local settings
+settings.local.json
