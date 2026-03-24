@@ -998,7 +998,7 @@ app.post('/api/councilors', (req, res) => {
 
 app.patch('/api/councilors/:id', (req, res) => {
   const settings = loadSettings();
-  const bot = settings.bots.find(b => b.id === req.params.id);
+  const bot = (settings.bots || []).find(b => b.id === req.params.id);
   if (bot) { Object.assign(bot, req.body); saveSettings(settings); res.json({ ok: true, bot }); }
   else res.status(404).json({ error: 'Not found' });
 });
