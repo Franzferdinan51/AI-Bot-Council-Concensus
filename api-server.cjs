@@ -1046,10 +1046,11 @@ app.get('/api/vision/session/:id', (req, res) => {
 
 // Ask
 app.post('/api/ask', async (req, res) => {
+  const question = req.body.question || req.body.prompt || '';
   res.json({
-    question: req.body.question,
+    question,
     mode: req.body.mode || 'deliberation',
-    responses: await deliberate(req.body.question, req.body.mode || 'deliberation', req.body.councilors),
+    responses: await deliberate(question, req.body.mode || 'deliberation', req.body.councilors),
     timestamp: new Date().toISOString(),
   });
 });
@@ -1152,13 +1153,30 @@ async function generateCouncilResponse(councilor, question, mode, apiKey) {
 
 Answer this question directly with specific facts or recommendations: ${question}
 
-Give 2-3 specific, actionable items or facts. No preamble.`;
+Rules:
+- Be specific and actionable.
+- Do not give generic process advice unless explicitly asked.
+- If the question references a named project/product/company you are unsure about, do NOT claim it does not exist; instead say "assuming this project is as described" and continue with practical recommendations.
+- Avoid hallucinated citations, vendors, or institutions unless you are confident.
+- Prefer concrete implementation ideas over abstract philosophy.
+
+Give 2-4 concise, specific items. No preamble.`;
+
+  const cleanModelText = (text) => {
+    if (!text || !text.trim()) return '';
+    let clean = text.trim();
+    clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    clean = clean.replace(/^The user (wants|asks):.*?(\n|$)/i, '').trim();
+    clean = clean.replace(/^We need to .*?(\n|$)/i, '').trim();
+    clean = clean.replace(/<[^>]*>/g, '').trim();
+    return clean;
+  };
 
   // Try MiniMax M2.7 first (primary)
   try {
     const miniMaxUrl = settings?.providers?.minimax?.endpoint || 'https://api.minimax.io/v1/chat/completions';
     const miniMaxKey = settings?.providers?.minimax?.apiKey;
-    
+
     if (miniMaxKey) {
       const response = await fetch(miniMaxUrl, {
         method: 'POST',
@@ -1171,56 +1189,46 @@ Give 2-3 specific, actionable items or facts. No preamble.`;
           temperature: 0.8
         })
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const text = data.choices?.[0]?.message?.content;
-        if (text && text.trim()) {
-          // Remove AI thinking tags (content between <think> and �モン)
-          let clean = text.trim();
-          const thinkStart = clean.indexOf('<think>');
-          const thinkEnd = clean.indexOf('<think>');
-          if (thinkStart !== -1 && thinkEnd !== -1 && thinkEnd > thinkStart) {
-            clean = clean.substring(0, thinkStart) + clean.substring(thinkEnd + '<think>'.length);
-          }
-          // Also remove angle bracket tags like <content>
-          clean = clean.replace(/<[^>]*>/g, '').trim();
-          if (clean.length > 10) return clean;
-        }
+        const clean = cleanModelText(text);
+        if (clean.length > 10) return clean;
       }
     }
   } catch (e) {
     // MiniMax failed, try next
   }
-  
+
   // Try LM Studio as backup
   try {
-    const lmStudioUrl = settings?.providers?.lmstudio?.endpoint || 'http://100.116.54.125:1234/v1';
+    const lmStudioUrl = settings?.providers?.lmstudio?.endpoint || 'http://localhost:1234/v1';
     const lmStudioKey = settings?.providers?.lmstudio?.apiKey || 'lm';
-    
+    const lmStudioModel = settings?.providers?.lmstudio?.model || 'jan-v3-4b-base-instruct';
+
     const response = await fetch(`${lmStudioUrl}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${lmStudioKey}` },
       body: JSON.stringify({
-        model: 'jan-v3-4b-base-instruct',
+        model: lmStudioModel,
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 150,
         temperature: 0.8
       })
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       const text = data.choices?.[0]?.message?.content || 
                    data.choices?.[0]?.message?.reasoning_content;
-      if (text && text.trim() && !text.includes('Thinking Process') && !text.includes('The user wants')) {
-        return text;
-      }
+      const clean = cleanModelText(text);
+      if (clean.length > 10) return clean;
     }
   } catch (e) {
     // LM Studio failed
   }
-  
+
   // Fall back to contextual response
   return generateContextualResponse(councilor, question, mode);
 }
@@ -1250,7 +1258,7 @@ async function deliberate(question, mode, councilorIds) {
 // ============ CONTEXTUAL RESPONSE GENERATOR ============
 
 function generateContextualResponse(councilor, question, mode) {
-  const q = question.toLowerCase();
+  const q = (question || '').toLowerCase();
   
   // Keywords detection
   const isTech = q.includes('microservice') || q.includes('api') || q.includes('database') || q.includes('cloud') || q.includes('server') || q.includes('code') || q.includes('software');
