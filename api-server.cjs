@@ -124,7 +124,7 @@ function shouldUseLiveContext(question = '') {
     'score', 'scores', 'pricing', 'price', 'cost', 'compare', 'comparison', 'vs', ' versus ',
     'release', 'released', 'update', 'updated', 'version', 'api', 'docs', 'documentation',
     'github', 'repo', 'repository', 'website', 'web search', 'search the web', 'open the page',
-    'model', 'models', 'openai', 'minimax', 'lm studio', 'browseros', 'openclaw', 'bailian'
+    'model', 'models', 'openai', 'chatgpt', 'minimax', 'lm studio', 'lmstudio', 'browseros', 'openclaw'
   ];
   const urlLike = /https?:\/\//i.test(q);
   return urlLike || liveSignals.some(sig => q.includes(sig));
@@ -224,9 +224,8 @@ const DELIBERATION_MODES = [
 
 // Vision Models - ALL Qwen3.5 support vision!
 const VISION_MODELS = [
-  { id: 'bailian/kimi-k2.5', name: 'Kimi K2.5 Vision', provider: 'Bailian', latency: '500-1500ms' },
+  { id: 'lmstudio/qwen3-vl-8b-thinking', name: 'Qwen3-VL-8B Thinking', provider: 'LM Studio', latency: '100-500ms' },
   { id: 'openai/gpt-4-vision', name: 'GPT-4 Vision', provider: 'OpenAI', latency: '1000-2000ms' },
-  { id: 'google/gemini-pro-vision', name: 'Gemini Pro Vision', provider: 'Google', latency: '500-1500ms' },
   { id: 'qwen-vl', name: 'Qwen-VL', provider: 'Local', latency: '100-500ms' },
   // ALL Qwen3.5 models have vision!
   { id: 'qwen/qwen3.5-9b', name: 'Qwen3.5-9B Vision', provider: 'Local', latency: '100-500ms' },
@@ -859,7 +858,7 @@ async function handleMCPTool(name, args = {}) {
         id: visionId,
         image: args.image,
         prompt: args.prompt,
-        models: args.models || ['bailian/kimi-k2.5'],
+        models: args.models || ['lmstudio/qwen3-vl-8b-thinking'],
         councilors: args.councilors || ['all'],
         status: 'processing',
         results: [],

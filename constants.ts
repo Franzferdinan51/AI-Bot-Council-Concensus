@@ -14,8 +14,8 @@ export const OPENROUTER_MODELS = [
 
 // MiniMax models - for complex reasoning tasks
 export const MINI_MAX_MODELS = [
-  "MiniMax-M2.5",  // Best reasoning - use for complex debates
-  "MiniMax-M2.1",  // Good reasoning - backup
+  "MiniMax-M2.7",  // Best reasoning - use for complex debates
+  "MiniMax-M2.7-highspeed",  // Faster backup
 ];
 
 // Local models - for fast simple tasks
@@ -27,14 +27,14 @@ export const LOCAL_MODELS = [
 
 // Model routing strategy - auto-select based on task complexity
 export const MODEL_ROUTING = {
-  // Complex reasoning tasks -> MiniMax
-  complex: "MiniMax-M2.5",
-  // Simple/fast tasks -> Local
+  // Complex reasoning tasks -> MiniMax M2.7
+  complex: "MiniMax-M2.7",
+  // Simple/fast tasks -> Local LM Studio
   fast: "jan-v3-4b-base-instruct",
-  // Vision tasks
+  // Vision tasks -> Local LM Studio vision
   vision: "qwen3-vl-8b-thinking",
   // Default fallback
-  default: "MiniMax-M2.5"
+  default: "MiniMax-M2.7"
 };
 
 // Auto-detect task complexity and route to appropriate model

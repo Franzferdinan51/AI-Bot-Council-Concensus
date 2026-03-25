@@ -1,33 +1,37 @@
 {
   "routing": {
-    "complex_reasoning": "bailian/qwen3.5-plus",
-    "deep_research": "bailian/MiniMax-M2.5",
-    "fast_simple": "bailian/glm-5",
-    "vision": "bailian/kimi-k2.5",
-    "coding": "bailian/qwen3-coder-plus"
+    "complex_reasoning": "MiniMax-M2.7",
+    "deep_research": "MiniMax-M2.7",
+    "fast_simple": "jan-v3-4b-base-instruct",
+    "vision": "qwen3-vl-8b-thinking",
+    "coding": "MiniMax-M2.7"
   },
   "councilor_mapping": {
-    "speaker": "bailian/qwen3.5-plus",
-    "moderator": "bailian/MiniMax-M2.5",
-    "technocrat": "bailian/MiniMax-M2.5",
-    "ethicist": "bailian/MiniMax-M2.5",
-    "pragmatist": "bailian/MiniMax-M2.5",
-    "visionary": "bailian/qwen3.5-plus",
-    "sentinel": "bailian/qwen3.5-plus",
-    "historian": "bailian/MiniMax-M2.5",
-    "diplomat": "bailian/MiniMax-M2.5",
-    "skeptic": "bailian/qwen3.5-plus",
-    "conspiracist": "bailian/glm-5",
-    "journalist": "bailian/MiniMax-M2.5",
-    "propagmatist": "bailian/glm-5",
-    "psychologist": "bailian/MiniMax-M2.5",
-    "specialist_coder": "bailian/qwen3-coder-plus"
+    "speaker": "MiniMax-M2.7",
+    "moderator": "MiniMax-M2.7",
+    "technocrat": "MiniMax-M2.7",
+    "ethicist": "MiniMax-M2.7",
+    "pragmatist": "MiniMax-M2.7",
+    "visionary": "MiniMax-M2.7",
+    "sentinel": "MiniMax-M2.7",
+    "historian": "MiniMax-M2.7",
+    "diplomat": "MiniMax-M2.7",
+    "skeptic": "MiniMax-M2.7",
+    "conspiracist": "MiniMax-M2.7",
+    "journalist": "MiniMax-M2.7",
+    "propagmatist": "MiniMax-M2.7",
+    "psychologist": "MiniMax-M2.7",
+    "specialist_coder": "MiniMax-M2.7"
   },
   "provider_config": {
-    "primary": "bailian",
-    "disabled_providers": ["openai", "google", "anthropic", "openrouter"],
-    "bailian_endpoint": "https://coding-intl.dashscope.aliyuncs.com/v1",
-    "bailian_api_key_env": "BAILIAN_API_KEY"
+    "primary": "minimax",
+    "disabled_providers": [
+      "anthropic",
+      "google",
+      "openrouter"
+    ],
+    "minimax_endpoint": "https://api.minimax.io/v1",
+    "minimax_api_key_env": "MINIMAX_API_KEY"
   },
-  "_notes": "BAILIAN ONLY - No ChatGPT/OpenAI/Google (March 22, 2026)"
+  "_notes": "MINIMAX + LM STUDIO + CHATGPT only (current working set)"
 }
