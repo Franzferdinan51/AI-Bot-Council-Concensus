@@ -25,6 +25,7 @@
 - [PWA Support](#pwa-support)
 - [Vision Council Mode](#vision-council-mode)
 - [Quick Start](#quick-start)
+- [Architecture: App vs MCP](#architecture-app-vs-mcp)
 - [OpenClaw Integration](#openclaw-integration)
 - [Configuration](#configuration)
 - [API Documentation](#api-documentation)
@@ -47,6 +48,58 @@ Standard AI suffers from "Yes-Man Syndrome"—it agrees to be helpful. This is d
 ---
 
 ## ✨ Features
+
+## 🧩 Architecture: App vs MCP
+
+AI Council now has **two interfaces inside the same main repo**:
+
+### 1. Main AI Council App / API
+This is the actual AI Council program.
+It provides:
+- the web UI
+- deliberation engine
+- vision council
+- councilor/session/provider APIs
+- internal tool broker endpoints for Brave Search + BrowserOS
+
+Typical local endpoint:
+- `http://localhost:3001`
+
+### 2. Native MCP Entrypoint (integrated)
+This repo now also includes a native MCP server entrypoint:
+- `mcp-server.mjs`
+
+This exposes AI Council directly to MCP clients like:
+- LM Studio
+- OpenClaw / mcporter
+- other MCP-compatible tools
+
+Run it with:
+```bash
+npm run mcp
+```
+
+### Important distinction
+- The **app/API** is the source of truth.
+- The **MCP entrypoint** is just another interface into the same app.
+- It does **not** replace the app.
+- It does **not** merge AI Council with other projects like CannaAI.
+
+### Legacy wrapper note
+There was previously a separate `ai-council-mcp` wrapper repo used as an adapter.
+That wrapper is now considered **legacy / redundant** because MCP is integrated directly into this main AI Council repo.
+
+### MCP capabilities now available from the main repo
+The integrated MCP entrypoint exposes:
+- core council tools (`ask_council`, `list_councilors`, `list_modes`, etc.)
+- vision tools (`vision_analyze`, `vision_get_models`, etc.)
+- internal broker tools (`web_search`, `tool_broker_status`)
+- full BrowserOS passthrough as `browseros_*`
+
+This means AI Council is now the **single source of truth** for both:
+- app behavior
+- MCP behavior
+
 
 ### 🏛️ Core Deliberation
 
