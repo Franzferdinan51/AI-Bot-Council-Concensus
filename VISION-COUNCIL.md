@@ -86,7 +86,7 @@
 
 | Model | Provider | Best For | Latency |
 |-------|----------|----------|---------|
-| **kimi-k2.5 Vision** | Bailian | General analysis | 500-1500ms |
+| **qwen/qwen3.5-9b** | Local Qwen3.5 | General analysis | 100-500ms |
 | **GPT-4 Vision** | OpenAI | Detailed analysis | 1000-2000ms |
 | **Gemini Pro Vision** | Google | Multi-modal | 500-1500ms |
 | **Qwen-VL** | Local (LM Studio/Ollama) | Privacy, offline | 100-500ms |
@@ -253,7 +253,7 @@ POST /api/v2/vision/analyze
 {
   "image": "base64_encoded_image",
   "prompt": "Analyze this image for composition and color",
-  "models": ["bailian/kimi-k2.5", "openai/gpt-4-vision"],
+  "models": ["qwen/qwen3.5-9b", "openai/gpt-4-vision"],
   "councilors": ["all"]
 }
 
@@ -307,9 +307,9 @@ Response:
 {
   "models": [
     {
-      "id": "bailian/kimi-k2.5",
+      "id": "qwen/qwen3.5-9b",
       "name": "Kimi Vision",
-      "provider": "Bailian"
+      "provider": "Local"
     },
     ...
   ]

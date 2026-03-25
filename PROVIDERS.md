@@ -7,7 +7,7 @@
 ## 🎯 Supported Providers
 
 ### Primary Providers
-- ✅ **Alibaba Bailian** (Default)
+- ✅ **MiniMax M2.7** (Default)
 - ✅ **LM Studio** (Local, Free)
 - ✅ **OpenAI** (GPT-4, GPT-3.5)
 - ✅ **Anthropic** (Claude 3, Claude 2)
@@ -32,37 +32,37 @@
 
 ## ⚙️ Provider Configuration
 
-### Alibaba Bailian (Default)
+### MiniMax M2.7 (Default)
 
 **Best For:** Production use, best performance, comprehensive model selection
 
 **Setup:**
 ```bash
 # .env configuration
-BAILIAN_API_KEY=your-bailian-api-key
-BAILIAN_ENDPOINT=https://coding-intl.dashscope.aliyuncs.com/v1
+MINIMAX_API_KEY=your-minimax-api-key
+MINIMAX_ENDPOINT=https://api.minimax.io/v1
 
 # Model configuration
-SPEAKER_MODEL=bailian/qwen3.5-plus
-RESEARCH_MODEL=bailian/MiniMax-M2.5
-VISION_MODEL=bailian/kimi-k2.5
-FAST_MODEL=bailian/glm-5
+SPEAKER_MODEL=MiniMax-M2.7
+RESEARCH_MODEL=MiniMax-M2.7
+VISION_MODEL=qwen/qwen3.5-9b
+FAST_MODEL=jan-v3-4b-base-instruct
 ```
 
 **Available Models:**
-- qwen3.5-plus (83.2% MMLU) - Best for complex reasoning
-- MiniMax-M2.5 (76.4% MMLU) - FREE, best for research
-- kimi-k2.5 (78.9% MMLU) - FREE, best for vision
-- glm-5 (81.5% MMLU) - Fast coding
-- glm-4.7 (74.2% MMLU) - Fallback
+- MiniMax-M2.7 - Best for complex reasoning and agentic tasks
+- qwen/qwen3.5-9b - Local vision-capable fallback
+- MiniMax-M2.7 - Primary reasoning and coding model
+- jan-v3-4b-base-instruct - Fast local text fallback
+- qwen/qwen3.5-9b - Local vision and fallback
 
 **Cost:**
-- Free tier: MiniMax-M2.5, kimi-k2.5
-- Paid: qwen3.5-plus (quota), glm-5 (API credits)
+- Free / local: qwen/qwen3.5-9b, LM Studio models
+- Paid: MiniMax M2.7 API usage if configured
 
 ---
 
-### LM Studio (Local)
+### LM Studio (Local Fallback)
 
 **Best For:** Privacy, offline use, free inference, custom models
 
@@ -73,17 +73,17 @@ LM_STUDIO_ENDPOINT=http://localhost:1234/v1
 LM_STUDIO_API_KEY=lm-studio (not required, but can be set)
 
 # Model configuration
-SPEAKER_MODEL=lmstudio/qwen3.5-35b
-RESEARCH_MODEL=lmstudio/gemma-2-27b
-VISION_MODEL=lmstudio/qwen3-vl-8b
-FAST_MODEL=lmstudio/phi-3-mini
+SPEAKER_MODEL=qwen/qwen3.5-9b
+RESEARCH_MODEL=qwen/qwen3.5-9b
+VISION_MODEL=qwen/qwen3.5-9b
+FAST_MODEL=qwen/qwen3.5-9b
 ```
 
 **Available Models:**
-- qwen3.5-35b - Best local reasoning
-- gemma-2-27b - Google's open model
-- qwen3-vl-8b - Vision capabilities
-- phi-3-mini - Fast, lightweight
+- qwen/qwen3.5-9b - Local fallback model
+- qwen3.5-27b - Larger local fallback option
+- qwen3.5-9b - Vision-capable local model
+- qwen3.5-4b / qwen3.5-2b - Fast local options
 - Any model you can run locally!
 
 **Cost:** FREE (your hardware)
@@ -395,7 +395,7 @@ COMPLEX_QUERIES_PROVIDER=bailian # Best quality
 ### By Use Case
 
 **Production/Enterprise:**
-- Primary: Alibaba Bailian
+- Primary: MiniMax M2.7
 - Fallback: OpenAI or Anthropic
 
 **Privacy-Focused:**
@@ -407,7 +407,7 @@ COMPLEX_QUERIES_PROVIDER=bailian # Best quality
 - Fallback: Groq or DeepSeek (cheap)
 
 **Best Quality:**
-- Primary: Alibaba Bailian (qwen3.5-plus)
+- Primary: MiniMax M2.7
 - Fallback: OpenAI (GPT-4) or Anthropic (Claude 3 Opus)
 
 **Fastest:**
@@ -432,14 +432,14 @@ COMPLEX_QUERIES_PROVIDER=bailian # Best quality
 | **DeepSeek** | Chat | $0.00014 | $0.00028 | Cost-effective |
 | **Google** | Gemini Flash | $0.000075 | $0.0003 | Multimodal |
 | **Moonshot** | 8K | $0.0006 | $0.0012 | Long context |
-| **Bailian** | MiniMax-M2.5 | FREE | FREE | Free tier |
-| **Bailian** | glm-5 | $0.0005 | $0.001 | Coding |
+| **MiniMax** | M2.7 | API | varies | Best overall |
+| **MiniMax** | M2.7-highspeed | API | varies | Fast coding |
 | **Anthropic** | Haiku | $0.00025 | $0.00125 | Fast Claude |
 | **OpenAI** | GPT-3.5 | $0.0005 | $0.0015 | Reliable |
 | **Anthropic** | Sonnet | $0.003 | $0.015 | Balanced |
 | **OpenAI** | GPT-4 | $0.01 | $0.03 | Quality |
 | **Anthropic** | Opus | $0.015 | $0.075 | Best Claude |
-| **Bailian** | qwen3.5-plus | Quota | Quota | Best overall |
+| **MiniMax** | M2.7 | API | varies | Best overall |
 
 ---
 
@@ -454,8 +454,8 @@ council config set provider lmstudio
 # Use OpenAI
 council config set provider openai
 
-# Use Bailian (default)
-council config set provider bailian
+# Use MiniMax M2.7 (default)
+council config set provider minimax
 ```
 
 ### Per-Session
@@ -476,8 +476,8 @@ Edit `.env`:
 DEFAULT_PROVIDER=lmstudio
 
 # Update model configuration
-SPEAKER_MODEL=lmstudio/qwen3.5-35b
-RESEARCH_MODEL=lmstudio/gemma-2-27b
+SPEAKER_MODEL=qwen/qwen3.5-9b
+RESEARCH_MODEL=qwen/qwen3.5-9b
 ```
 
 ---
@@ -492,7 +492,7 @@ RESEARCH_MODEL=lmstudio/gemma-2-27b
 | LM Studio (local) | 100-500ms | 50ms |
 | Ollama (local) | 200-800ms | 100ms |
 | DeepSeek | 500-1000ms | 300ms |
-| Bailian | 500-1500ms | 300ms |
+| MiniMax | 300-1200ms | 300ms |
 | Google | 500-1500ms | 400ms |
 | OpenAI | 1000-2000ms | 500ms |
 | Anthropic | 1000-2500ms | 600ms |
@@ -501,10 +501,10 @@ RESEARCH_MODEL=lmstudio/gemma-2-27b
 
 | Provider | Model | MMLU Score |
 |----------|-------|------------|
-| Bailian | qwen3.5-plus | 83.2% |
+| MiniMax | M2.7 | n/a |
 | OpenAI | GPT-4 | 86.4% |
 | Anthropic | Claude 3 Opus | 86.8% |
-| Bailian | glm-5 | 81.5% |
+| MiniMax | M2.7-highspeed | n/a |
 | Google | Gemini Pro | 83.7% |
 | LM Studio | qwen3.5-35b | 82.1% |
 
@@ -518,7 +518,7 @@ RESEARCH_MODEL=lmstudio/gemma-2-27b
 - ✅ Your data never leaves your machine
 
 ### Cloud Providers (Review Privacy Policies)
-- 🔒 Alibaba Bailian - Enterprise privacy
+- 🔒 MiniMax M2.7 - Enterprise privacy
 - 🔒 OpenAI - Enterprise available
 - 🔒 Anthropic - Strong privacy focus
 - 🔒 Google - Standard Google privacy
@@ -532,7 +532,7 @@ RESEARCH_MODEL=lmstudio/gemma-2-27b
 - Don't log sensitive deliberations
 
 **For Production:**
-- Use enterprise providers (Bailian, OpenAI Enterprise)
+- Use enterprise providers (MiniMax, OpenAI Enterprise)
 - Enable audit logging
 - Use private endpoints
 
@@ -542,7 +542,7 @@ RESEARCH_MODEL=lmstudio/gemma-2-27b
 
 ### Do's:
 - ✅ Start with LM Studio for development (free)
-- ✅ Use Bailian or OpenAI for production
+- ✅ Use MiniMax or OpenAI for production
 - ✅ Configure failover for reliability
 - ✅ Monitor costs and usage
 - ✅ Review provider privacy policies

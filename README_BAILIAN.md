@@ -1,6 +1,6 @@
-# AI Bot Council Consensus - Bailian Configuration
+# AI Bot Council Consensus - Bailian Configuration (Legacy)
 
-**Configured for:** Alibaba Bailian Models ONLY (No ChatGPT/OpenAI/Google)  
+**Configured for:** Historical Bailian-only setup. Current active setup uses MiniMax M2.7 + LM Studio + local Qwen3.5.
 **Date:** March 22, 2026
 
 ## Model Configuration

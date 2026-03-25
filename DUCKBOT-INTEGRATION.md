@@ -17,10 +17,10 @@ python tools/ai-council-client.py --mode legislative "Should we attack Iran?"
 ### 3. Model Routing
 | Task Type | Model |
 |-----------|-------|
-| Complex reasoning | MiniMax-M2.5 |
+| Complex reasoning | MiniMax-M2.7 |
 | Fast/simple | jan-v3-4b-base-instruct |
-| Vision tasks | qwen3-vl-8b-thinking |
-| Coding | qwen/qwen3-14b |
+| Vision tasks | qwen/qwen3.5-9b |
+| Coding | MiniMax-M2.7 |
 
 ## Available Modes
 - **Legislative**: Debate + vote on proposals
@@ -30,8 +30,8 @@ python tools/ai-council-client.py --mode legislative "Should we attack Iran?"
 - **Inquiry**: Q&A
 
 ## Configuration
-- Endpoint: http://100.74.88.40:1234/v1 (LM Studio)
-- MiniMax: https://api.minimax.io/anthropic (for complex)
+- Endpoint: http://100.74.88.40:1234/v1 (LM Studio fallback)
+- MiniMax: https://api.minimax.io/v1 (primary)
 
 ## Usage
 DuckBot can spawn council sessions for:

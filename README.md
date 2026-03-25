@@ -404,7 +404,7 @@ Support for **10+ AI providers** - use what works best!
 
 | Provider | Best For | Cost | Latency |
 |----------|----------|------|---------|
-| **Bailian** (default) | Performance | FREE-$$$ | 500-1500ms |
+| **MiniMax M2.7** (default) | Best overall reasoning | API | 300-1200ms |
 | **LM Studio** | Privacy, FREE | FREE | 100-500ms |
 | **OpenAI** | Quality, Vision | $$$ | 1000-2000ms |
 | **Anthropic** | Long context | $$$ | 1000-2500ms |
@@ -423,8 +423,8 @@ council config set provider lmstudio
 # Use OpenAI
 council config set provider openai
 
-# Use Bailian (default)
-council config set provider bailian
+# Use MiniMax M2.7 (default)
+council config set provider minimax
 ```
 
 **See [PROVIDERS.md](PROVIDERS.md) for complete setup guide.**
@@ -548,7 +548,7 @@ Upload photos for comprehensive multi-perspective analysis!
 
 ### Supported Vision Models
 
-- **Kimi Vision** (Bailian) - Fast, accurate
+- **Qwen3.5 Vision** (Local Qwen/Qwen3.5-9b) - Fast, accurate
 - **GPT-4 Vision** (OpenAI) - Detailed analysis
 - **Gemini Pro Vision** (Google) - Multi-modal
 - **Qwen-VL** (Local) - Privacy-focused
@@ -665,8 +665,8 @@ openclaw agent --message "council vision-analyze image.jpg"
 
 ```bash
 # Primary provider
-DEFAULT_PROVIDER=bailian
-BAILIAN_API_KEY=your-bailian-key
+DEFAULT_PROVIDER=minimax
+MINIMAX_API_KEY=your-minimax-key
 
 # Alternative providers
 OPENAI_API_KEY=your-openai-key
@@ -677,10 +677,10 @@ PORT=3003
 HOST=0.0.0.0
 
 # Models
-SPEAKER_MODEL=bailian/qwen3.5-plus
-RESEARCH_MODEL=bailian/MiniMax-M2.5
-FAST_MODEL=bailian/glm-5
-VISION_MODEL=bailian/kimi-k2.5
+SPEAKER_MODEL=MiniMax-M2.7
+RESEARCH_MODEL=MiniMax-M2.7
+FAST_MODEL=jan-v3-4b-base-instruct
+VISION_MODEL=qwen/qwen3.5-9b
 ```
 
 ### MCP Config
@@ -1006,7 +1006,7 @@ See [LICENSE](LICENSE) for details.
 - [React](https://react.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Node.js](https://nodejs.org/)
-- [Alibaba Bailian](https://www.aliyun.com/product/bailian)
+- [Legacy Alibaba Bailian reference](https://www.aliyun.com/product/bailian)
 
 ---
 
