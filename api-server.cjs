@@ -116,6 +116,64 @@ async function callBrowserOS(toolName, args = {}) {
   return data.result;
 }
 
+function shouldUseLiveContext(question = '') {
+  const q = String(question || '').toLowerCase();
+  if (!q.trim()) return false;
+  const liveSignals = [
+    'latest', 'current', 'today', 'now', 'recent', 'news', 'headline', 'benchmark', 'benchmarks',
+    'score', 'scores', 'pricing', 'price', 'cost', 'compare', 'comparison', 'vs', ' versus ',
+    'release', 'released', 'update', 'updated', 'version', 'api', 'docs', 'documentation',
+    'github', 'repo', 'repository', 'website', 'web search', 'search the web', 'open the page',
+    'model', 'models', 'openai', 'minimax', 'lm studio', 'browseros', 'openclaw', 'bailian'
+  ];
+  const urlLike = /https?:\/\//i.test(q);
+  return urlLike || liveSignals.some(sig => q.includes(sig));
+}
+
+function summarizeWebResults(results = []) {
+  return results.slice(0, 5).map((r, i) => {
+    const title = r.title || 'Untitled';
+    const url = r.url || '';
+    const description = r.description || '';
+    return `${i + 1}. ${title}
+   ${url}
+   ${description}`.trim();
+  }).join('\n\n');
+}
+
+async function gatherLiveContext(question) {
+  const q = String(question || '').trim();
+  if (!shouldUseLiveContext(q)) return '';
+
+  const lines = [];
+
+  // If the user pasted a direct URL, try BrowserOS first so we can inspect the page itself.
+  const urlMatch = q.match(/https?:\/\/[^\s)]+/i);
+  if (urlMatch) {
+    const url = urlMatch[0].replace(/[.,;]+$/, '');
+    try {
+      const opened = await callBrowserOS('new_page', { url });
+      const pageId = opened?.pageId || opened?.page?.pageId || opened?.result?.pageId || 1;
+      const page = await callBrowserOS('get_page_content', { page: pageId });
+      const text = JSON.stringify(page, null, 2);
+      lines.push(`BrowserOS page content for ${url}:\n${text.slice(0, 5000)}`);
+    } catch (e) {
+      lines.push(`BrowserOS lookup failed for ${url}: ${e.message}`);
+    }
+  }
+
+  try {
+    const results = await braveWebSearch(q, 5);
+    if (results?.length) {
+      lines.push(`Brave Search results for "${q}":\n${summarizeWebResults(results)}`);
+    }
+  } catch (e) {
+    lines.push(`Brave Search failed: ${e.message}`);
+  }
+
+  return lines.join('\n\n').trim();
+}
+
 // ============ COUNCILOR REGISTRY ============
 
 const COUNCILOR_REGISTRY = [
@@ -1110,10 +1168,23 @@ app.get('/api/vision/session/:id', (req, res) => {
 // Ask
 app.post('/api/ask', async (req, res) => {
   const question = req.body.question || req.body.prompt || '';
+  let enrichedQuestion = question;
+
+  try {
+    const liveContext = await gatherLiveContext(question);
+    if (liveContext) {
+      enrichedQuestion = `${question}\n\nLive context gathered automatically from current web/browser tools:
+${liveContext}`;
+    }
+  } catch (e) {
+    console.error('Live context enrichment failed:', e);
+  }
+
   res.json({
     question,
+    liveContextApplied: enrichedQuestion !== question,
     mode: req.body.mode || 'deliberation',
-    responses: await deliberate(question, req.body.mode || 'deliberation', req.body.councilors),
+    responses: await deliberate(enrichedQuestion, req.body.mode || 'deliberation', req.body.councilors),
     timestamp: new Date().toISOString(),
   });
 });
