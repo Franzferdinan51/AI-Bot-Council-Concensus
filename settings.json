@@ -1,0 +1,38 @@
+{
+  "providers": {
+    "minimax": {
+      "endpoint": "https://api.minimax.io/v1",
+      "apiKey": "sk-cp-f6PbhZS6uNSD1L-mByhEw3RzISEgKDmaQ-kkQGUx79uBrnAZDVWVnDwmLwHC19V1jT07oW7CcU2Dn_3Zr8c90a5xYqk9J1BBNXd0C9bVRbyr-PLbfd31kUE",
+      "name": "MiniMax M2.7"
+    },
+    "lmstudio": {
+      "endpoint": "http://localhost:1234/v1",
+      "apiKey": "sk-lm-zO7bswIc:WkHEMTUfVNkq5WYNyFOW",
+      "model": "qwen/qwen3.5-9b"
+    }
+  },
+  "webhooks": [],
+  "security": {
+    "apiKey": "test-key-12345"
+  },
+  "bots": [
+    {
+      "id": "councilor-speaker",
+      "name": "Speaker",
+      "role": "councilor",
+      "expertise": "governance"
+    }
+  ],
+  "vision": {
+    "default_model": "qwen/qwen3.5-9b",
+    "models": [
+      "qwen/qwen3.5-9b",
+      "qwen3.5-9b",
+      "qwen3.5-27b",
+      "qwen3.5-2b",
+      "qwen3.5-0.8b",
+      "qwen3.5-4b"
+    ],
+    "auto_detect": true
+  }
+}

@@ -22,7 +22,7 @@ export const MINI_MAX_MODELS = [
 export const LOCAL_MODELS = [
   "jan-v3-4b-base-instruct",  // Fast 4B - quick decisions
   "gpt-oss-20b",              // General purpose
-  "qwen3-vl-8b-thinking",   // Vision tasks
+  "qwen/qwen3.5-9b",       // Vision tasks
 ];
 
 // Model routing strategy - auto-select based on task complexity
@@ -32,7 +32,7 @@ export const MODEL_ROUTING = {
   // Simple/fast tasks -> Local LM Studio
   fast: "jan-v3-4b-base-instruct",
   // Vision tasks -> Local LM Studio vision
-  vision: "qwen3-vl-8b-thinking",
+  vision: "qwen/qwen3.5-9b",
   // Default fallback
   default: "MiniMax-M2.7"
 };

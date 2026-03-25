@@ -224,7 +224,7 @@ const DELIBERATION_MODES = [
 
 // Vision Models - ALL Qwen3.5 support vision!
 const VISION_MODELS = [
-  { id: 'lmstudio/qwen3-vl-8b-thinking', name: 'Qwen3-VL-8B Thinking', provider: 'LM Studio', latency: '100-500ms' },
+  { id: 'qwen/qwen3.5-9b', name: 'Qwen3.5-9B Vision', provider: 'Local', latency: '100-500ms' },
   { id: 'openai/gpt-4-vision', name: 'GPT-4 Vision', provider: 'OpenAI', latency: '1000-2000ms' },
   { id: 'qwen-vl', name: 'Qwen-VL', provider: 'Local', latency: '100-500ms' },
   // ALL Qwen3.5 models have vision!
@@ -858,7 +858,7 @@ async function handleMCPTool(name, args = {}) {
         id: visionId,
         image: args.image,
         prompt: args.prompt,
-        models: args.models || ['lmstudio/qwen3-vl-8b-thinking'],
+        models: args.models || ['qwen/qwen3.5-9b'],
         councilors: args.councilors || ['all'],
         status: 'processing',
         results: [],
