@@ -1434,7 +1434,7 @@ Give 2-4 concise, specific items. No preamble.`;
   try {
     const lmStudioUrl = settings?.providers?.lmstudio?.endpoint || 'http://localhost:1234/v1';
     const lmStudioKey = settings?.providers?.lmstudio?.apiKey || 'lm';
-    const lmStudioModel = settings?.providers?.lmstudio?.model || 'jan-v3-4b-base-instruct';
+    const lmStudioModel = settings?.providers?.lmstudio?.model || 'qwen/qwen3.5-9b';
 
     const response = await fetch(`${lmStudioUrl}/chat/completions`, {
       method: 'POST',
