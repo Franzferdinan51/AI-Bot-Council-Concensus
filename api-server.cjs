@@ -8,6 +8,8 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const { execFileSync } = require('child_process');
 
 const app = express();
 app.use(cors());
@@ -114,6 +116,95 @@ async function callBrowserOS(toolName, args = {}) {
   const data = await res.json();
   if (data.error) throw new Error(data.error.message || 'BrowserOS MCP call failed');
   return data.result;
+}
+
+function getImageMimeType(filePath) {
+  const ext = path.extname(String(filePath || '')).toLowerCase();
+  switch (ext) {
+    case '.jpg':
+    case '.jpeg': return 'image/jpeg';
+    case '.png': return 'image/png';
+    case '.gif': return 'image/gif';
+    case '.webp': return 'image/webp';
+    case '.bmp': return 'image/bmp';
+    case '.tif':
+    case '.tiff': return 'image/tiff';
+    default: return 'image/png';
+  }
+}
+
+function imageInputToDataUrl(imageInput) {
+  if (!imageInput) return null;
+  const str = String(imageInput);
+  if (str.startsWith('data:image/')) return str;
+  if (/^https?:\/\//i.test(str)) return null;
+  if (!fs.existsSync(str)) return null;
+
+  const ext = path.extname(str).toLowerCase();
+  const directMime = getImageMimeType(str);
+  const directReadable = new Set(['.png', '.jpg', '.jpeg']);
+
+  try {
+    if (!directReadable.has(ext)) {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-council-vision-'));
+      const outPath = path.join(tmpDir, 'input.png');
+      execFileSync('sips', ['-s', 'format', 'png', str, '--out', outPath], { stdio: 'ignore' });
+      const pngData = fs.readFileSync(outPath);
+      return `data:image/png;base64,${pngData.toString('base64')}`;
+    }
+  } catch (e) {
+    // Fall back to direct encoding below if conversion fails
+  }
+
+  const data = fs.readFileSync(str);
+  return `data:${directMime};base64,${data.toString('base64')}`;
+}
+
+async function analyzeVisionWithLMStudio({ image, prompt, models }) {
+  const settings = loadSettings();
+  const lmStudioUrl = settings?.providers?.lmstudio?.endpoint || 'http://localhost:1234/v1';
+  const lmStudioKey = settings?.providers?.lmstudio?.apiKey || 'lm';
+  const model = (Array.isArray(models) && models[0]) || settings?.providers?.lmstudio?.model || 'qwen/qwen3.5-9b';
+  const imageUrl = imageInputToDataUrl(image);
+  if (!imageUrl) throw new Error('No valid image provided');
+
+  const userPrompt = prompt || 'Analyze this image for plant health. Identify visible symptoms, likely causes, severity, and immediate actions. Be specific and practical.';
+  const response = await fetch(`${lmStudioUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${lmStudioKey}`
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: userPrompt },
+          { type: 'image_url', image_url: { url: imageUrl } }
+        ]
+      }],
+      temperature: 0.2,
+      max_tokens: 700
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`LM Studio vision error ${response.status}: ${err}`);
+  }
+
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || data.choices?.[0]?.text || '';
+  const clean = String(text || '').trim();
+  return {
+    model,
+    provider: 'lmstudio',
+    prompt: userPrompt,
+    image: String(image),
+    analysis: clean || '(No analysis returned)',
+    raw: data
+  };
 }
 
 function shouldUseLiveContext(question = '') {
@@ -852,9 +943,9 @@ async function handleMCPTool(name, args = {}) {
       };
     
     // Vision
-    case 'vision_analyze':
+    case 'vision_analyze': {
       const visionId = `vision_${Date.now()}`;
-      visionSessions.set(visionId, {
+      const session = {
         id: visionId,
         image: args.image,
         prompt: args.prompt,
@@ -863,12 +954,22 @@ async function handleMCPTool(name, args = {}) {
         status: 'processing',
         results: [],
         timestamp: new Date().toISOString(),
-      });
-      return {
-        session_id: visionId,
-        status: 'processing',
-        estimated_time: 180,
       };
+      visionSessions.set(visionId, session);
+      try {
+        const analysis = await analyzeVisionWithLMStudio({ image: args.image, prompt: args.prompt, models: args.models });
+        session.status = 'completed';
+        session.results = [analysis];
+        session.analysis = analysis.analysis;
+        visionSessions.set(visionId, session);
+        return { session_id: visionId, status: 'completed', analysis: analysis.analysis, model: analysis.model, provider: analysis.provider };
+      } catch (error) {
+        session.status = 'error';
+        session.error = error instanceof Error ? error.message : String(error);
+        visionSessions.set(visionId, session);
+        return { session_id: visionId, status: 'error', error: session.error };
+      }
+    }
     
     case 'vision_deliberate':
       const vSession = visionSessions.get(args.sessionId);
@@ -1153,10 +1254,27 @@ app.post('/api/session/stop', (req, res) => {
 // Vision
 app.get('/api/vision/models', (req, res) => res.json(VISION_MODELS));
 
-app.post('/api/vision/analyze', (req, res) => {
+app.post('/api/vision/analyze', async (req, res) => {
   const visionId = `vision_${Date.now()}`;
-  visionSessions.set(visionId, { id: visionId, ...req.body, status: 'processing', results: [] });
-  res.json({ session_id: visionId, status: 'processing' });
+  const session = { id: visionId, ...req.body, status: 'processing', results: [] };
+  visionSessions.set(visionId, session);
+  try {
+    const analysis = await analyzeVisionWithLMStudio({
+      image: req.body.image || req.body.imageUrl || req.body.path,
+      prompt: req.body.prompt,
+      models: req.body.models,
+    });
+    session.status = 'completed';
+    session.results = [analysis];
+    session.analysis = analysis.analysis;
+    visionSessions.set(visionId, session);
+    res.json({ session_id: visionId, status: 'completed', analysis: analysis.analysis, model: analysis.model, provider: analysis.provider });
+  } catch (error) {
+    session.status = 'error';
+    session.error = error instanceof Error ? error.message : String(error);
+    visionSessions.set(visionId, session);
+    res.status(500).json({ session_id: visionId, status: 'error', error: session.error });
+  }
 });
 
 app.get('/api/vision/session/:id', (req, res) => {
