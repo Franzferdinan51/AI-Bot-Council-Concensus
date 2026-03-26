@@ -1118,3 +1118,11 @@ Or tell DuckBot: `swarm build a REST API`
 **Built with ❤️ for better decision-making**
 
 **MIT License - Free to use, modify, and distribute**
+
+### New — Tier 1 & 2 Coding Directors & Leads (Non-Game)
+
+**10 Tier 1 Coding Directors:**
+solutions-architect, frontend-architect, backend-architect, api-architect, devops-director, security-director, data-ml-director, mobile-director, ux-director, platform-director
+
+**15 Tier 2 Coding Tech Leads:**
+frontend-tech-lead, backend-tech-lead, mobile-tech-lead, devops-lead, security-lead-eng, qa-lead-engineer, data-engineering-lead, cloud-infra-lead, ml-engineering-lead, platform-engineering-lead, api-lead, performance-engineering-lead, reliability-engineering-lead, product-engineering-lead, research-engineering-lead
