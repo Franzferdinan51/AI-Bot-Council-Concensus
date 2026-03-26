@@ -24,7 +24,7 @@ class CouncilApiService {
 
   async sendMessage(
     messages: Array<{ role: string; content: string }>,
-    councilorName: string,
+    councilorName?: string,
     onChunk?: (text: string) => void
   ): Promise<string> {
     // Try LM Studio first (free)
@@ -110,7 +110,7 @@ class CouncilApiService {
     })
 
     if (!response.ok) {
-      const error = await response.text()
+      const _error = await response.text()
       throw new Error(`Cloud API error: ${response.status}`)
     }
 
