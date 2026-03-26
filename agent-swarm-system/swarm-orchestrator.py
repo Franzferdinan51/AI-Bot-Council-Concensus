@@ -455,7 +455,7 @@ def build_swarm_plan(task: str, count: int = 5, domain: str = None) -> dict:
         plan['agents'].append({
             'id': agent_id,
             'name': agent_info.get('name', agent_id),
-            'model': agent_info.get('model', 'bailian/MiniMax-M2.5'),
+            'model': agent_info.get('model', 'minimax-portal/MiniMax-M2.5'),
             'tier': agent_info.get('tier', 3),
             'domain': agent_info.get('domain', 'general'),
             'role': agent_info.get('role', ''),

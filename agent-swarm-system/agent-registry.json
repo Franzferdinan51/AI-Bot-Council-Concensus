@@ -992,7 +992,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "React, Next.js, component architecture, hooks, state management",
       "delivers": [
         "React components",
@@ -1012,7 +1012,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Vue 3, Nuxt, Pinia, Composition API, Vue Router",
       "delivers": [
         "Vue components",
@@ -1032,7 +1032,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Svelte 5, SvelteKit, runes, stores, SSR",
       "delivers": [
         "Svelte components",
@@ -1052,7 +1052,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Angular, RxJS, NgModules, standalone components, signals",
       "delivers": [
         "Angular modules",
@@ -1092,7 +1092,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Advanced TypeScript, generics, decorators, type-level programming",
       "delivers": [
         "Type definitions",
@@ -1152,7 +1152,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Node.js core, npm, streams, worker threads, clusters",
       "delivers": [
         "Node.js services",
@@ -1192,7 +1192,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "FastAPI, Pydantic, async, dependency injection, OpenAPI",
       "delivers": [
         "FastAPI endpoints",
@@ -1212,7 +1212,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Django, ORM, admin, REST framework, channels",
       "delivers": [
         "Django models",
@@ -1252,7 +1252,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "NestJS, dependency injection, GraphQL, microservices, guards",
       "delivers": [
         "NestJS modules",
@@ -1272,7 +1272,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Go, goroutines, channels, interfaces, standard library",
       "delivers": [
         "Go services",
@@ -1292,7 +1292,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Rust web frameworks (Actix, Axum), tokio, async, error handling",
       "delivers": [
         "Rust web services",
@@ -1312,7 +1312,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Spring Boot, Java, microservices, Spring Security, JPA",
       "delivers": [
         "Spring Boot apps",
@@ -1332,7 +1332,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Elixir, Phoenix, LiveView, Ecto, OTP",
       "delivers": [
         "Phoenix apps",
@@ -1352,7 +1352,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": ".NET, C#, Blazor, ASP.NET Core, Entity Framework",
       "delivers": [
         ".NET APIs",
@@ -1372,7 +1372,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "React Native, Expo, native modules, navigation",
       "delivers": [
         "React Native screens",
@@ -1392,7 +1392,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Flutter, Dart, widgets, Firebase, platform channels",
       "delivers": [
         "Flutter apps",
@@ -1412,7 +1412,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "SwiftUI, iOS development, Combine, Swift concurrency",
       "delivers": [
         "SwiftUI views",
@@ -1432,7 +1432,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "UIKit, programmatic UI, Auto Layout, SnapKit, table/collection views",
       "delivers": [
         "UIKit view controllers",
@@ -1452,7 +1452,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Kotlin, Android, Jetpack Compose, coroutines, KSP",
       "delivers": [
         "Kotlin Android apps",
@@ -1472,7 +1472,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "database",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "PostgreSQL, queries, optimization, partitioning, JSONB, full-text search",
       "delivers": [
         "Schema designs",
@@ -1492,7 +1492,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "database",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "MongoDB, aggregation pipeline, schema design, replica sets, sharding",
       "delivers": [
         "MongoDB schemas",
@@ -1532,7 +1532,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "database",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "DynamoDB, GSI, TTL, single table design, DAXX",
       "delivers": [
         "Table designs",
@@ -1572,7 +1572,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "GraphQL schema design, resolvers, federation, subscriptions",
       "delivers": [
         "GraphQL schemas",
@@ -1592,7 +1592,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "AWS services, EC2, S3, Lambda, ECS, EKS, IAM, CDK",
       "delivers": [
         "AWS architectures",
@@ -1612,7 +1612,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Google Cloud, GCE, GCS, Cloud Functions, GKE, BigQuery",
       "delivers": [
         "GCP architectures",
@@ -1632,7 +1632,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Azure, VMs, App Service, Functions, AKS, DevOps, ARM templates",
       "delivers": [
         "Azure architectures",
@@ -1652,7 +1652,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "K8s, Helm, operators, networking, storage, autoscaling",
       "delivers": [
         "Kubernetes manifests",
@@ -1692,7 +1692,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "devops",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Terraform, HCL, modules, state management, remote backends",
       "delivers": [
         "Terraform configs",
@@ -1752,7 +1752,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Serverless architecture, edge functions, Faas, cold start optimization",
       "delivers": [
         "Serverless designs",
@@ -1772,7 +1772,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Python data stack, Pandas, NumPy, data pipelines",
       "delivers": [
         "Data processing scripts",
@@ -1792,7 +1792,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "PyTorch, model training, HuggingFace, distributed training",
       "delivers": [
         "PyTorch models",
@@ -1872,7 +1872,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "LLM integration, prompt engineering, RAG, fine-tuning, embeddings",
       "delivers": [
         "Prompt templates",
@@ -1892,7 +1892,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "MLflow, model versioning, deployment, monitoring, feature stores",
       "delivers": [
         "MLflow setups",
@@ -2012,7 +2012,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Profiling, benchmarking, optimization, load testing",
       "delivers": [
         "Profiling reports",
@@ -2052,7 +2052,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Microservices patterns, service mesh, API gateways, circuit breakers",
       "delivers": [
         "Service designs",
@@ -2072,7 +2072,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "REST design, GraphQL, versioning, OpenAPI, API governance",
       "delivers": [
         "API specifications",
@@ -2112,7 +2112,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Application security, OWASP Top 10, secure coding, threat modeling",
       "delivers": [
         "Security reviews",
@@ -2132,7 +2132,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Ethical hacking, vulnerability assessment, pen testing methodology",
       "delivers": [
         "Pen test reports",
@@ -2152,7 +2152,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Encryption, hashing, TLS, key management, cryptographic protocols",
       "delivers": [
         "Crypto implementations",
@@ -2192,7 +2192,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Security in CI/CD, SAST, DAST, dependency scanning, secrets detection",
       "delivers": [
         "Security pipelines",
@@ -2212,7 +2212,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Shopify, Stripe, product catalogs, checkout, inventory",
       "delivers": [
         "Shopify apps",
@@ -2232,7 +2232,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "SaaS architecture, billing, multi-tenancy, churn, subscription management",
       "delivers": [
         "Multi-tenant architectures",
@@ -2252,7 +2252,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Payments, compliance, PCI-DSS, trading systems, reconciliation",
       "delivers": [
         "Payment integrations",
@@ -2272,7 +2272,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "IoT protocols, MQTT, CoAP, edge computing, device management",
       "delivers": [
         "MQTT brokers",
@@ -2292,7 +2292,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Smart contracts, Solidity, Web3, NFT, DeFi integrations",
       "delivers": [
         "Smart contracts",
@@ -2352,7 +2352,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Crypto trading bots, DEX integration, wallet management, market analysis",
       "delivers": [
         "Trading bots",
@@ -2452,7 +2452,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "UX engineering, design systems, component libraries, Figma-to-code",
       "delivers": [
         "Design systems",
@@ -2472,7 +2472,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "minimax-portal/MiniMax-M2.7",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "OpenClaw agent development, skill creation, MCP servers, workspace automation",
       "delivers": [
         "OpenClaw skills",
