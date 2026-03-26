@@ -6,7 +6,7 @@
       "name": "MiniMax M2.7"
     },
     "lmstudio": {
-      "endpoint": "http://localhost:1234/v1",
+      "endpoint": "http://100.116.54.125:1234/v1",
       "apiKey": "sk-lm-zO7bswIc:WkHEMTUfVNkq5WYNyFOW",
       "model": "qwen/qwen3.5-9b"
     }

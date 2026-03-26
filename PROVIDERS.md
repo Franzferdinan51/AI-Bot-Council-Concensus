@@ -358,7 +358,7 @@ Use multiple providers for reliability:
 
 ```bash
 # .env configuration
-PRIMARY_PROVIDER=bailian
+PRIMARY_PROVIDER=lmstudio
 FALLBACK_PROVIDER_1=lmstudio
 FALLBACK_PROVIDER_2=openai
 
@@ -374,7 +374,7 @@ Distribute requests across providers:
 ```bash
 # .env configuration
 LOAD_BALANCING=round-robin # or weighted, least-latency
-PROVIDER_WEIGHTS=bailian:0.5,lmstudio:0.3,openai:0.2
+PROVIDER_WEIGHTS=lmstudio:0.6,openai:0.2,ollama:0.2
 ```
 
 ### Cost Optimization
@@ -385,7 +385,7 @@ Route based on cost/complexity:
 # .env configuration
 COST_OPTIMIZATION=true
 SIMPLE_QUERIES_PROVIDER=lmstudio # Free
-COMPLEX_QUERIES_PROVIDER=bailian # Best quality
+COMPLEX_QUERIES_PROVIDER=lmstudio # Best quality
 ```
 
 ---
