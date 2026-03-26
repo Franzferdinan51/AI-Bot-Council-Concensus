@@ -938,7 +938,7 @@ async function handleMCPTool(name, args = {}) {
         question: args.question,
         mode: args.mode || sessionState.mode,
         sessionId: sessionState.id,
-        responses: await deliberate(args.question, args.mode || 'deliberation', args.councilors),
+        responses: await deliberate(args.question, args.question, args.mode || 'deliberation', args.councilors),
         timestamp: new Date().toISOString(),
       };
     
@@ -1301,7 +1301,7 @@ ${liveContext}`;
     question,
     liveContextApplied: enrichedQuestion !== question,
     mode: req.body.mode || 'deliberation',
-    responses: await deliberate(enrichedQuestion, req.body.mode || 'deliberation', req.body.councilors),
+    responses: await deliberate(question, enrichedQuestion, req.body.mode || 'deliberation', req.body.councilors),
     timestamp: new Date().toISOString(),
   });
 });
@@ -1537,13 +1537,22 @@ Give 2-4 concise, specific items. No preamble.`;
   const cleanModelText = (text) => {
     if (!text || !text.trim()) return '';
     let clean = text.trim();
-    // Strip XML thinking tags
+    // Strip XML thinking tags (MiniMax-M2.7)
     clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-    // Strip "Thinking Process:" sections (qwen/LM Studio format)
-    clean = clean.replace(/Thinking Process:\s*\n\s*\d+[\.\)]\s*\*[\*_][^\n]+\n*/gi, '').trim();
-    clean = clean.replace(/Thinking Process:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '').trim();
-    // Strip leftover labels and XML
+    // Strip qwen/LM Studio "Thinking Process:" block
+    // Format: "Thinking Process:\n\n1.  **Header:**\n    * bullet\n    * bullet\n2.  **Header:**\n    * bullet\n\nACTUAL ANSWER"
+    clean = clean.replace(/Thinking Process:\s*\n+(\s*\d+[\.\)]\s+\*\*[^\n]+\n(?:[ \t]+[^\n]*\n)*)+/gi, '').trim();
+    // Also remove any remaining thinking block remnants
+    clean = clean.replace(/Thinking Process:[\s\S]*?(?=\n[^*>\-][^\n]{2,})/gi, '').trim();
+    // Strip markdown bold labels leftover from thinking
+    clean = clean.replace(/^\s*\*\*[A-Z][^\n]*\*\*\s*$/gm, '').trim();
+    // Strip bullet points
+    clean = clean.replace(/^\s*\*+\s+/gm, '').trim();
+    clean = clean.replace(/^\s*\-+\s+/gm, '').trim();
+    // Strip XML/HTML tags
     clean = clean.replace(/<[^>]*>/g, '').trim();
+    // Collapse excess whitespace
+    clean = clean.replace(/\n{3,}/g, '\n\n').trim();
     return clean;
   };
 
@@ -1587,7 +1596,7 @@ Give 2-4 concise, specific items. No preamble.`;
       body: JSON.stringify({
         model: lmStudioModel,
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 300,
+        max_tokens: 600,
         temperature: 0.7
       })
     });
@@ -1607,11 +1616,14 @@ Give 2-4 concise, specific items. No preamble.`;
   return generateContextualResponse(councilor, question, mode);
 }
 
-async function deliberate(question, mode, councilorIds) {
-  // Check cache first
-  const cacheKey = `${question}:${mode}:${(councilorIds || []).join(',')}`;
+async function deliberate(originalQuestion, enrichedQuestion, mode, councilorIds) {
+  // Use original question for cache key (stable across live context updates)
+  const cacheKey = `${originalQuestion}:${mode}:${(councilorIds || []).join(',')}`;
   const cached = getCached(cacheKey);
   if (cached) return cached;
+  
+  // Use enriched question for actual API calls (has live context)
+  const promptQuestion = enrichedQuestion || originalQuestion;
   
   const activeCouncilors = councilorIds || ['speaker', 'technocrat', 'ethicist', 'pragmatist', 'skeptic'];
   const responses = {};
@@ -1620,7 +1632,7 @@ async function deliberate(question, mode, councilorIds) {
   for (const id of activeCouncilors) {
     const councilor = COUNCILOR_RESPONSES[id];
     if (councilor) {
-      responses[id] = await generateCouncilResponse(councilor, question, mode);
+      responses[id] = await generateCouncilResponse(councilor, promptQuestion, mode);
     }
   }
   
