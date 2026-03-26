@@ -28,6 +28,7 @@
 - [Architecture: App vs MCP](#architecture-app-vs-mcp)
 - [OpenClaw Integration](#openclaw-integration)
 - [Configuration](#configuration)
+- [🐝 Agent Swarm System](#-agent-swarm-system) ⭐ NEW
 - [API Documentation](#api-documentation)
 - [Web UI Guide](#web-ui-guide)
 - [Contributing](#contributing)
@@ -997,6 +998,81 @@ npm run build
 MIT License - Free to use, modify, distribute.
 
 See [LICENSE](LICENSE) for details.
+
+---
+
+## 🐝 Agent Swarm System ⭐ NEW (March 26, 2026)
+
+**133+ specialized AI agents working together on your tasks.**
+
+The Agent Swarm System is a major addition to the AI Council — parallel task execution with specialized agents across game dev, software build, research, security audits, mobile, and data/ML.
+
+### How It Works
+
+```
+swarm build a REST API for task management
+swarm game dev a 2D roguelike platformer
+swarm research AI agent frameworks
+swarm audit my code for security vulnerabilities
+swarm mobile build a fitness tracking app
+swarm data create a real-time analytics pipeline
+```
+
+1. **Classify** → Detects domain (game/build/research/audit/mobile/data)
+2. **Select** → Picks 3-15 specialized agents
+3. **Split** → Each agent gets a focused subtask
+4. **Dispatch** → Agents work in parallel via `sessions_spawn`
+5. **Aggregate** → Results synthesized into final deliverable
+
+### Agent Tiers
+
+| Tier | Role | Model | Cost |
+|------|------|-------|------|
+| **Tier 1** | Strategic / Directors | qwen3.5-plus | 18K/mo quota |
+| **Tier 2** | Tactical / Leads | glm-5 | API credits |
+| **Tier 3** | Specialists | MiniMax-M2.5 | FREE unlimited |
+
+### Domains
+
+| Domain | Example | Agents |
+|--------|---------|--------|
+| **game** | `swarm game dev a roguelike` | 48 agents (full studio hierarchy) |
+| **build** | `swarm build a REST API` | architect + backend + frontend + devops + security + ... |
+| **research** | `swarm research AI agents` | research-lead + data-lead + ux + technical-writer + ... |
+| **audit** | `swarm audit my code` | security-eng + sre + qa-engineer + pen-testing + ... |
+| **mobile** | `swarm mobile build an app` | react-native + flutter + swiftui + kotlin + ... |
+| **data** | `swarm data build a pipeline` | data-lead + ml-engineer + airflow + llm-specialist + ... |
+
+### Location
+
+```
+agent-swarm-system/
+├── agent-registry.json      # 133 agent definitions
+├── swarm-orchestrator.py   # Main orchestrator
+├── plans/                   # Saved swarm plans
+├── agents/
+│   ├── game/               # 48 game dev agents
+│   ├── general/            # 25 general agents
+│   └── coding/            # 75 coding specialists
+└── README.md               # Full documentation
+```
+
+### Integration with AI Council
+
+- Swarm results can be fed into council deliberation modes for adversarial review
+- Swarm agents can use the AI Council's councilor personas
+- Multi-agent coordination via OpenClaw `sessions_spawn`
+
+### Quick Start
+
+```bash
+cd agent-swarm-system
+python3 swarm-orchestrator.py "build a REST API" --count 5
+python3 swarm-orchestrator.py "make a 2D roguelike" --count 8
+python3 swarm-orchestrator.py "audit our codebase" --domain audit
+```
+
+Or tell DuckBot: `swarm build a REST API`
 
 ---
 
