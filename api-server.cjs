@@ -1491,6 +1491,31 @@ const COUNCILOR_RESPONSES = {
     name: 'Skeptic',
     persona: 'questions assumptions, challenges consensus, identifies risks',
     default_response: 'Before we proceed, we should scrutinize the underlying assumptions more carefully.'
+  },
+  'councilor-risk-analyst': {
+    name: 'Risk Analyst',
+    persona: 'comprehensive risk assessment, threat modeling, contingency planning',
+    default_response: 'Let us identify and quantify the key risks before proceeding.'
+  },
+  'councilor-legal-expert': {
+    name: 'Legal Expert',
+    persona: 'legal compliance, regulatory framework, contractual obligations',
+    default_response: 'We must consider the legal implications and regulatory requirements.'
+  },
+  'councilor-finance-expert': {
+    name: 'Finance Expert',
+    persona: 'cost analysis, budget planning, economic impact assessment, investment returns',
+    default_response: 'The financial considerations must be carefully evaluated.'
+  },
+  'councilor-meteorologist': {
+    name: 'Meteorologist',
+    persona: 'weather patterns, climate analysis, atmospheric conditions, storm tracking',
+    default_response: 'Weather conditions and climate factors should be considered in our analysis.'
+  },
+  'councilor-emergency-manager': {
+    name: 'Emergency Manager',
+    persona: 'crisis response, disaster preparedness, emergency protocols, business continuity',
+    default_response: 'We must prepare for contingencies and have emergency protocols in place.'
   }
 };
 
