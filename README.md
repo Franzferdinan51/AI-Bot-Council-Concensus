@@ -1036,12 +1036,33 @@ swarm data create a real-time analytics pipeline
 
 | Domain | Example | Agents |
 |--------|---------|--------|
-| **game** | `swarm game dev a roguelike` | 48 agents (full studio hierarchy) |
-| **build** | `swarm build a REST API` | architect + backend + frontend + devops + security + ... |
-| **research** | `swarm research AI agents` | research-lead + data-lead + ux + technical-writer + ... |
-| **audit** | `swarm audit my code` | security-eng + sre + qa-engineer + pen-testing + ... |
-| **mobile** | `swarm mobile build an app` | react-native + flutter + swiftui + kotlin + ... |
-| **data** | `swarm data build a pipeline` | data-lead + ml-engineer + airflow + llm-specialist + ... |
+| **game** | `swarm game dev a roguelike` | 48 agents: creative-director, technical-director, producer, game-designer, lead-programmer, art-director, audio-director, narrative-director, qa-lead, release-manager, localization-lead + 39 specialists incl. Godot/Unity/Unreal engine agents |
+| **build** | `swarm build a REST API` | architect + backend-dev + frontend-dev + devops-eng + security-eng + qa-engineer + database-specialist + api-specialist |
+| **research** | `swarm research AI agents` | research-lead + data-lead + ux-researcher + security-lead + technical-writer + product-lead |
+| **audit** | `swarm audit my code` | security-eng + reliability-engineer + qa-engineer + security-lead + architect + penetration-testing-specialist |
+| **mobile** | `swarm mobile build an app` | mobile-specialist + architect + react-native-specialist + swiftui-specialist + flutter-specialist + kotlin-specialist |
+| **data** | `swarm data build a pipeline` | data-lead + ml-engineer + data-engineer + airflow-specialist + llm-specialist + pandas-specialist |
+
+### Game Studio Agents — 48 Total (Full Claude-Code-Game-Studios Integration)
+
+**Tier 1 — Leadership (3):** creative-director, technical-director, producer
+
+**Tier 2 — Department Leads (9):** game-designer, lead-programmer, art-director, audio-director, narrative-director, qa-lead, release-manager, localization-lead
+
+**Tier 3 — Specialists (36):**
+- **Programming:** gameplay-programmer, engine-programmer, ai-programmer, network-programmer, tools-programmer, ui-programmer
+- **Design:** systems-designer, level-designer, economy-designer, world-builder
+- **Art & Tech:** technical-artist, ux-designer
+- **Audio & Narrative:** sound-designer, writer
+- **Production:** prototyper, performance-analyst, devops-engineer, analytics-engineer
+- **Quality & Ops:** security-engineer, qa-tester, accessibility-specialist, live-ops-designer, community-manager
+- **Godot 4:** godot-specialist, godot-gdscript-specialist, godot-shader-specialist, godot-gdextension-specialist
+- **Unity:** unity-specialist, unity-dots-specialist, unity-shader-specialist, unity-addressables-specialist, unity-ui-specialist
+- **Unreal:** unreal-specialist, ue-gas-specialist, ue-blueprint-specialist, ue-replication-specialist, ue-umg-specialist
+
+**36 Skills:** start, brainstorm, prototype, sprint-plan, design-review, code-review, design-system, bug-report, hotfix, changelog, milestone-review, and 26 more
+
+**Full details:** [SWARM-GAME-STUDIO.md](SWARM-GAME-STUDIO.md) | [duckbot-skill/game-studio-agents/](duckbot-skill/game-studio-agents/) | [duckbot-skill/game-studio-skills/](duckbot-skill/game-studio-skills/)
 
 ### Location
 
