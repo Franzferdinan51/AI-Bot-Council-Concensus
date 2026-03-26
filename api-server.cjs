@@ -1527,7 +1527,7 @@ Give 2-4 concise, specific items. No preamble.`;
     if (miniMaxKey) {
       const response = await fetch(miniMaxUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${miniMaxKey}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${miniMaxKey}`, 'x-api-key': miniMaxKey },
         body: JSON.stringify({
           model: 'MiniMax-M2.7',
           thinking: { type: 'off' },
