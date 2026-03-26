@@ -82,16 +82,19 @@ def select_agents(domain: str, count: int, task: str, registry: dict) -> list:
 
     elif domain == 'build':
         if count <= 3:
-            return ['architect', 'backend-dev', 'frontend-dev']
+            return ['solutions-architect', 'backend-tech-lead', 'frontend-tech-lead']
         elif count <= 5:
-            return ['architect', 'backend-dev', 'frontend-dev', 'devops-eng', 'security-eng']
+            return ['solutions-architect', 'backend-tech-lead', 'frontend-tech-lead',
+                    'devops-lead', 'security-lead-eng']
         elif count <= 8:
-            return ['architect', 'backend-dev', 'frontend-dev', 'devops-eng',
-                    'security-eng', 'qa-engineer', 'database-specialist', 'api-specialist']
+            return ['solutions-architect', 'backend-tech-lead', 'frontend-tech-lead',
+                    'devops-lead', 'security-lead-eng', 'qa-lead-engineer',
+                    'database-specialist', 'api-lead']
         else:
-            return ['architect', 'backend-dev', 'frontend-dev', 'devops-eng',
-                    'security-eng', 'qa-engineer', 'database-specialist', 'api-specialist',
-                    'cloud-specialist', 'monitoring-specialist', 'llm-specialist']
+            return ['solutions-architect', 'backend-tech-lead', 'frontend-tech-lead',
+                    'devops-lead', 'security-lead-eng', 'qa-lead-engineer',
+                    'database-specialist', 'api-lead', 'cloud-infra-lead',
+                    'monitoring-specialist', 'ml-engineer', 'performance-engineering-lead']
 
     elif domain == 'research':
         if count <= 3:
@@ -220,34 +223,35 @@ def split_task(task: str, agents: list, domain: str, registry: dict) -> dict:
             )
 
     elif domain == 'build':
-        subtasks['architect'] = (
+        subtasks['solutions-architect'] = (
             f"As the Solutions Architect: Design the full system architecture for: {task}. "
             f"Cover scalability, maintainability, API design, and integration patterns. "
             f"Produce architecture diagrams and ADR documents. {task_instruction}"
         )
-        subtasks['backend-dev'] = (
-            f"As the Backend Developer: Implement the server-side logic, APIs, database schema, "
-            f"and business logic for: {task}. Output complete, production-ready code. {task_instruction}"
+        subtasks['backend-tech-lead'] = (
+            f"As the Backend Tech Lead: Design and implement the server-side logic, APIs, "
+            f"database schema, and business logic for: {task}. Output complete, production-ready code. "
+            f"Ensure security, performance, and testability. {task_instruction}"
         )
-        subtasks['frontend-dev'] = (
-            f"As the Frontend Developer: Build the UI components, user interactions, "
+        subtasks['frontend-tech-lead'] = (
+            f"As the Frontend Tech Lead: Build the UI components, user interactions, "
             f"state management, and responsive design for: {task}. "
-            f"Output complete frontend code. {task_instruction}"
+            f"Output complete frontend code with proper testing and accessibility. {task_instruction}"
         )
-        if 'devops-eng' in agents:
-            subtasks['devops-eng'] = (
-                f"As the DevOps Engineer: Design the CI/CD pipeline, deployment strategy, "
-                f"Docker/Kubernetes setup, and monitoring for: {task}. {task_instruction}"
+        if 'devops-lead' in agents:
+            subtasks['devops-lead'] = (
+                f"As the DevOps Lead: Design the CI/CD pipeline, deployment strategy, "
+                f"Docker/Kubernetes setup, and observability for: {task}. {task_instruction}"
             )
-        if 'security-eng' in agents:
-            subtasks['security-eng'] = (
-                f"As the Security Engineer: Review the architecture for security vulnerabilities, "
+        if 'security-lead-eng' in agents:
+            subtasks['security-lead-eng'] = (
+                f"As the Security Lead Engineer: Review the architecture for security vulnerabilities, "
                 f"OWASP Top 10 issues, and authentication/authorization design for: {task}. "
                 f"{task_instruction}"
             )
-        if 'qa-engineer' in agents:
-            subtasks['qa-engineer'] = (
-                f"As the QA Engineer: Design the test strategy, write unit and integration tests, "
+        if 'qa-lead-engineer' in agents:
+            subtasks['qa-lead-engineer'] = (
+                f"As the QA Lead Engineer: Design the test strategy, write unit and integration tests, "
                 f"and define acceptance criteria for: {task}. {task_instruction}"
             )
         if 'database-specialist' in agents:
@@ -255,15 +259,30 @@ def split_task(task: str, agents: list, domain: str, registry: dict) -> dict:
                 f"As the Database Specialist: Design the database schema, indexes, "
                 f"partitioning strategy, and migration scripts for: {task}. {task_instruction}"
             )
-        if 'api-specialist' in agents:
-            subtasks['api-specialist'] = (
-                f"As the API Specialist: Design the REST/GraphQL API contracts, endpoint structure, "
+        if 'api-lead' in agents:
+            subtasks['api-lead'] = (
+                f"As the API Lead Engineer: Design the REST/GraphQL API contracts, endpoint structure, "
                 f"authentication flows, and API versioning strategy for: {task}. {task_instruction}"
             )
-        if 'cloud-specialist' in agents:
-            subtasks['cloud-specialist'] = (
-                f"As the Cloud Specialist: Design the cloud infrastructure, VPC/networking, "
+        if 'cloud-infra-lead' in agents:
+            subtasks['cloud-infra-lead'] = (
+                f"As the Cloud Infrastructure Lead: Design the cloud architecture, VPC/networking, "
                 f"cost optimization, and multi-region strategy for: {task}. {task_instruction}"
+            )
+        if 'monitoring-specialist' in agents:
+            subtasks['monitoring-specialist'] = (
+                f"As the Monitoring Specialist: Design the observability stack, dashboards, "
+                f"alerting rules, and SLO/SLI definitions for: {task}. {task_instruction}"
+            )
+        if 'ml-engineer' in agents:
+            subtasks['ml-engineer'] = (
+                f"As the ML Engineer: Identify where and how LLMs/AI can be "
+                f"integrated into: {task}. Design RAG pipelines or AI features. {task_instruction}"
+            )
+        if 'performance-engineering-lead' in agents:
+            subtasks['performance-engineering-lead'] = (
+                f"As the Performance Engineering Lead: Profile and optimize the system for: {task}. "
+                f"Identify bottlenecks and propose optimization strategies. {task_instruction}"
             )
         if 'monitoring-specialist' in agents:
             subtasks['monitoring-specialist'] = (

@@ -1,4 +1,2 @@
-# Ignore all plan files - these are local execution logs
 *.json
-# Except README
 !.gitignore
