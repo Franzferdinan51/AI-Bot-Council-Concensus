@@ -1003,9 +1003,9 @@ See [LICENSE](LICENSE) for details.
 
 ## 🐝 Agent Swarm System ⭐ NEW (March 26, 2026)
 
-**133+ specialized AI agents working together on your tasks.**
+**218+ specialized AI agents working together on your tasks.**
 
-The Agent Swarm System is a major addition to the AI Council — parallel task execution with specialized agents across game dev, software build, research, security audits, mobile, and data/ML.
+The Agent Swarm System is a major addition to the AI Council — parallel task execution with specialized agents across game dev, software build, research, security audits, mobile, data/ML, and every coding domain imaginable.
 
 ### How It Works
 
@@ -1024,13 +1024,39 @@ swarm data create a real-time analytics pipeline
 4. **Dispatch** → Agents work in parallel via `sessions_spawn`
 5. **Aggregate** → Results synthesized into final deliverable
 
-### Agent Tiers
+### Agent Tiers (218 Total)
 
-| Tier | Role | Model | Cost |
-|------|------|-------|------|
-| **Tier 1** | Strategic / Directors | qwen3.5-plus | 18K/mo quota |
-| **Tier 2** | Tactical / Leads | glm-5 | API credits |
-| **Tier 3** | Specialists | MiniMax-M2.5 | FREE unlimited |
+| Tier | Role | Model | Count |
+|------|------|-------|-------|
+| **Tier 1** | Strategic / Directors | MiniMax-M2.7 | 25 |
+| **Tier 2** | Tactical / Leads | MiniMax-M2.7 | 50 |
+| **Tier 3** | Specialists | MiniMax-M2.5 | 143+ |
+
+### Tier 1 Coding Directors (10)
+solutions-architect, frontend-architect, backend-architect, api-architect, devops-director, security-director, data-ml-director, mobile-director, ux-director, platform-director
+
+### Tier 2 Coding Tech Leads (15)
+frontend-tech-lead, backend-tech-lead, mobile-tech-lead, devops-lead, security-lead-eng, qa-lead-engineer, data-engineering-lead, cloud-infra-lead, ml-engineering-lead, platform-engineering-lead, api-lead, performance-engineering-lead, reliability-engineering-lead, product-engineering-lead, research-engineering-lead
+
+### Tier 3 Coding Specialists (134+) — Key Categories
+
+| Category | Examples |
+|----------|----------|
+| **Frontend** | React, Vue, Svelte, Angular, Next.js, Remix, Nuxt, Astro, TypeScript, Tailwind, Radix UI, Shadcn, Animation |
+| **Backend** | Node.js, Express, FastAPI, Django, Flask, NestJS, Spring, .NET, Go, Rust, Elixir, Bun, Deno, GraphQL |
+| **Mobile** | React Native, Flutter, SwiftUI, UIKit, Kotlin, Android Native |
+| **Database** | PostgreSQL, MongoDB, Redis, DynamoDB, Elasticsearch, SQLite |
+| **Cloud** | AWS, GCP, Azure, Kubernetes, Docker, Terraform, Cloudflare Workers, Vercel, Firebase, Supabase |
+| **Data/ML** | PyTorch, Pandas, Airflow, dbt, Snowflake, Databricks, BigQuery, Kafka, LLM, LangChain, RAG, HuggingFace, Vector DB |
+| **AI Agents** | LangChain, CrewAI, RAG Specialist, Vector DB, OpenAI API, HuggingFace |
+| **Testing** | Playwright, Cypress, Jest, Vitest, TDD |
+| **Security** | AppSec, Pen Testing, Cryptography, OAuth, DevSecOps, GDPR, HIPAA, PCI-DSS, SOC 2 |
+| **Observability** | OpenTelemetry, Sentry, Datadog, Prometheus, Grafana |
+| **Payments** | Stripe, Payment Gateway |
+| **Search/CMS** | Algolia, Contentful, Sanity |
+| **Auth** | Auth0, Clerk, Supabase Auth |
+| **Streaming** | Kafka, Redis Streams, HLS/DASH, WebRTC |
+| **Industry** | E-commerce, SaaS, Fintech, IoT, Blockchain, Media, Audio, Automation, Raspberry Pi, Crypto, Home Automation |
 
 ### Domains
 

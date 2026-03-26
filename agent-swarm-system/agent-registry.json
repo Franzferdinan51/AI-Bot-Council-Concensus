@@ -4,7 +4,7 @@
       "name": "Solutions Architect",
       "tier": 1,
       "domain": "general",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "System design, technology selection, architecture review",
       "delivers": [
         "Architecture diagrams",
@@ -21,7 +21,7 @@
       "name": "Backend Developer",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "API design, database schema, business logic implementation",
       "delivers": [
         "Server code",
@@ -38,7 +38,7 @@
       "name": "Frontend Developer",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "UI implementation, component development, state management",
       "delivers": [
         "UI components",
@@ -55,7 +55,7 @@
       "name": "DevOps Engineer",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "CI/CD pipeline, deployment, monitoring, infrastructure",
       "delivers": [
         "Docker files",
@@ -72,7 +72,7 @@
       "name": "Security Engineer",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Security audit, threat modeling, vulnerability assessment",
       "delivers": [
         "Security report",
@@ -89,7 +89,7 @@
       "name": "QA Engineer",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Test strategy, test generation, coverage analysis",
       "delivers": [
         "Unit tests",
@@ -106,7 +106,7 @@
       "name": "Technical Director",
       "tier": 1,
       "domain": "general",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Technology strategy, stack decisions, technical vision alignment",
       "delivers": [
         "Tech roadmap",
@@ -123,7 +123,7 @@
       "name": "Product Director",
       "tier": 1,
       "domain": "general",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Product strategy, roadmap prioritization, user value",
       "delivers": [
         "Product roadmap",
@@ -140,7 +140,7 @@
       "name": "API Specialist",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "REST/GraphQL/API design and implementation",
       "delivers": [
         "API specs",
@@ -157,7 +157,7 @@
       "name": "Database Specialist",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Database design, query optimization, data modeling",
       "delivers": [
         "Schema designs",
@@ -174,7 +174,7 @@
       "name": "Cloud Specialist",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Cloud architecture, AWS/GCP/Azure infrastructure",
       "delivers": [
         "Infrastructure code",
@@ -191,7 +191,7 @@
       "name": "ML Engineer",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Machine learning model development, training, deployment",
       "delivers": [
         "ML models",
@@ -208,7 +208,7 @@
       "name": "Data Engineer",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Data pipelines, ETL, warehousing, streaming",
       "delivers": [
         "Data pipelines",
@@ -225,7 +225,7 @@
       "name": "Site Reliability Engineer",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "SRE practices, SLAs, incident response, postmortems",
       "delivers": [
         "SLO definitions",
@@ -242,7 +242,7 @@
       "name": "UX Researcher",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "User research, usability testing, journey mapping",
       "delivers": [
         "Research reports",
@@ -259,7 +259,7 @@
       "name": "Technical Writer",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Documentation, API docs, user guides, runbooks",
       "delivers": [
         "Documentation",
@@ -277,7 +277,7 @@
       "name": "Mobile Specialist",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "iOS/Android mobile development",
       "delivers": [
         "Mobile apps",
@@ -294,7 +294,7 @@
       "name": "Web Specialist",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Full-stack web development, React/Vue/Angular",
       "delivers": [
         "Web applications",
@@ -311,7 +311,7 @@
       "name": "Security Lead",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Security strategy, threat modeling, compliance",
       "delivers": [
         "Security strategy",
@@ -328,7 +328,7 @@
       "name": "Data Lead",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Data strategy, analytics, ML infrastructure",
       "delivers": [
         "Data strategy",
@@ -345,7 +345,7 @@
       "name": "Product Lead",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Requirements, prioritization, user story creation",
       "delivers": [
         "PRD documents",
@@ -362,7 +362,7 @@
       "name": "Research Lead",
       "tier": 2,
       "domain": "general",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Market research, competitive analysis, discovery",
       "delivers": [
         "Research reports",
@@ -379,7 +379,7 @@
       "name": "Operations Director",
       "tier": 1,
       "domain": "general",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "DevOps strategy, process optimization, efficiency",
       "delivers": [
         "Process improvements",
@@ -396,7 +396,7 @@
       "name": "SEO Specialist",
       "tier": 3,
       "domain": "general",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Search optimization, analytics, content strategy",
       "delivers": [
         "SEO audits",
@@ -413,7 +413,7 @@
       "name": "Creative Director",
       "tier": 1,
       "domain": "game",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Game vision, art style, narrative tone, genre feel",
       "delivers": [
         "Vision doc",
@@ -430,7 +430,7 @@
       "name": "Technical Director",
       "tier": 1,
       "domain": "game",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Game engine selection, architecture, tech stack",
       "delivers": [
         "Tech stack decision",
@@ -447,7 +447,7 @@
       "name": "Executive Producer",
       "tier": 1,
       "domain": "game",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Scope, timeline, team composition, milestone planning",
       "delivers": [
         "Project plan",
@@ -464,7 +464,7 @@
       "name": "Game Designer",
       "tier": 2,
       "domain": "game",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Game mechanics, player experience, progression systems",
       "delivers": [
         "Design docs",
@@ -481,7 +481,7 @@
       "name": "Lead Programmer",
       "tier": 2,
       "domain": "game",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Code architecture, technical decisions, code review",
       "delivers": [
         "Code standards",
@@ -498,7 +498,7 @@
       "name": "Art Director",
       "tier": 2,
       "domain": "game",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Visual style, art pipeline, asset standards",
       "delivers": [
         "Style guide",
@@ -515,7 +515,7 @@
       "name": "Audio Director",
       "tier": 2,
       "domain": "game",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Sound design, music, audio implementation",
       "delivers": [
         "Audio design doc",
@@ -532,7 +532,7 @@
       "name": "Narrative Director",
       "tier": 2,
       "domain": "game",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Story, dialogue, world lore, character arcs",
       "delivers": [
         "Narrative bible",
@@ -549,7 +549,7 @@
       "name": "QA Lead",
       "tier": 2,
       "domain": "game",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Test strategy, bug tracking, certification",
       "delivers": [
         "Test plans",
@@ -566,7 +566,7 @@
       "name": "Release Manager",
       "tier": 2,
       "domain": "game",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Release planning, certification, platform launch",
       "delivers": [
         "Release plan",
@@ -583,7 +583,7 @@
       "name": "Localization Lead",
       "tier": 2,
       "domain": "game",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Translation, cultural adaptation, localization pipeline",
       "delivers": [
         "Localization guide",
@@ -600,7 +600,7 @@
       "name": "Gameplay Programmer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Player mechanics, controls, game feel",
       "delivers": [
         "Player controller code",
@@ -617,7 +617,7 @@
       "name": "Engine Programmer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Core engine, rendering, platform ports",
       "delivers": [
         "Engine code",
@@ -634,7 +634,7 @@
       "name": "Game AI Programmer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "NPC behavior, pathfinding, decision trees",
       "delivers": [
         "AI systems",
@@ -651,7 +651,7 @@
       "name": "Network Programmer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Multiplayer netcode, matchmaking, server architecture",
       "delivers": [
         "Netcode",
@@ -668,7 +668,7 @@
       "name": "Tools Programmer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Level editor, scripting tools, debug tools",
       "delivers": [
         "Editor tools",
@@ -685,7 +685,7 @@
       "name": "UI Programmer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Menus, HUD, UI systems",
       "delivers": [
         "UI systems",
@@ -702,7 +702,7 @@
       "name": "Systems Designer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Economy, progression, itemization, balance",
       "delivers": [
         "Economy models",
@@ -719,7 +719,7 @@
       "name": "Level Designer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Level layout, pacing, encounter design",
       "delivers": [
         "Level layouts",
@@ -736,7 +736,7 @@
       "name": "Economy Designer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "In-game economy, monetization, resource balance",
       "delivers": [
         "Economy design",
@@ -753,7 +753,7 @@
       "name": "Technical Artist",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Shaders, VFX, graphics optimization",
       "delivers": [
         "Shader code",
@@ -770,7 +770,7 @@
       "name": "Sound Designer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Sound effects, ambient audio, implementation",
       "delivers": [
         "Sound effects",
@@ -787,7 +787,7 @@
       "name": "Writer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Dialogue, narrative content, lore writing",
       "delivers": [
         "Dialogue scripts",
@@ -804,7 +804,7 @@
       "name": "World Builder",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "World lore, geography, faction design",
       "delivers": [
         "World bible",
@@ -821,7 +821,7 @@
       "name": "UX Designer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Player journey, onboarding, retention",
       "delivers": [
         "UX flows",
@@ -838,7 +838,7 @@
       "name": "Prototyper",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Rapid prototyping, proof-of-concept",
       "delivers": [
         "Prototypes",
@@ -855,7 +855,7 @@
       "name": "Performance Analyst",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Performance profiling, optimization",
       "delivers": [
         "Profiling reports",
@@ -872,7 +872,7 @@
       "name": "DevOps Engineer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Build pipeline, deployment, platform SDKs",
       "delivers": [
         "Build scripts",
@@ -889,7 +889,7 @@
       "name": "Analytics Engineer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Telemetry, analytics, player metrics",
       "delivers": [
         "Telemetry system",
@@ -906,7 +906,7 @@
       "name": "Security Engineer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Game security, anti-cheat, server protection",
       "delivers": [
         "Security audit",
@@ -923,7 +923,7 @@
       "name": "QA Tester",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Functional testing, regression, bug reporting",
       "delivers": [
         "Bug reports",
@@ -940,7 +940,7 @@
       "name": "Accessibility Specialist",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Accessibility features, assistive technology support",
       "delivers": [
         "Accessibility spec",
@@ -957,7 +957,7 @@
       "name": "Live Ops Designer",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Live service events, seasonal content, engagement",
       "delivers": [
         "Live event plans",
@@ -974,7 +974,7 @@
       "name": "Community Manager",
       "tier": 3,
       "domain": "game",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Community feedback, social media, player relations",
       "delivers": [
         "Community reports",
@@ -992,7 +992,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "React, Next.js, component architecture, hooks, state management",
       "delivers": [
         "React components",
@@ -1012,7 +1012,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Vue 3, Nuxt, Pinia, Composition API, Vue Router",
       "delivers": [
         "Vue components",
@@ -1032,7 +1032,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Svelte 5, SvelteKit, runes, stores, SSR",
       "delivers": [
         "Svelte components",
@@ -1052,7 +1052,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Angular, RxJS, NgModules, standalone components, signals",
       "delivers": [
         "Angular modules",
@@ -1072,7 +1072,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Semantic HTML, CSS architecture, responsive design, animations",
       "delivers": [
         "HTML templates",
@@ -1092,7 +1092,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Advanced TypeScript, generics, decorators, type-level programming",
       "delivers": [
         "Type definitions",
@@ -1112,7 +1112,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Tailwind CSS, design systems, custom themes, JIT mode",
       "delivers": [
         "Tailwind configs",
@@ -1132,7 +1132,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "CSS animations, Framer Motion, GSAP, Lottie, transitions",
       "delivers": [
         "Animation code",
@@ -1152,7 +1152,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Node.js core, npm, streams, worker threads, clusters",
       "delivers": [
         "Node.js services",
@@ -1172,7 +1172,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Express.js routing, middleware, REST APIs, error handling",
       "delivers": [
         "Express routes",
@@ -1192,7 +1192,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "FastAPI, Pydantic, async, dependency injection, OpenAPI",
       "delivers": [
         "FastAPI endpoints",
@@ -1212,7 +1212,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Django, ORM, admin, REST framework, channels",
       "delivers": [
         "Django models",
@@ -1232,7 +1232,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Flask, Blueprints, Jinja2, SQLAlchemy, extensions",
       "delivers": [
         "Flask app",
@@ -1252,7 +1252,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "NestJS, dependency injection, GraphQL, microservices, guards",
       "delivers": [
         "NestJS modules",
@@ -1272,7 +1272,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Go, goroutines, channels, interfaces, standard library",
       "delivers": [
         "Go services",
@@ -1292,7 +1292,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Rust web frameworks (Actix, Axum), tokio, async, error handling",
       "delivers": [
         "Rust web services",
@@ -1312,7 +1312,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Spring Boot, Java, microservices, Spring Security, JPA",
       "delivers": [
         "Spring Boot apps",
@@ -1332,7 +1332,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Elixir, Phoenix, LiveView, Ecto, OTP",
       "delivers": [
         "Phoenix apps",
@@ -1352,7 +1352,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": ".NET, C#, Blazor, ASP.NET Core, Entity Framework",
       "delivers": [
         ".NET APIs",
@@ -1372,7 +1372,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "React Native, Expo, native modules, navigation",
       "delivers": [
         "React Native screens",
@@ -1392,7 +1392,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Flutter, Dart, widgets, Firebase, platform channels",
       "delivers": [
         "Flutter apps",
@@ -1412,7 +1412,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "SwiftUI, iOS development, Combine, Swift concurrency",
       "delivers": [
         "SwiftUI views",
@@ -1432,7 +1432,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "UIKit, programmatic UI, Auto Layout, SnapKit, table/collection views",
       "delivers": [
         "UIKit view controllers",
@@ -1452,7 +1452,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Kotlin, Android, Jetpack Compose, coroutines, KSP",
       "delivers": [
         "Kotlin Android apps",
@@ -1472,7 +1472,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "database",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "PostgreSQL, queries, optimization, partitioning, JSONB, full-text search",
       "delivers": [
         "Schema designs",
@@ -1492,7 +1492,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "database",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "MongoDB, aggregation pipeline, schema design, replica sets, sharding",
       "delivers": [
         "MongoDB schemas",
@@ -1512,7 +1512,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "database",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Redis, caching patterns, pub/sub, streams, Lua scripting",
       "delivers": [
         "Caching implementations",
@@ -1532,7 +1532,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "database",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "DynamoDB, GSI, TTL, single table design, DAXX",
       "delivers": [
         "Table designs",
@@ -1552,7 +1552,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "database",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Elasticsearch, indexing, full-text search, aggregations, mappings",
       "delivers": [
         "Index mappings",
@@ -1572,7 +1572,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "GraphQL schema design, resolvers, federation, subscriptions",
       "delivers": [
         "GraphQL schemas",
@@ -1592,7 +1592,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "AWS services, EC2, S3, Lambda, ECS, EKS, IAM, CDK",
       "delivers": [
         "AWS architectures",
@@ -1612,7 +1612,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Google Cloud, GCE, GCS, Cloud Functions, GKE, BigQuery",
       "delivers": [
         "GCP architectures",
@@ -1632,7 +1632,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Azure, VMs, App Service, Functions, AKS, DevOps, ARM templates",
       "delivers": [
         "Azure architectures",
@@ -1652,7 +1652,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "K8s, Helm, operators, networking, storage, autoscaling",
       "delivers": [
         "Kubernetes manifests",
@@ -1672,7 +1672,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "devops",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Docker, multi-stage builds, Docker Compose, container security",
       "delivers": [
         "Dockerfiles",
@@ -1692,7 +1692,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "devops",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Terraform, HCL, modules, state management, remote backends",
       "delivers": [
         "Terraform configs",
@@ -1712,7 +1712,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "devops",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "GitHub Actions, GitLab CI, Jenkins, pipeline design, artifact management",
       "delivers": [
         "CI/CD pipelines",
@@ -1732,7 +1732,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "devops",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Prometheus, Grafana, alerting, SLIs/SLOs, distributed tracing",
       "delivers": [
         "Monitoring configs",
@@ -1752,7 +1752,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Serverless architecture, edge functions, Faas, cold start optimization",
       "delivers": [
         "Serverless designs",
@@ -1772,7 +1772,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Python data stack, Pandas, NumPy, data pipelines",
       "delivers": [
         "Data processing scripts",
@@ -1792,7 +1792,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "PyTorch, model training, HuggingFace, distributed training",
       "delivers": [
         "PyTorch models",
@@ -1812,7 +1812,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Scikit-learn, classical ML, pipelines, feature engineering",
       "delivers": [
         "ML pipelines",
@@ -1832,7 +1832,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Pandas, data cleaning, transformations, aggregations, visualizations",
       "delivers": [
         "Data cleaning scripts",
@@ -1852,7 +1852,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Apache Airflow, DAGs, operators, sensors, xcoms",
       "delivers": [
         "Airflow DAGs",
@@ -1872,7 +1872,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "LLM integration, prompt engineering, RAG, fine-tuning, embeddings",
       "delivers": [
         "Prompt templates",
@@ -1892,7 +1892,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "MLflow, model versioning, deployment, monitoring, feature stores",
       "delivers": [
         "MLflow setups",
@@ -1912,7 +1912,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Linux admin, systemd, kernel tuning, scripting, troubleshooting",
       "delivers": [
         "Admin scripts",
@@ -1932,7 +1932,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "TCP/IP, DNS, load balancing, firewalls, VPC, network debugging",
       "delivers": [
         "Network designs",
@@ -1952,7 +1952,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Bash scripts, automation, system admin, cron jobs",
       "delivers": [
         "Bash scripts",
@@ -1972,7 +1972,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Python automation, scripting, scheduling, API automation",
       "delivers": [
         "Automation scripts",
@@ -1992,7 +1992,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Git workflows, branching strategies, hooks, bisect, advanced git",
       "delivers": [
         "Git workflows",
@@ -2012,7 +2012,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Profiling, benchmarking, optimization, load testing",
       "delivers": [
         "Profiling reports",
@@ -2032,7 +2032,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "CAP theorem, consensus algorithms, distributed architecture, CRDT",
       "delivers": [
         "Architecture designs",
@@ -2052,7 +2052,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Microservices patterns, service mesh, API gateways, circuit breakers",
       "delivers": [
         "Service designs",
@@ -2072,7 +2072,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "REST design, GraphQL, versioning, OpenAPI, API governance",
       "delivers": [
         "API specifications",
@@ -2092,7 +2092,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "WebSocket, SSE, Socket.io, real-time systems",
       "delivers": [
         "WebSocket servers",
@@ -2112,7 +2112,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Application security, OWASP Top 10, secure coding, threat modeling",
       "delivers": [
         "Security reviews",
@@ -2132,7 +2132,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Ethical hacking, vulnerability assessment, pen testing methodology",
       "delivers": [
         "Pen test reports",
@@ -2152,7 +2152,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Encryption, hashing, TLS, key management, cryptographic protocols",
       "delivers": [
         "Crypto implementations",
@@ -2172,7 +2172,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "OAuth 2.0, OIDC, SSO, identity providers, JWT",
       "delivers": [
         "OAuth implementations",
@@ -2192,7 +2192,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "security",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Security in CI/CD, SAST, DAST, dependency scanning, secrets detection",
       "delivers": [
         "Security pipelines",
@@ -2212,7 +2212,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Shopify, Stripe, product catalogs, checkout, inventory",
       "delivers": [
         "Shopify apps",
@@ -2232,7 +2232,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "SaaS architecture, billing, multi-tenancy, churn, subscription management",
       "delivers": [
         "Multi-tenant architectures",
@@ -2252,7 +2252,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Payments, compliance, PCI-DSS, trading systems, reconciliation",
       "delivers": [
         "Payment integrations",
@@ -2272,7 +2272,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "IoT protocols, MQTT, CoAP, edge computing, device management",
       "delivers": [
         "MQTT brokers",
@@ -2292,7 +2292,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Smart contracts, Solidity, Web3, NFT, DeFi integrations",
       "delivers": [
         "Smart contracts",
@@ -2312,7 +2312,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Home Assistant, Zigbee, Z-Wave, smart home integrations, automations",
       "delivers": [
         "HA automations",
@@ -2332,7 +2332,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Raspberry Pi, GPIO, embedded Linux, Pi Hole, custom hardware projects",
       "delivers": [
         "Pi projects",
@@ -2352,7 +2352,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Crypto trading bots, DEX integration, wallet management, market analysis",
       "delivers": [
         "Trading bots",
@@ -2372,7 +2372,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "FFmpeg, video processing, streaming, transcoding, HLS/DASH",
       "delivers": [
         "FFmpeg scripts",
@@ -2392,7 +2392,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Audio processing, WebAudio, music apps, voice interfaces",
       "delivers": [
         "WebAudio implementations",
@@ -2412,7 +2412,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "OpenAPI spec writing, Swagger, API documentation, spec-first development",
       "delivers": [
         "OpenAPI specs",
@@ -2432,7 +2432,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "systems",
-      "model": "bailian/MiniMax-M2.5",
+      "model": "minimax-portal/MiniMax-M2.5",
       "role": "Testing strategies, TDD, BDD, test automation frameworks",
       "delivers": [
         "Test suites",
@@ -2452,7 +2452,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "UX engineering, design systems, component libraries, Figma-to-code",
       "delivers": [
         "Design systems",
@@ -2472,7 +2472,7 @@
       "tier": 3,
       "domain": "coding",
       "subdomain": "industry",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "OpenClaw agent development, skill creation, MCP servers, workspace automation",
       "delivers": [
         "OpenClaw skills",
@@ -2492,7 +2492,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "strategy",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "End-to-end system design, technology selection, architectural patterns, scalability planning",
       "delivers": [
         "Architecture diagrams",
@@ -2512,7 +2512,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Frontend tech strategy, framework selection, design system architecture, performance budgets",
       "delivers": [
         "Frontend architecture doc",
@@ -2532,7 +2532,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Backend tech strategy, service architecture, database design, API philosophy",
       "delivers": [
         "Backend architecture doc",
@@ -2552,7 +2552,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "devops",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Platform engineering strategy, CI/CD vision, infrastructure roadmap, observability strategy",
       "delivers": [
         "Platform strategy",
@@ -2572,7 +2572,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "security",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Security strategy, threat modeling, compliance frameworks, security culture",
       "delivers": [
         "Security strategy doc",
@@ -2592,7 +2592,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Data and ML strategy, data platform vision, ML roadmap, analytics architecture",
       "delivers": [
         "Data strategy",
@@ -2612,7 +2612,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "API strategy, service mesh design, versioning philosophy, SDK design",
       "delivers": [
         "API strategy doc",
@@ -2632,7 +2632,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Mobile platform strategy, cross-platform vs native decisions, mobile infrastructure",
       "delivers": [
         "Mobile strategy",
@@ -2652,7 +2652,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "UX strategy, design system governance, research methodology, accessibility standards",
       "delivers": [
         "UX strategy",
@@ -2672,7 +2672,7 @@
       "tier": 1,
       "domain": "coding",
       "subdomain": "platform",
-      "model": "bailian/qwen3.5-plus",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Internal platform strategy, developer tooling, self-service infrastructure, golden paths",
       "delivers": [
         "Platform strategy",
@@ -2692,7 +2692,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "frontend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead frontend development, component architecture, code review, framework decisions",
       "delivers": [
         "Architecture decisions",
@@ -2712,7 +2712,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead backend development, service design, API implementation, code review",
       "delivers": [
         "Service designs",
@@ -2732,7 +2732,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "mobile",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead mobile development, platform decisions, native integrations, code review",
       "delivers": [
         "Mobile architecture",
@@ -2752,7 +2752,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "devops",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead DevOps practices, CI/CD pipeline design, infrastructure as code, monitoring",
       "delivers": [
         "CI/CD pipelines",
@@ -2772,7 +2772,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "security",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead security engineering, secure code review, vulnerability management, security tooling",
       "delivers": [
         "Security reviews",
@@ -2792,7 +2792,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "qa",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead QA practices, test strategy, automation frameworks, quality metrics",
       "delivers": [
         "Test strategies",
@@ -2812,7 +2812,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead data platform development, ETL pipeline design, warehousing, data quality",
       "delivers": [
         "Data pipelines",
@@ -2832,7 +2832,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "cloud",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead cloud infrastructure, AWS/GCP/Azure architecture, cost optimization, multi-cloud strategy",
       "delivers": [
         "Cloud architectures",
@@ -2852,7 +2852,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "data",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead ML platform development, model deployment, feature stores, ML infrastructure",
       "delivers": [
         "ML platform designs",
@@ -2872,7 +2872,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "platform",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead internal developer platform, tooling, self-service infrastructure, golden paths",
       "delivers": [
         "Platform tools",
@@ -2892,7 +2892,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "platform",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead product-facing engineering, feature development, stakeholder coordination, roadmap delivery",
       "delivers": [
         "Feature specs",
@@ -2912,7 +2912,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "platform",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead research engineering, prototype development, technology evaluation, PoC execution",
       "delivers": [
         "Research prototypes",
@@ -2932,7 +2932,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "backend",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead API design and development, REST/GraphQL/grpc standards, SDK development",
       "delivers": [
         "API designs",
@@ -2952,7 +2952,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "platform",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead performance engineering, profiling, optimization, capacity planning",
       "delivers": [
         "Performance analyses",
@@ -2972,7 +2972,7 @@
       "tier": 2,
       "domain": "coding",
       "subdomain": "devops",
-      "model": "bailian/glm-5",
+      "model": "minimax-portal/MiniMax-M2.7",
       "role": "Lead SRE practices, SLO/SLI definition, incident management, chaos engineering",
       "delivers": [
         "SLO definitions",
@@ -2985,6 +2985,1206 @@
         "Latency",
         "Incident response",
         "Postmortem quality"
+      ]
+    },
+    "stripe-specialist": {
+      "name": "Stripe Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "payments",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Stripe integration, payment processing, subscriptions, webhooks, billing",
+      "delivers": [
+        "Stripe integrations",
+        "Webhook handlers",
+        "Subscription flows",
+        "Billing logic"
+      ],
+      "quality_focus": [
+        "PCI compliance",
+        "Idempotency",
+        "Error handling",
+        "Revenue recognition"
+      ]
+    },
+    "payment-gateway-specialist": {
+      "name": "Payment Gateway Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "payments",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Multi-gateway payment integration, payment orchestration, fraud detection",
+      "delivers": [
+        "Gateway integrations",
+        "Fraud detection code",
+        "Payment routing",
+        "Refund flows"
+      ],
+      "quality_focus": [
+        "Transaction safety",
+        "Idempotency",
+        "Fraud prevention",
+        "Compliance"
+      ]
+    },
+    "auth0-specialist": {
+      "name": "Auth0 Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "security",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Auth0 integration, SSO, MFA, social login, role-based access",
+      "delivers": [
+        "Auth0 integration",
+        "SSO setup",
+        "MFA flows",
+        "Role management"
+      ],
+      "quality_focus": [
+        "Security",
+        "User experience",
+        "Compliance",
+        "Universal login"
+      ]
+    },
+    "clerk-specialist": {
+      "name": "Clerk Auth Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "security",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Clerk authentication, React components, user management, webhook integration",
+      "delivers": [
+        "Clerk integration",
+        "Auth components",
+        "User management",
+        "Webhook handlers"
+      ],
+      "quality_focus": [
+        "Security",
+        "Developer experience",
+        "React patterns",
+        "Multi-tenancy"
+      ]
+    },
+    "supabase-auth-specialist": {
+      "name": "Supabase Auth Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "security",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Supabase Auth integration, Row Level Security, social login, JWT management",
+      "delivers": [
+        "Supabase auth setup",
+        "RLS policies",
+        "JWT handling",
+        "Social login"
+      ],
+      "quality_focus": [
+        "Security",
+        "RLS correctness",
+        "Performance",
+        "Real-time sync"
+      ]
+    },
+    "algolia-specialist": {
+      "name": "Algolia Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Algolia search integration, indexing strategy, facets, ranking, instant search",
+      "delivers": [
+        "Algolia integration",
+        "Index strategies",
+        "Search UI",
+        "Analytics setup"
+      ],
+      "quality_focus": [
+        "Search relevance",
+        "Index performance",
+        "Typo tolerance",
+        "Faceted search"
+      ]
+    },
+    "contentful-specialist": {
+      "name": "Contentful Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Contentful CMS integration, content modeling, delivery/preview APIs, webhooks",
+      "delivers": [
+        "Contentful integration",
+        "Content models",
+        "Webhooks",
+        "CDN setup"
+      ],
+      "quality_focus": [
+        "Content modeling",
+        "Delivery performance",
+        "Localization",
+        "Webhooks"
+      ]
+    },
+    "sanity-specialist": {
+      "name": "Sanity CMS Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Sanity.io CMS, GROQ queries, portable text, real-time collaboration",
+      "delivers": [
+        "Sanity integration",
+        "GROQ schemas",
+        "Portable text rendering",
+        "Studio customization"
+      ],
+      "quality_focus": [
+        "Schema design",
+        "GROQ optimization",
+        "CDN performance",
+        "Real-time preview"
+      ]
+    },
+    "langchain-specialist": {
+      "name": "LangChain Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "LangChain chains, agents, memory, RAG pipelines, tool calling",
+      "delivers": [
+        "LangChain chains",
+        "RAG implementations",
+        "Agent designs",
+        "Memory systems"
+      ],
+      "quality_focus": [
+        "Chain reliability",
+        "Token efficiency",
+        "Error handling",
+        "Observability"
+      ]
+    },
+    "huggingface-specialist": {
+      "name": "HuggingFace Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "HuggingFace model integration, fine-tuning, inference endpoints, Spaces",
+      "delivers": [
+        "Model integrations",
+        "Fine-tuning pipelines",
+        "Inference code",
+        "Gradio UIs"
+      ],
+      "quality_focus": [
+        "Model selection",
+        "Fine-tuning efficiency",
+        "Inference latency",
+        "Hub integration"
+      ]
+    },
+    "rag-specialist": {
+      "name": "RAG Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "RAG architecture, embedding strategies, chunking, vector search, hybrid search",
+      "delivers": [
+        "RAG architectures",
+        "Embedding pipelines",
+        "Vector DB setup",
+        "Hybrid search"
+      ],
+      "quality_focus": [
+        "Retrieval accuracy",
+        "Context window usage",
+        "Latency",
+        "Hallucination reduction"
+      ]
+    },
+    "vector-db-specialist": {
+      "name": "Vector Database Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Pinecone, Weaviate, Chroma, Milvus setup, indexing strategies, ANN algorithms",
+      "delivers": [
+        "Vector DB setup",
+        "Index strategies",
+        "Query optimization",
+        "Hybrid search"
+      ],
+      "quality_focus": [
+        "Search quality",
+        "Index performance",
+        "Memory efficiency",
+        "Scalability"
+      ]
+    },
+    "crewai-specialist": {
+      "name": "CrewAI Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "CrewAI multi-agent frameworks, agent orchestration, task delegation",
+      "delivers": [
+        "CrewAI implementations",
+        "Agent crews",
+        "Task flows",
+        "Collaboration patterns"
+      ],
+      "quality_focus": [
+        "Agent coordination",
+        "Task routing",
+        "Error handling",
+        "Observability"
+      ]
+    },
+    "nextjs-specialist": {
+      "name": "Next.js Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "frontend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Next.js App Router, SSR, SSG, ISR, server components, streaming",
+      "delivers": [
+        "Next.js apps",
+        "API routes",
+        "Server components",
+        "Performance optimization"
+      ],
+      "quality_focus": [
+        "Rendering strategies",
+        "Performance",
+        "SEO",
+        "App Router patterns"
+      ]
+    },
+    "remix-specialist": {
+      "name": "Remix Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "frontend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Remix framework, loaders, actions, nested routes, progressive enhancement",
+      "delivers": [
+        "Remix apps",
+        "Loader/action code",
+        "Nested routes",
+        "Error boundaries"
+      ],
+      "quality_focus": [
+        "Progressive enhancement",
+        "Data loading",
+        "Performance",
+        "Error handling"
+      ]
+    },
+    "nuxt-specialist": {
+      "name": "Nuxt.js Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "frontend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Nuxt 3, SSR/SSG, auto-imports, modules, server routes, Pinia integration",
+      "delivers": [
+        "Nuxt 3 apps",
+        "Server routes",
+        "Module integrations",
+        "SSR/SSG configs"
+      ],
+      "quality_focus": [
+        "SSR performance",
+        "Auto-import patterns",
+        "Module ecosystem",
+        "SEO"
+      ]
+    },
+    "astro-specialist": {
+      "name": "Astro Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "frontend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Astro islands architecture, content collections, multi-framework components",
+      "delivers": [
+        "Astro sites",
+        "Content collections",
+        "Island components",
+        "Static/dynamic builds"
+      ],
+      "quality_focus": [
+        "Bundle size",
+        "Content performance",
+        "Islands hydration",
+        "Build speed"
+      ]
+    },
+    "radix-ui-specialist": {
+      "name": "Radix UI Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "frontend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Radix UI primitives, accessible components, headless UI patterns, styling",
+      "delivers": [
+        "Radix integrations",
+        "Accessible components",
+        "Styling systems",
+        "Animation patterns"
+      ],
+      "quality_focus": [
+        "Accessibility",
+        "Styling flexibility",
+        "Animation",
+        "Component composition"
+      ]
+    },
+    "shadcn-specialist": {
+      "name": "Shadcn/ui Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "frontend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Shadcn/ui components, Tailwind styling, copy-paste customization, theming",
+      "delivers": [
+        "Shadcn setup",
+        "Component customization",
+        "Theme systems",
+        "Dark mode"
+      ],
+      "quality_focus": [
+        "Accessibility",
+        "Design consistency",
+        "Customization",
+        "Theme maintenance"
+      ]
+    },
+    "playwright-specialist": {
+      "name": "Playwright Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "qa",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Playwright E2E testing, page objects, parallel execution, CI integration",
+      "delivers": [
+        "Playwright tests",
+        "Page objects",
+        "CI configs",
+        "Visual regression setup"
+      ],
+      "quality_focus": [
+        "Test reliability",
+        "Parallel execution",
+        "Coverage",
+        "CI speed"
+      ]
+    },
+    "cypress-specialist": {
+      "name": "Cypress Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "qa",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Cypress E2E testing, component testing, dashboard, CI integration",
+      "delivers": [
+        "Cypress tests",
+        "Component tests",
+        "CI setup",
+        "Dashboard integration"
+      ],
+      "quality_focus": [
+        "Test speed",
+        "Flakiness prevention",
+        "Coverage",
+        "CI integration"
+      ]
+    },
+    "jest-specialist": {
+      "name": "Jest Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "qa",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Jest unit/integration testing, mocking, snapshot testing, coverage",
+      "delivers": [
+        "Jest configs",
+        "Unit tests",
+        "Mocking patterns",
+        "Coverage reports"
+      ],
+      "quality_focus": [
+        "Test speed",
+        "Mocking quality",
+        "Coverage",
+        "Type safety"
+      ]
+    },
+    "vitest-specialist": {
+      "name": "Vitest Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "qa",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Vitest for Vite projects, native ESM, fast HMR-aware testing",
+      "delivers": [
+        "Vitest configs",
+        "Unit tests",
+        "Vite integration",
+        "Coverage setup"
+      ],
+      "quality_focus": [
+        "Test speed",
+        "ESM native",
+        "HMR-aware testing",
+        "Type coverage"
+      ]
+    },
+    "tdd-specialist": {
+      "name": "TDD Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "qa",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Test-driven development workflows, red-green-refactor, test-first architecture",
+      "delivers": [
+        "TDD workflows",
+        "Test-first designs",
+        "Refactoring patterns",
+        "Team adoption plans"
+      ],
+      "quality_focus": [
+        "Test quality",
+        "Design improvement",
+        "Team velocity",
+        "Legacy code"
+      ]
+    },
+    "snowflake-specialist": {
+      "name": "Snowflake Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Snowflake data warehouse, Snowpark, data sharing, streaming, performance tuning",
+      "delivers": [
+        "Snowflake schemas",
+        "Snowpark pipelines",
+        "Data sharing setups",
+        "Performance tuning"
+      ],
+      "quality_focus": [
+        "Query performance",
+        "Cost optimization",
+        "Data sharing",
+        "Security"
+      ]
+    },
+    "databricks-specialist": {
+      "name": "Databricks Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Databricks Unity Catalog, Spark, MLflow, Delta Lake, lakehouse architecture",
+      "delivers": [
+        "Databricks notebooks",
+        "Delta Lake pipelines",
+        "MLflow setups",
+        "Lakehouse designs"
+      ],
+      "quality_focus": [
+        "Lakehouse architecture",
+        "ML workflows",
+        "Cost efficiency",
+        "Data quality"
+      ]
+    },
+    "bigquery-specialist": {
+      "name": "BigQuery Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "BigQuery architecture, partitioning, clustering, BI integration, streaming",
+      "delivers": [
+        "BigQuery schemas",
+        "Optimization strategies",
+        "Streaming pipelines",
+        "BI integrations"
+      ],
+      "quality_focus": [
+        "Query performance",
+        "Partitioning strategy",
+        "Cost control",
+        "Security"
+      ]
+    },
+    "dbt-specialist": {
+      "name": "dbt Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "dbt models, transformations, testing, documentation, incremental strategies",
+      "delivers": [
+        "dbt models",
+        "Test suites",
+        "Documentation",
+        "CI/CD pipelines"
+      ],
+      "quality_focus": [
+        "Model efficiency",
+        "Data quality tests",
+        "Documentation",
+        "Incremental strategies"
+      ]
+    },
+    "kafka-specialist": {
+      "name": "Kafka Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Apache Kafka, producers/consumers, schema registry, stream processing",
+      "delivers": [
+        "Kafka producers/consumers",
+        "Stream processing",
+        "Schema registry setup",
+        "Topic design"
+      ],
+      "quality_focus": [
+        "Throughput",
+        "Latency",
+        "Fault tolerance",
+        "Schema evolution"
+      ]
+    },
+    "redis-streams-specialist": {
+      "name": "Redis Streams Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "data",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Redis Streams, consumer groups, stream processing, real-time dashboards",
+      "delivers": [
+        "Stream implementations",
+        "Consumer group patterns",
+        "Real-time pipelines",
+        "Monitoring"
+      ],
+      "quality_focus": [
+        "Consumer lag",
+        "Ordering guarantees",
+        "Memory efficiency",
+        "Group management"
+      ]
+    },
+    "opentelemetry-specialist": {
+      "name": "OpenTelemetry Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "devops",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "OpenTelemetry instrumentation, traces, metrics, logs correlation, SDK integration",
+      "delivers": [
+        "OTel instrumentation",
+        "Trace/log/metric correlation",
+        "Collector configs",
+        "SDK setup"
+      ],
+      "quality_focus": [
+        "Coverage",
+        "Sampling strategies",
+        "Context propagation",
+        "Vendor neutrality"
+      ]
+    },
+    "sentry-specialist": {
+      "name": "Sentry Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "devops",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Sentry error tracking, performance monitoring, source maps, alert rules",
+      "delivers": [
+        "Sentry SDK integration",
+        "Alert configurations",
+        "Source map setup",
+        "Performance views"
+      ],
+      "quality_focus": [
+        "Error grouping",
+        "Alert signal-to-noise",
+        "Performance tracking",
+        "Source map accuracy"
+      ]
+    },
+    "datadog-specialist": {
+      "name": "Datadog Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "devops",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Datadog APM, infrastructure monitoring, dashboards, synthetics, logs pipeline",
+      "delivers": [
+        "APM setup",
+        "Dashboard templates",
+        "Alert definitions",
+        "Log pipelines"
+      ],
+      "quality_focus": [
+        "Coverage",
+        "Alert quality",
+        "Dashboard clarity",
+        "Cost management"
+      ]
+    },
+    "cloudflare-specialist": {
+      "name": "Cloudflare Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "cloud",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Cloudflare Workers, R2 storage, D1 database, KV, Pages, CDN, Zero Trust",
+      "delivers": [
+        "Worker scripts",
+        "R2/D1/KV implementations",
+        "CDN configs",
+        "Zero Trust setup"
+      ],
+      "quality_focus": [
+        "Edge performance",
+        "Cold start reduction",
+        "Cost efficiency",
+        "Security"
+      ]
+    },
+    "vercel-specialist": {
+      "name": "Vercel Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "cloud",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Vercel deployment, serverless functions, Edge Functions, analytics, ISR",
+      "delivers": [
+        "Vercel configs",
+        "Serverless functions",
+        "Edge function code",
+        "Analytics setup"
+      ],
+      "quality_focus": [
+        "Build performance",
+        "Edge latency",
+        "ISR patterns",
+        "Analytics"
+      ]
+    },
+    "firebase-specialist": {
+      "name": "Firebase Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "cloud",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Firebase Realtime Database, Firestore, Cloud Functions, Auth, Hosting, Cloud Messaging",
+      "delivers": [
+        "Firebase integrations",
+        "Firestore schemas",
+        "Cloud Functions",
+        "Security rules"
+      ],
+      "quality_focus": [
+        "Data modeling",
+        "Security rules",
+        "Billing optimization",
+        "Offline support"
+      ]
+    },
+    "supabase-specialist": {
+      "name": "Supabase Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "cloud",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Supabase backend, Postgres, Auth, Storage, Realtime, Edge Functions, Management API",
+      "delivers": [
+        "Supabase integration",
+        "Postgres optimization",
+        "Realtime subscriptions",
+        "Edge Functions"
+      ],
+      "quality_focus": [
+        "Postgres performance",
+        "RLS design",
+        "Realtime reliability",
+        "Edge function patterns"
+      ]
+    },
+    "nginx-specialist": {
+      "name": "Nginx Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "cloud",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Nginx config, reverse proxy, load balancing, SSL termination, caching",
+      "delivers": [
+        "Nginx configs",
+        "Load balancer setups",
+        "SSL configs",
+        "Caching rules"
+      ],
+      "quality_focus": [
+        "Performance tuning",
+        "Security hardening",
+        "SSL/TLS",
+        "Reverse proxy design"
+      ]
+    },
+    "traefik-specialist": {
+      "name": "Traefik Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "cloud",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Traefik as API gateway, service mesh, Docker/K8s ingress, Let's Encrypt, middleware",
+      "delivers": [
+        "Traefik configs",
+        "Ingress setups",
+        "Middleware",
+        "Let's Encrypt automation"
+      ],
+      "quality_focus": [
+        "Routing performance",
+        "TLS automation",
+        "Middleware patterns",
+        "K8s integration"
+      ]
+    },
+    "ansible-specialist": {
+      "name": "Ansible Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "devops",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Ansible playbooks, roles, inventory management, tower/AWX",
+      "delivers": [
+        "Ansible playbooks",
+        "Roles",
+        "Inventory configs",
+        "AWX setups"
+      ],
+      "quality_focus": [
+        "Idempotency",
+        "Speed",
+        "Role reusability",
+        "Inventory accuracy"
+      ]
+    },
+    "vault-specialist": {
+      "name": "HashiCorp Vault Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "devops",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Vault secrets management, dynamic credentials, PKI, transit encryption, policy design",
+      "delivers": [
+        "Vault configs",
+        "Secret paths",
+        "Dynamic credential roles",
+        "PKI setups"
+      ],
+      "quality_focus": [
+        "Security",
+        "High availability",
+        "Policy design",
+        "Secret rotation"
+      ]
+    },
+    "consul-specialist": {
+      "name": "HashiCorp Consul Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "devops",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Consul service mesh, service discovery, health checks, ACLs, K8s integration",
+      "delivers": [
+        "Consul configs",
+        "Service mesh setups",
+        "Health check definitions",
+        "ACL policies"
+      ],
+      "quality_focus": [
+        "Service discovery reliability",
+        "ACL security",
+        "K8s integration",
+        "Multi-datacenter"
+      ]
+    },
+    "pulumi-specialist": {
+      "name": "Pulumi Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "devops",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Pulumi IaC, TypeScript/Python/Go SDKs, state management, stack references",
+      "delivers": [
+        "Pulumi programs",
+        "Stack configs",
+        "CI/CD integrations",
+        "State management"
+      ],
+      "quality_focus": [
+        "State security",
+        "Stack composition",
+        "Diff validation",
+        "Policy as code"
+      ]
+    },
+    "cdk-specialist": {
+      "name": "AWS CDK Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "devops",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "AWS CDK v2, TypeScript/Python constructs, pipelines, multi-account setups",
+      "delivers": [
+        "CDK stacks",
+        "Pipeline constructs",
+        "Multi-account configs",
+        "Testing patterns"
+      ],
+      "quality_focus": [
+        "Best practices",
+        "Stack dependencies",
+        "Pipeline security",
+        "Cost awareness"
+      ]
+    },
+    "gdpr-specialist": {
+      "name": "GDPR Compliance Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "security",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "GDPR compliance implementation, data anonymization, consent management, data subject requests",
+      "delivers": [
+        "GDPR audit reports",
+        "Consent implementations",
+        "DSR handling",
+        "Data retention policies"
+      ],
+      "quality_focus": [
+        "Legal compliance",
+        "Data minimization",
+        "Consent accuracy",
+        "DSR SLA"
+      ]
+    },
+    "hipaa-specialist": {
+      "name": "HIPAA Compliance Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "security",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "HIPAA compliance for healthcare apps, PHI handling, BAA requirements, audit trails",
+      "delivers": [
+        "HIPAA gap analysis",
+        "PHI handling patterns",
+        "BAA checklist",
+        "Audit trail implementation"
+      ],
+      "quality_focus": [
+        "PHI security",
+        "Audit completeness",
+        "BAA compliance",
+        "Breach notification"
+      ]
+    },
+    "pci-dss-specialist": {
+      "name": "PCI-DSS Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "security",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "PCI-DSS compliance for payment systems, SAQ/ROC requirements, cardholder data",
+      "delivers": [
+        "PCI scope assessment",
+        "Cardholder data flows",
+        "SAQ implementation",
+        "QSA audit prep"
+      ],
+      "quality_focus": [
+        "Scope minimization",
+        "Encryption",
+        "Access control",
+        "Monitoring"
+      ]
+    },
+    "soc2-specialist": {
+      "name": "SOC 2 Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "security",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "SOC 2 Type II compliance, trust service criteria, evidence collection, audit prep",
+      "delivers": [
+        "Trust criteria mapping",
+        "Evidence collection systems",
+        "Audit prep checklists",
+        "Gap assessments"
+      ],
+      "quality_focus": [
+        "Trust criteria coverage",
+        "Evidence automation",
+        "Audit readiness",
+        "Continuous compliance"
+      ]
+    },
+    "python-specialist": {
+      "name": "Python Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "backend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Advanced Python, async patterns, type hints, packaging, distribution",
+      "delivers": [
+        "Python packages",
+        "Async architectures",
+        "Type-annotated codebases",
+        "PyPI distributions"
+      ],
+      "quality_focus": [
+        "Type safety",
+        "Performance",
+        "Packaging quality",
+        "Documentation"
+      ]
+    },
+    "rust-systems-specialist": {
+      "name": "Rust Systems Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "backend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Rust systems programming, ownership model, async Rust, WASM, FFI",
+      "delivers": [
+        "Rust crates",
+        "WASM modules",
+        "FFI bindings",
+        "Performance-critical code"
+      ],
+      "quality_focus": [
+        "Memory safety",
+        "Zero-cost abstractions",
+        "WASM bundle size",
+        "FFI safety"
+      ]
+    },
+    "zig-specialist": {
+      "name": "Zig Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "backend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Zig systems programming, comptime, zero-runtime overhead, C interop",
+      "delivers": [
+        "Zig libraries",
+        "Comptime-heavy code",
+        "C interop wrappers",
+        "Build system configs"
+      ],
+      "quality_focus": [
+        "Performance",
+        "Build speed",
+        "C interop",
+        "Memory control"
+      ]
+    },
+    "phoenix-specialist": {
+      "name": "Elixir/Phoenix Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "backend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Phoenix LiveView, Ecto, OTP supervision, distributed Elixir",
+      "delivers": [
+        "Phoenix apps",
+        "LiveView pages",
+        "Ecto schemas",
+        "OTP supervision trees"
+      ],
+      "quality_focus": [
+        "Fault tolerance",
+        "LiveView performance",
+        "Ecto query efficiency",
+        "Distributed patterns"
+      ]
+    },
+    "android-native-specialist": {
+      "name": "Android Native Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "mobile",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Native Android with Kotlin, Jetpack Compose, Material Design 3, Play Store",
+      "delivers": [
+        "Android apps",
+        "Compose UIs",
+        "Play Store listings",
+        "AAB builds"
+      ],
+      "quality_focus": [
+        "Performance",
+        "Material You theming",
+        "Battery life",
+        "Play Store compliance"
+      ]
+    },
+    "twilio-specialist": {
+      "name": "Twilio Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "backend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Twilio SMS/voice/WhatsApp integration, programmable messaging, webhook handling",
+      "delivers": [
+        "Twilio integrations",
+        "SMS/voice flows",
+        "Webhook handlers",
+        "Internationalization"
+      ],
+      "quality_focus": [
+        "Delivery reliability",
+        "Cost optimization",
+        "International coverage",
+        "Webhook security"
+      ]
+    },
+    "web3-specialist": {
+      "name": "Web3 Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "industry",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Ethereum/Web3.js/Ethers.js, smart contract interaction, wallet integration, DAOs",
+      "delivers": [
+        "Web3 integrations",
+        "Wallet connect flows",
+        "Contract ABIs",
+        "DAO tooling"
+      ],
+      "quality_focus": [
+        "Smart contract security",
+        "Wallet compatibility",
+        "Gas optimization",
+        "NFT standards"
+      ]
+    },
+    "solidity-specialist": {
+      "name": "Solidity Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "industry",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Solidity smart contracts, ERC standards, security auditing, gas optimization",
+      "delivers": [
+        "Smart contracts",
+        "ERC token implementations",
+        "Security audits",
+        "Deployment scripts"
+      ],
+      "quality_focus": [
+        "Security",
+        "Gas efficiency",
+        "Standard compliance",
+        "Upgrade patterns"
+      ]
+    },
+    "deno-specialist": {
+      "name": "Deno Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "backend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Deno runtime, Deno Deploy, TypeScript native, Oak/Fresh frameworks",
+      "delivers": [
+        "Deno apps",
+        "Deploy configs",
+        "TypeScript-native code",
+        "NPM compatibility"
+      ],
+      "quality_focus": [
+        "Security model",
+        "Deploy performance",
+        "NPM compatibility",
+        "Standard library usage"
+      ]
+    },
+    "bun-specialist": {
+      "name": "Bun Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "backend",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "Bun runtime, Bun.serve, SQLite integration, package compatibility",
+      "delivers": [
+        "Bun servers",
+        "SQLite integrations",
+        "Migration scripts",
+        "Performance benchmarks"
+      ],
+      "quality_focus": [
+        "Startup speed",
+        "Request throughput",
+        "SQLite performance",
+        "NPM compatibility"
+      ]
+    },
+    "hls-specialist": {
+      "name": "HLS/DASH Streaming Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "industry",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "HLS/DASH adaptive streaming, video encoding, transcoding, DRM",
+      "delivers": [
+        "HLS/DASH workflows",
+        "Encoding pipelines",
+        "DRM integrations",
+        "Player implementations"
+      ],
+      "quality_focus": [
+        "Quality vs bandwidth",
+        "Buffering reduction",
+        "DRM compatibility",
+        "CDN delivery"
+      ]
+    },
+    "webRTC-specialist": {
+      "name": "WebRTC Specialist",
+      "tier": 3,
+      "domain": "coding",
+      "subdomain": "industry",
+      "model": "minimax-portal/MiniMax-M2.5",
+      "role": "WebRTC peer-to-peer, STUN/TURN servers, video calling, screen sharing",
+      "delivers": [
+        "WebRTC implementations",
+        "Signaling servers",
+        "STUN/TURN configs",
+        "Call UIs"
+      ],
+      "quality_focus": [
+        "Latency",
+        "Firewall traversal",
+        "Quality adaptation",
+        "Group call scalability"
       ]
     }
   }
