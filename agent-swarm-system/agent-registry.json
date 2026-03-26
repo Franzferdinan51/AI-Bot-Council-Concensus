@@ -987,6 +987,290 @@
         "Sentiment"
       ]
     },
+
+    "godot-specialist": {
+      "name": "Godot 4 Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-godot",
+      "model": "bailian/glm-5",
+      "role": "Godot 4 lead: GDScript, node/scene architecture, signals, resources, optimization",
+      "delivers": [
+        "Node/scene patterns",
+        "Signal implementations",
+        "Resource management",
+        "Performance optimizations"
+      ],
+      "quality_focus": [
+        "Godot 4 best practices",
+        "Static typing",
+        "Memory management",
+        "Cross-platform"
+      ]
+    },
+    "godot-gdscript-specialist": {
+      "name": "Godot GDScript Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-godot",
+      "model": "bailian/glm-5",
+      "role": "GDScript: static typing, design patterns, signals, coroutines, performance",
+      "delivers": [
+        "GDScript implementations",
+        "Signal patterns",
+        "Coroutine workflows",
+        "Performance optimizations"
+      ],
+      "quality_focus": [
+        "Static typing",
+        "Type hints",
+        "Memory efficiency",
+        "Code clarity"
+      ]
+    },
+    "godot-shader-specialist": {
+      "name": "Godot Shader Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-godot",
+      "model": "bailian/glm-5",
+      "role": "Godot shaders: shading language, visual shaders, particles, post-processing",
+      "delivers": [
+        "Shader code",
+        "Visual shader graphs",
+        "Particle systems",
+        "Post-processing effects"
+      ],
+      "quality_focus": [
+        "Visual quality",
+        "Performance",
+        "Shader efficiency",
+        "Cross-platform support"
+      ]
+    },
+    "godot-gdextension-specialist": {
+      "name": "Godot GDExtension Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-godot",
+      "model": "bailian/glm-5",
+      "role": "GDExtension: C++/Rust bindings, native performance, custom nodes, build systems",
+      "delivers": [
+        "C++ bindings",
+        "Rust bindings",
+        "Custom nodes",
+        "Build configurations"
+      ],
+      "quality_focus": [
+        "Native performance",
+        "Memory safety",
+        "API design",
+        "Build reliability"
+      ]
+    },
+
+    "unity-specialist": {
+      "name": "Unity Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unity",
+      "model": "bailian/glm-5",
+      "role": "Unity lead: MonoBehaviour/DOTS, Addressables, URP/HDRP, optimization",
+      "delivers": [
+        "Architecture decisions",
+        "DOTS implementations",
+        "Addressable strategies",
+        "Performance tuning"
+      ],
+      "quality_focus": [
+        "Performance",
+        "Memory efficiency",
+        "Cross-platform",
+        "DOTS adoption"
+      ]
+    },
+    "unity-dots-specialist": {
+      "name": "Unity DOTS Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unity",
+      "model": "bailian/glm-5",
+      "role": "DOTS/ECS: Entity Component System, Jobs, Burst compiler, hybrid renderer",
+      "delivers": [
+        "ECS architectures",
+        "Job system implementations",
+        "Burst optimizations",
+        "Hybrid renderer setups"
+      ],
+      "quality_focus": [
+        "Job efficiency",
+        "Burst compilation",
+        "Memory layout",
+        "Performance"
+      ]
+    },
+    "unity-shader-specialist": {
+      "name": "Unity Shader Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unity",
+      "model": "bailian/glm-5",
+      "role": "Shaders: Shader Graph, VFX Graph, SRP customization, post-processing",
+      "delivers": [
+        "Shader Graph shaders",
+        "VFX Graph effects",
+        "SRP configurations",
+        "Post-processing setups"
+      ],
+      "quality_focus": [
+        "Visual quality",
+        "Performance",
+        "Artist workflow",
+        "Cross-platform"
+      ]
+    },
+    "unity-addressables-specialist": {
+      "name": "Unity Addressables Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unity",
+      "model": "bailian/glm-5",
+      "role": "Asset Management: Addressable groups, async loading, memory, CDN",
+      "delivers": [
+        "Addressable group designs",
+        "Async loading patterns",
+        "Memory management",
+        "CDN configurations"
+      ],
+      "quality_focus": [
+        "Load times",
+        "Memory efficiency",
+        "Update strategies",
+        "Build size"
+      ]
+    },
+    "unity-ui-specialist": {
+      "name": "Unity UI Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unity",
+      "model": "bailian/glm-5",
+      "role": "UI: UI Toolkit, UXML/USS, UGUI Canvas, data binding",
+      "delivers": [
+        "UI Toolkit implementations",
+        "UXML/USS styles",
+        "Data binding systems",
+        "Cross-platform input"
+      ],
+      "quality_focus": [
+        "Responsiveness",
+        "Memory efficiency",
+        "Accessibility",
+        "Cross-platform"
+      ]
+    },
+
+    "unreal-specialist": {
+      "name": "Unreal Engine 5 Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unreal",
+      "model": "bailian/glm-5",
+      "role": "UE5 lead: Blueprint/C++, GAS overview, UE subsystems, optimization",
+      "delivers": [
+        "Architecture decisions",
+        "Blueprint/C++ boundaries",
+        "GAS implementations",
+        "Performance optimizations"
+      ],
+      "quality_focus": [
+        "Performance",
+        "Scalability",
+        "Platform support",
+        "GAS adoption"
+      ]
+    },
+    "ue-gas-specialist": {
+      "name": "UE Gameplay Ability System Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unreal",
+      "model": "bailian/glm-5",
+      "role": "GAS: abilities, gameplay effects, attribute sets, tags, prediction",
+      "delivers": [
+        "Ability implementations",
+        "Gameplay effect definitions",
+        "Attribute set designs",
+        "Prediction systems"
+      ],
+      "quality_focus": [
+        "Network prediction",
+        "Ability design",
+        "Effect reliability",
+        "Performance"
+      ]
+    },
+    "ue-blueprint-specialist": {
+      "name": "UE Blueprint Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unreal",
+      "model": "bailian/glm-5",
+      "role": "Blueprint architecture: BP/C++ boundary, graph standards, naming, optimization",
+      "delivers": [
+        "Blueprint patterns",
+        "Interface designs",
+        "Optimization strategies",
+        "Naming conventions"
+      ],
+      "quality_focus": [
+        "Blueprint performance",
+        "Modularity",
+        "Maintainability",
+        "C++ integration"
+      ]
+    },
+    "ue-replication-specialist": {
+      "name": "UE Replication Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unreal",
+      "model": "bailian/glm-5",
+      "role": "Networking: property replication, RPCs, prediction, relevancy, bandwidth",
+      "delivers": [
+        "Replication schemes",
+        "RPC implementations",
+        "Prediction systems",
+        "Bandwidth optimizations"
+      ],
+      "quality_focus": [
+        "Latency",
+        "Bandwidth efficiency",
+        "Prediction accuracy",
+        "Reliability"
+      ]
+    },
+    "ue-umg-specialist": {
+      "name": "UE UMG/CommonUI Specialist",
+      "tier": 3,
+      "domain": "game",
+      "subdomain": "engine-unreal",
+      "model": "bailian/glm-5",
+      "role": "UI: UMG, CommonUI, widget hierarchy, data binding, CommonUI input",
+      "delivers": [
+        "UMG implementations",
+        "CommonUI setups",
+        "Data binding systems",
+        "Input handling"
+      ],
+      "quality_focus": [
+        "UI performance",
+        "Responsiveness",
+        "Accessibility",
+        "Platform support"
+      ]
+    },
+
     "react-specialist": {
       "name": "React Specialist",
       "tier": 3,

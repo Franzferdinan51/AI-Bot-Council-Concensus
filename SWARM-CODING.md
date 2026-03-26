@@ -2,6 +2,8 @@
 
 **AI-powered collaborative software engineering with multi-agent code review**
 
+> 🎮 **Game Studio Mode Available!** This document also covers the **Game Studio Swarm** integration with 48 specialized game development agents, engine references (Godot/Unity/Unreal), 36 skills, and 8 coordination workflow patterns. See [Game Studio Swarm Mode](#-game-studio-swarm-mode) below.
+
 ---
 
 ## 📋 Table of Contents
@@ -721,6 +723,205 @@ council config set gitlab.repo owner/repo
 - GitLab CI
 - Jenkins
 - CircleCI
+
+---
+
+## 🎮 Game Studio Swarm Mode
+
+Full integration from **Claude-Code-Game-Studios** - a comprehensive game development swarm with 48 specialized agents, 36 skills, engine references, and 8 coordination patterns.
+
+### Quick Start
+
+```bash
+# Delegate a game development task to the swarm
+"Build a combat system with dodge-roll, parry, and stamina management"
+```
+
+### Directory Structure
+
+```
+duckbot-skill/
+├── game-studio-agents/      # 48 specialized agent definitions
+│   ├── creative-director.md
+│   ├── technical-director.md
+│   ├── producer.md
+│   ├── game-designer.md
+│   ├── godot-specialist.md
+│   ├── unity-specialist.md
+│   ├── unreal-specialist.md
+│   └── ... (48 total agents)
+├── game-studio-skills/       # 36 workflow skills
+│   ├── brainstorm/
+│   ├── prototype/
+│   ├── sprint-plan/
+│   ├── code-review/
+│   ├── design-review/
+│   └── ... (36 total skills)
+├── game-studio-docs/         # Documentation & references
+│   ├── coordination-map.md   # Hierarchy & delegation rules
+│   ├── agent-roster.md       # Complete agent listing
+│   ├── engine-reference/    # Godot/Unity/Unreal refs
+│   │   ├── godot/
+│   │   ├── unity/
+│   │   └── unreal/
+│   └── workflow-guide.md
+├── game-studio-templates/     # Sprint plans, bug reports, etc.
+└── game-studio-rules/        # Coordination rules
+```
+
+### Coordination Hierarchy
+
+```
+                        [Human Developer]
+                              |
+            +-----------------+-----------------+
+            |                 |                 |
+    creative-director   technical-director    producer
+            |                 |                 |
+    +--------+--------+       |          (coordinates all)
+    |        |        |       |
+  game-designer  art-dir  narr-dir    lead-programmer  qa-lead
+    |        |        |       |              |            |
+  +--+--+  technical  writer  +--+--+--+--+--+--+--+--+  sound
+  sys lvl  artist            gp ep  ai net tl ui       designer
+  eco
+```
+
+### 8 Workflow Patterns
+
+#### 1. New Feature (Full Pipeline)
+```
+1. creative-director  → Approves feature concept
+2. game-designer     → Creates design document
+3. producer          → Schedules work, identifies dependencies
+4. lead-programmer   → Designs code architecture
+5. [specialist]      → Implements the feature
+6. qa-tester         → Writes and executes tests
+7. producer          → Marks task complete
+```
+
+#### 2. Bug Fix
+```
+1. qa-tester         → Files bug report
+2. qa-lead           → Triage severity
+3. lead-programmer    → Root cause analysis
+4. [programmer]      → Fixes the bug
+5. qa-tester         → Verifies fix
+```
+
+#### 3. Balance Adjustment
+```
+1. analytics-engineer → Identifies imbalance
+2. game-designer     → Evaluates issue
+3. economy-designer  → Models adjustment
+4. [config update]    → Change values
+5. qa-tester         → Regression test
+```
+
+#### 4. New Area/Level
+```
+1. narrative-director → Defines narrative beats
+2. world-builder      → Creates lore
+3. level-designer     → Designs layout & encounters
+4. art-director       → Visual direction
+5. [implementation]   → Build the area
+6. qa-tester         → Tests complete area
+```
+
+#### 5. Sprint Cycle
+```
+1. producer           → Plans sprint
+2. [All agents]       → Execute tasks
+3. qa-lead            → Continuous testing
+4. lead-programmer    → Code review
+5. producer           → Retrospective
+```
+
+#### 6. Milestone Checkpoint
+```
+1. producer           → Runs /milestone-review
+2. creative-director  → Reviews creative progress
+3. technical-director → Reviews technical health
+4. qa-lead            → Quality metrics
+5. [decision]         → Go/no-go discussion
+```
+
+#### 7. Release Pipeline
+```
+1. release-manager    → Cuts release branch
+2. qa-lead            → Full regression
+3. performance-analyst → Confirms benchmarks
+4. devops-engineer    → Build artifacts
+5. release-manager    → Deploy and monitor
+```
+
+#### 8. Rapid Prototype
+```
+1. game-designer      → Defines hypothesis
+2. prototyper         → Scaffolds prototype
+3. game-designer      → Evaluates against criteria
+4. creative-director  → Go/no-go decision
+```
+
+### Example Swarm Tasks
+
+**Feature Development:**
+```
+"Add a crafting system with resource gathering, recipes, and upgrade paths"
+→ creative-director approves → game-designer specs → lead-programmer 
+  designs → systems-designer models economy → [engine specialist] implements
+```
+
+**Bug Fix:**
+```
+"Player gets stuck when jumping near corner geometry"
+→ qa-lead triages → lead-programmer identifies → gameplay-programmer fixes
+  → qa-tester verifies → close
+```
+
+**Content Creation:**
+```
+"Design a boss fight for the ice dungeon"
+→ game-designer specs encounter → level-designer builds layout → 
+  ai-programmer defines boss AI → sound-designer audio events → qa-tester
+```
+
+### Engine-Specific Agents
+
+**Godot 4:**
+- `godot-specialist` - GDScript, node/scene, signals, resources
+- `godot-gdscript-specialist` - Static typing, patterns, coroutines
+- `godot-shader-specialist` - Shading language, visual shaders, VFX
+- `godot-gdextension-specialist` - C++/Rust bindings, native performance
+
+**Unity:**
+- `unity-specialist` - MonoBehaviour/DOTS, Addressables, URP/HDRP
+- `unity-dots-specialist` - ECS, Jobs, Burst, hybrid renderer
+- `unity-shader-specialist` - Shader Graph, VFX Graph, SRP
+- `unity-addressables-specialist` - Async loading, memory, CDN
+- `unity-ui-specialist` - UI Toolkit, UGUI, UXML/USS
+
+**Unreal Engine 5:**
+- `unreal-specialist` - Blueprint/C++, GAS overview, UE subsystems
+- `ue-gas-specialist` - Abilities, effects, attributes, tags, prediction
+- `ue-blueprint-specialist` - BP/C++ boundary, graph standards
+- `ue-replication-specialist` - Netcode, RPCs, relevancy, bandwidth
+- `ue-umg-specialist` - UMG, CommonUI, widget hierarchy
+
+### Skills Reference
+
+| Skill | Purpose |
+|-------|---------|
+| `/brainstorm` | Generate and evaluate game ideas |
+| `/prototype` | Rapid throwaway prototypes for validation |
+| `/sprint-plan` | Sprint planning and daily standups |
+| `/design-review` | Design document review |
+| `/code-review` | Code quality and architecture review |
+| `/balance-check` | Game balance analysis |
+| `/milestone-review` | Milestone readiness assessment |
+| `/release-checklist` | Release readiness checklist |
+| `/perf-profile` | Performance profiling and optimization |
+| `/playtest-report` | Playtest feedback analysis |
 
 ---
 

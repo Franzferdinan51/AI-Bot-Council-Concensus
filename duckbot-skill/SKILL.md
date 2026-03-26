@@ -316,6 +316,95 @@ Update:
 
 ---
 
+## 🎮 Game Studio Swarm Mode
+
+**Multi-agent collaborative game development powered by Claude Code Game Studios**
+
+Game Studio Swarm Mode provides a complete game development team of 48 specialized agents with coordination patterns, skills, and engine-specific expertise.
+
+### Quick Start
+
+```bash
+# Delegate a game development task
+"Build a crafting system with resource gathering and recipes"
+```
+
+### Agent Teams
+
+**Leadership (Tier 1):**
+- `creative-director` - Vision, art direction, tone
+- `technical-director` - Architecture, engine selection
+- `producer` - Sprint planning, coordination
+
+**Department Leads (Tier 2):**
+- `game-designer` - Mechanics, progression, balance
+- `lead-programmer` - Code architecture, reviews
+- `art-director` - Visual direction, style guides
+- `qa-lead` - Test strategy, bug triage
+
+**Specialists (Tier 3):**
+- 32+ specialists including gameplay-programmer, level-designer, audio-director, narrative-director, and more
+
+**Engine Specialists:**
+| Engine | Lead | Sub-Specialists |
+|--------|------|-----------------|
+| **Godot 4** | godot-specialist | godot-gdscript, godot-shader, godot-gdextension |
+| **Unity** | unity-specialist | unity-dots, unity-shader, unity-addressables, unity-ui |
+| **Unreal** | unreal-specialist | ue-gas, ue-blueprint, ue-replication, ue-umg |
+
+### 8 Workflow Patterns
+
+1. **New Feature** - Full pipeline from concept to release
+2. **Bug Fix** - Triage → Fix → Verify → Close
+3. **Balance Adjustment** - Data → Model → Test → Monitor
+4. **New Area/Level** - Narrative → Layout → Implementation → QA
+5. **Sprint Cycle** - Plan → Execute → Review → Retrospective
+6. **Milestone Checkpoint** - Review all dimensions, decide go/no-go
+7. **Release Pipeline** - Branch → Test → Build → Deploy → Monitor
+8. **Rapid Prototype** - Hypothesis → Prototype → Evaluate → Decision
+
+### Skills Reference
+
+| Skill | Purpose |
+|-------|---------|
+| `/brainstorm` | Generate game ideas |
+| `/prototype` | Rapid prototypes |
+| `/sprint-plan` | Sprint management |
+| `/code-review` | Code quality |
+| `/design-review` | Design documents |
+| `/balance-check` | Game balance |
+| `/release-checklist` | Release readiness |
+| `/perf-profile` | Performance tuning |
+
+### Example Usage
+
+**Combat System:**
+```
+→ creative-director approves dodge-roll
+→ game-designer specs mechanics
+→ lead-programmer designs architecture
+→ gameplay-programmer implements
+→ qa-tester tests i-frames
+```
+
+**Bug Fix:**
+```
+→ qa-tester files bug with /bug-report
+→ qa-lead triages severity
+→ lead-programmer identifies root cause
+→ [programmer] fixes bug
+→ qa-tester verifies fix
+```
+
+### Documentation
+
+Full documentation available:
+- `SWARM-GAME-STUDIO.md` - Complete game studio guide
+- `SWARM-CODING.md` - Swarm coding overview
+- `duckbot-skill/game-studio-docs/` - Agent rosters, coordination maps, engine refs
+
+---
+
 **Integration Status:** ✅ Operational
-**Last Updated:** 2026-02-06 18:30 EST
-**Configuration:** All 24 councilors enabled, LM Studio integration complete
+**Last Updated:** 2026-03-26
+**Game Studio Agents:** 48 | **Skills:** 36 | **Engines:** Godot/Unity/Unreal
