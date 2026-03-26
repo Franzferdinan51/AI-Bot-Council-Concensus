@@ -164,7 +164,7 @@ async function analyzeVisionWithLMStudio({ image, prompt, models }) {
   const settings = loadSettings();
   const lmStudioUrl = settings?.providers?.lmstudio?.endpoint || 'http://localhost:1234/v1';
   const lmStudioKey = settings?.providers?.lmstudio?.apiKey || 'lm';
-  const model = (Array.isArray(models) && models[0]) || settings?.providers?.lmstudio?.model || 'qwen/qwen3.5-9b';
+  const model = (Array.isArray(models) && models[0]) || 'jan-v2-vl-high';
   const imageUrl = imageInputToDataUrl(image);
   if (!imageUrl) throw new Error('No valid image provided');
 
