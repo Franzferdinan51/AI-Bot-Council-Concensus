@@ -164,7 +164,7 @@ async function analyzeVisionWithLMStudio({ image, prompt, models }) {
   const settings = loadSettings();
   const lmStudioUrl = settings?.providers?.lmstudio?.endpoint || 'http://localhost:1234/v1';
   const lmStudioKey = settings?.providers?.lmstudio?.apiKey || 'lm';
-  const model = (Array.isArray(models) && models[0]) || 'jan-v2-vl-high';
+  const model = (Array.isArray(models) && models[0]) || 'qwen/qwen3.5-9b';
   const imageUrl = imageInputToDataUrl(image);
   if (!imageUrl) throw new Error('No valid image provided');
 
@@ -195,7 +195,8 @@ async function analyzeVisionWithLMStudio({ image, prompt, models }) {
   }
 
   const data = await response.json();
-  const text = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || data.choices?.[0]?.text || '';
+  // For reasoning models (qwen3.5), vision output goes into reasoning_content not content
+  const text = data.choices?.[0]?.message?.reasoning_content || data.choices?.[0]?.message?.content || data.choices?.[0]?.text || '';
   const clean = String(text || '').trim();
   return {
     model,

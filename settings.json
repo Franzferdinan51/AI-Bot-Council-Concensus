@@ -24,7 +24,7 @@
     }
   ],
   "vision": {
-    "default_model": "jan-v2-vl-high",
+    "default_model": "qwen/qwen3.5-9b",
     "models": [
       "qwen/qwen3.5-9b",
       "qwen3.5-9b",
