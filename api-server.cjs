@@ -1537,16 +1537,19 @@ Give 2-4 concise, specific items. No preamble.`;
   const cleanModelText = (text) => {
     if (!text || !text.trim()) return '';
     let clean = text.trim();
+    // Strip XML thinking tags
     clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-    clean = clean.replace(/^The user (wants|asks):.*?(\n|$)/i, '').trim();
-    clean = clean.replace(/^We need to .*?(\n|$)/i, '').trim();
+    // Strip "Thinking Process:" sections (qwen/LM Studio format)
+    clean = clean.replace(/Thinking Process:\s*\n\s*\d+[\.\)]\s*\*[\*_][^\n]+\n*/gi, '').trim();
+    clean = clean.replace(/Thinking Process:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '').trim();
+    // Strip leftover labels and XML
     clean = clean.replace(/<[^>]*>/g, '').trim();
     return clean;
   };
 
-  // Try MiniMax M2.7 first (primary)
+  // Try MiniMax first (primary)
   try {
-    const miniMaxUrl = settings?.providers?.minimax?.endpoint || 'https://api.minimax.io/v1/chat/completions';
+    const miniMaxUrl = (settings?.providers?.minimax?.endpoint || 'https://api.minimax.io/v1') + '/chat/completions';
     const miniMaxKey = settings?.providers?.minimax?.apiKey;
 
     if (miniMaxKey) {
@@ -1554,23 +1557,22 @@ Give 2-4 concise, specific items. No preamble.`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${miniMaxKey}`, 'x-api-key': miniMaxKey },
         body: JSON.stringify({
-          model: 'MiniMax-M2.7',
-          thinking: { type: 'off' },
+          model: 'MiniMax-Text-01',
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 150,
-          temperature: 0.8
+          max_tokens: 500,
+          temperature: 0.7
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.choices?.[0]?.message?.content;
-        const clean = cleanModelText(text);
-        if (clean.length > 10) return clean;
-      }
+      const rawText = await response.text();
+      let data;
+      try { data = JSON.parse(rawText); } catch { data = { error: rawText.substring(0, 100) }; }
+      const text = data?.choices?.[0]?.message?.content || '';
+      const clean = cleanModelText(text);
+      if (response.ok && clean.length > 5) return clean;
     }
   } catch (e) {
-    // MiniMax failed, try next
+    // MiniMax unavailable
   }
 
   // Try LM Studio as backup
@@ -1585,8 +1587,8 @@ Give 2-4 concise, specific items. No preamble.`;
       body: JSON.stringify({
         model: lmStudioModel,
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 150,
-        temperature: 0.8
+        max_tokens: 300,
+        temperature: 0.7
       })
     });
 
