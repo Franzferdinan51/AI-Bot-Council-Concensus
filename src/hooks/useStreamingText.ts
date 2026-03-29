@@ -1,77 +1,76 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { measureStreamingText, DEFAULT_WIDTH, DEFAULT_LINE_HEIGHT, DEFAULT_FONT } from '../lib/pretext';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createStreamingMeasurer } from '../lib/pretext';
 
-export interface StreamingTextState {
-  content: string;
-  measuredHeight: number;
-  measuredLines: number;
-  isComplete: boolean;
+interface UseStreamingTextOptions {
+  width: number;
+  fontSize?: number;
+  lineHeight?: number;
+  initialText?: string;
 }
 
-export interface UseStreamingTextOptions {
-  width?: number;
-  font?: string;
-  lineHeight?: number;
-  initialHeight?: number;
+interface UseStreamingTextReturn {
+  text: string;
+  height: number;
+  appendText: (chunk: string) => void;
+  setText: (text: string) => void;
+  reset: () => void;
+  isStreaming: boolean;
 }
 
 export function useStreamingText(
-  options: UseStreamingTextOptions = {}
-): StreamingTextState & {
-  appendToken: (token: string) => void;
-  setContent: (content: string) => void;
-  reset: () => void;
-} {
-  const {
-    width = DEFAULT_WIDTH,
-    font = DEFAULT_FONT,
-    lineHeight = DEFAULT_LINE_HEIGHT,
-    initialHeight = 200,
-  } = options;
+  options: UseStreamingTextOptions
+): UseStreamingTextReturn {
+  const { width, fontSize = 16, lineHeight = 24, initialText = '' } = options;
+  const [text, setTextState] = useState(initialText);
+  const [height, setHeight] = useState(0);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const measurerRef = useRef<ReturnType<typeof createStreamingMeasurer> | null>(null);
 
-  const [content, setContentState] = useState('');
-  const [measuredHeight, setMeasuredHeight] = useState(initialHeight);
-  const [measuredLines, setMeasuredLines] = useState(1);
-  const [isComplete, setIsComplete] = useState(false);
-  
-  const contentRef = useRef('');
-
-  // Measure whenever content changes
+  // Initialize measurer
   useEffect(() => {
-    if (content) {
-      const dims = measureStreamingText(content, width, font, lineHeight);
-      setMeasuredHeight(dims.height + 20); // padding
-      setMeasuredLines(dims.lines);
+    measurerRef.current = createStreamingMeasurer(width, fontSize, lineHeight);
+    if (initialText) {
+      const h = measurerRef.current.measure(initialText);
+      setHeight(h);
     }
-  }, [content, width, font, lineHeight]);
+  }, [width, fontSize, lineHeight, initialText]);
 
-  const appendToken = useCallback((token: string) => {
-    contentRef.current += token;
-    setContentState(contentRef.current);
-    setIsComplete(false);
+  const appendText = useCallback((chunk: string) => {
+    setIsStreaming(true);
+    setTextState((prev) => {
+      const newText = prev + chunk;
+      if (measurerRef.current) {
+        const h = measurerRef.current.append(newText);
+        setHeight(h);
+      }
+      return newText;
+    });
   }, []);
 
-  const setContent = useCallback((newContent: string) => {
-    contentRef.current = newContent;
-    setContentState(newContent);
-    setIsComplete(true);
+  const setText = useCallback((newText: string) => {
+    setIsStreaming(false);
+    setTextState(newText);
+    if (measurerRef.current) {
+      const h = measurerRef.current.measure(newText);
+      setHeight(h);
+    }
   }, []);
 
   const reset = useCallback(() => {
-    contentRef.current = '';
-    setContentState('');
-    setMeasuredHeight(initialHeight);
-    setMeasuredLines(1);
-    setIsComplete(false);
-  }, [initialHeight]);
+    setTextState('');
+    setHeight(0);
+    setIsStreaming(false);
+    if (measurerRef.current) {
+      measurerRef.current.reset();
+    }
+  }, []);
 
   return {
-    content,
-    measuredHeight,
-    measuredLines,
-    isComplete,
-    appendToken,
-    setContent,
+    text,
+    height,
+    appendText,
+    setText,
     reset,
+    isStreaming,
   };
 }

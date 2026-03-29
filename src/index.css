@@ -1,83 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  * {
-    box-sizing: border-box;
+:root {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Animations */
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
   }
-  
-  html, body, #root {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-  
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-@layer components {
-  /* Custom scrollbar */
-  .overflow-y-auto::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #374151;
-    border-radius: 3px;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #4B5563;
-  }
-  
-  /* Speaking indicator animation */
-  @keyframes wave {
-    0%, 100% { transform: scaleY(0.5); }
-    50% { transform: scaleY(1); }
-  }
-  
-  /* Smooth streaming text */
-  .streaming-text {
-    word-break: break-word;
-    overflow-wrap: break-word;
-  }
-  
-  /* Card entrance animation */
-  @keyframes pop-in {
-    0% {
-      opacity: 0;
-      transform: translateY(8px) scale(0.95);
-    }
-    70% {
-      transform: translateY(-2px) scale(1.02);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-  
-  .animate-pop-in {
-    animation: pop-in 0.3s ease-out forwards;
-  }
-  
-  /* Consensus meter glow */
-  .consensus-glow {
-    box-shadow: 0 0 20px currentColor;
-  }
-  
-  /* Pretext demo highlight */
-  .pretext-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.animate-in {
+  animation: slide-in-from-bottom 0.3s ease-out forwards;
+}
+
+/* Gradient text utility */
+.bg-clip-text-text-transparent {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Prose overrides for dark mode */
+.prose {
+  --tw-prose-body: #e5e7eb;
+  --tw-prose-headings: #ffffff;
+  --tw-prose-links: #a78bfa;
+  --tw-prose-code: #f472b6;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth transitions for interactive elements */
+button, input, textarea {
+  transition: all 0.2s ease;
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar for firefox */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #4b5563 transparent;
   }
 }

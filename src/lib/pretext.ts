@@ -1,89 +1,101 @@
-/**
- * Pretext helpers for zero-reflow text measurement
- * @chenglou/pretext measures via Canvas (~19ms one-time), then pure math (~0.09ms)
- */
 import { prepare, layout } from '@chenglou/pretext';
 
-export const DEFAULT_FONT = '15px Inter, system-ui, sans-serif';
-export const DEFAULT_LINE_HEIGHT = 20;
-export const DEFAULT_WIDTH = 600;
-
-export interface MeasuredDimensions {
+export interface PretextMeasurement {
+  prepared: ReturnType<typeof prepare>;
   width: number;
   height: number;
-  lines: number;
+  lineHeight: number;
+}
+
+const DEFAULT_FONT = '16px Inter, system-ui, sans-serif';
+const DEFAULT_LINE_HEIGHT = 24;
+
+let measurementCanvas: HTMLCanvasElement | null = null;
+
+function getCanvas(): HTMLCanvasElement {
+  if (!measurementCanvas) {
+    measurementCanvas = document.createElement('canvas');
+    measurementCanvas.style.cssText = 'position:absolute;top:-9999px;left:-9999px;';
+    document.body.appendChild(measurementCanvas);
+  }
+  return measurementCanvas;
 }
 
 /**
- * Pre-measure text dimensions without DOM reflow
- * Uses @chenglou/pretext for zero-reflow measurement
+ * Measure text height using @chenglou/pretext
+ * This avoids expensive DOM reflow by using Canvas for font measurement
+ * and pure math for subsequent calls
  */
 export function measureText(
   text: string,
-  width: number = DEFAULT_WIDTH,
-  font: string = DEFAULT_FONT,
+  width: number,
+  fontSize: number = 16,
   lineHeight: number = DEFAULT_LINE_HEIGHT
-): MeasuredDimensions {
-  if (!text) {
-    return { width, height: 0, lines: 1 };
-  }
-  
-  try {
-    const prepared = prepare(text, font);
-    const result = layout(prepared, width, lineHeight);
-    return { width, height: result.height, lines: result.lineCount };
-  } catch {
-    // Fallback: estimate based on character count
-    const charsPerLine = Math.floor(width / 8);
-    const lines = Math.ceil(text.length / charsPerLine);
-    return { width, height: lines * lineHeight, lines };
-  }
+): { height: number; prepared: ReturnType<typeof prepare> } {
+  const font = `${fontSize}px Inter, system-ui, sans-serif`;
+  const prepared = prepare(text, font);
+
+  const result = layout(prepared, width, lineHeight);
+  return {
+    height: result.height,
+    prepared,
+  };
 }
 
 /**
- * Pre-measure multiple lines of text (for streaming)
+ * Pre-measure text for streaming scenarios
+ * Returns a function that quickly calculates height as text streams in
  */
-export function measureStreamingText(
-  text: string,
-  width: number = DEFAULT_WIDTH,
-  font: string = DEFAULT_FONT,
+export function createStreamingMeasurer(
+  width: number,
+  fontSize: number = 16,
   lineHeight: number = DEFAULT_LINE_HEIGHT
-): MeasuredDimensions {
-  return measureText(text, width, font, lineHeight);
+) {
+  const font = `${fontSize}px Inter, system-ui, sans-serif`;
+  let prepared: ReturnType<typeof prepare> | null = null;
+
+  return {
+    append: (text: string): number => {
+      if (!prepared) {
+        prepared = prepare(text, font);
+      } else {
+        prepared = prepare(text, font);
+      }
+      const result = layout(prepared, width, lineHeight);
+      return result.height;
+    },
+    measure: (text: string): number => {
+      const p = prepare(text, font);
+      const result = layout(p, width, lineHeight);
+      return result.height;
+    },
+    reset: () => {
+      prepared = null;
+    },
+  };
 }
 
 /**
- * Pre-measure a code block (monospace font)
+ * Get font metrics for accurate measurement
  */
-export function measureCodeBlock(
-  code: string,
-  width: number = DEFAULT_WIDTH,
-  fontSize: number = 13
-): MeasuredDimensions {
-  const font = `${fontSize}px JetBrains Mono, Fira Code, monospace`;
-  return measureText(code, width, font, fontSize * 1.5);
-}
-
-/**
- * Cache for pre-measured councilor card heights
- */
-const cardHeightCache = new Map<string, MeasuredDimensions>();
-
-export function getCouncilorCardHeight(
-  name: string,
-  role: string,
-  personality: string,
-  width: number = 200
-): MeasuredDimensions {
-  const key = `${name}-${role}-${width}`;
-  
-  if (cardHeightCache.has(key)) {
-    return cardHeightCache.get(key)!;
+export function getFontMetrics(
+  fontSize: number = 16,
+  fontFamily: string = 'Inter'
+): { ascent: number; descent: number; lineGap: number } {
+  const canvas = getCanvas();
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return { ascent: fontSize * 0.8, descent: fontSize * 0.2, lineGap: 0 };
   }
-  
-  const text = `${name}\n${role}\n${personality}`;
-  const dims = measureText(text, width, '13px Inter, system-ui, sans-serif', 18);
-  cardHeightCache.set(key, dims);
-  
-  return dims;
+
+  const font = `${fontSize}px ${fontFamily}`;
+  ctx.font = font;
+
+  const metrics = ctx.measureText('Ay');
+  const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
+  const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
+
+  return { ascent, descent, lineGap: 0 };
 }
+
+export { DEFAULT_FONT, DEFAULT_LINE_HEIGHT };
