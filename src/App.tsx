@@ -1,327 +1,285 @@
-import { useState, useEffect } from 'react';
-import { useCouncil } from './hooks/useCouncil';
-import { CouncilorGrid } from './components/council/CouncilorGrid';
-import { DeliberationChat } from './components/council/DeliberationChat';
-import { MotionInput } from './components/council/MotionInput';
-import { ConsensusMeter } from './components/council/ConsensusMeter';
-import { ModeSelector } from './components/council/ModeSelector';
-import type { DeliberationMode } from './types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { StreamingChat } from './components/StreamingChat';
+import { CouncilorGrid } from './components/CouncilorGrid';
+import { MotionInput } from './components/MotionInput';
+import { ConsensusMeter } from './components/ConsensusMeter';
+import type { Councilor } from './components/CouncilorCard';
+import type { DeliberationMode } from './components/MotionInput';
 
-function App() {
-  const {
-    councilors,
-    messages,
-    mode,
-    consensus,
-    isDeliberating,
-    motion,
-    activeCouncilors,
-    setMode,
-    toggleCouncilor,
-    submitMotion,
-    startDeliberation,
-    clearDeliberation,
-    exportTranscript,
-  } = useCouncil();
+// Demo councilors - 24+ diverse AI personalities
+const INITIAL_COUNCILORS: Councilor[] = [
+  { id: '1', name: 'Athena', role: 'Strategic Advisor', personality: 'Calculated, wise, favors long-term stability', model: 'MiniMax-M2.7' },
+  { id: '2', name: 'Prometheus', role: 'Innovation Catalyst', personality: 'Bold, experimental, challenges the status quo', model: 'glm-5' },
+  { id: '3', name: 'Solomon', role: 'Moral Philosopher', personality: 'Ethical, contemplative, weighs justice carefully', model: 'kimi-k2' },
+  { id: '4', name: 'Cassandra', role: 'Risk Analyst', personality: 'Cautious, anticipates failure modes, prudent', model: 'MiniMax-M2.7' },
+  { id: '5', name: 'Hermes', role: 'Communicator', personality: 'Persuasive, diplomatic, bridges differing views', model: 'glm-4.7' },
+  { id: '6', name: 'Medea', role: 'Technical Expert', personality: 'Precise, methodical, demands evidence', model: 'kimi-k2.5' },
+  { id: '7', name: 'Atlas', role: 'Systems Thinker', personality: 'Holistic, sees interconnections, integrative', model: 'MiniMax-M2.7' },
+  { id: '8', name: 'Sphinx', role: 'Questioner', personality: 'Challenges assumptions, asks the hard questions', model: 'glm-5' },
+  { id: '9', name: 'Nike', role: 'Action Officer', personality: 'Decisive, results-oriented, cuts through debate', model: 'MiniMax-M2.7' },
+  { id: '10', name: 'Mnemosyne', role: 'Memory Keeper', personality: 'Draws from historical precedent, wise in retrospect', model: 'kimi-k2' },
+  { id: '11', name: 'Erebus', role: 'Devil\'s Advocate', personality: 'Challenges consensus, finds flaws, stress-tests', model: 'glm-4.7' },
+  { id: '12', name: 'Eos', role: 'Optimist', personality: 'Sees possibilities, believes in potential, encouraging', model: 'MiniMax-M2.7' },
+  { id: '13', name: 'Themis', role: 'Justice Keeper', personality: 'Fair, impartial, protects the vulnerable', model: 'kimi-k2.5' },
+  { id: '14', name: 'Boreas', role: 'Critical Thinker', personality: 'Analytical, skeptical of claims, evidence-focused', model: 'glm-5' },
+  { id: '15', name: 'Hestia', role: 'Community Builder', personality: 'Values consensus, protects group harmony', model: 'MiniMax-M2.7' },
+  { id: '16', name: 'Hypatia', role: 'Science Advocate', personality: 'Pro-mknowledge, values research, data-driven', model: 'kimi-k2' },
+  { id: '17', name: 'Morpheus', role: 'Scenario Planner', personality: 'Creative futures thinking, explores possibilities', model: 'glm-4.7' },
+  { id: '18', name: 'Clio', role: 'Storyteller', personality: 'Narrative-driven, understands context deeply', model: 'MiniMax-M2.7' },
+  { id: '19', name: 'Dike', role: 'Rights Defender', personality: 'Protects individual liberties, checks power', model: 'kimi-k2.5' },
+  { id: '20', name: 'Kairos', role: 'Opportunist', personality: 'Recognizes timing, knows when to act', model: 'glm-5' },
+  { id: '21', name: 'Ananke', role: 'Necessity Voice', personality: 'Pragmatic, acknowledges constraints, realistic', model: 'MiniMax-M2.7' },
+  { id: '22', name: 'Hebe', role: 'Youth Advocate', personality: 'Forward-looking, represents future generations', model: 'kimi-k2' },
+  { id: '23', name: 'Tyche', role: 'Uncertainty Keeper', personality: 'Acknowledges randomness, probabilistic thinker', model: 'glm-4.7' },
+  { id: '24', name: 'Arete', role: 'Excellence Seeker', personality: 'Values quality, excellence in execution', model: 'MiniMax-M2.7' },
+];
 
-  const [gatewayStatus, setGatewayStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
+interface Message {
+  id: string;
+  role: 'councilor' | 'system';
+  councilorName?: string;
+  content: string;
+  timestamp: Date;
+}
 
-  // Check gateway status
-  useEffect(() => {
-    const checkGateway = async () => {
-      try {
-        const res = await fetch('http://localhost:18789/health', { method: 'GET' });
-        setGatewayStatus(res.ok ? 'connected' : 'disconnected');
-      } catch {
-        setGatewayStatus('disconnected');
-      }
-    };
-    checkGateway();
-    const interval = setInterval(checkGateway, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Clock
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleExport = () => {
-    exportTranscript();
+// Generate a response from a councilor (demo mode - no actual API call)
+function generateCouncilorResponse(
+  councilor: Councilor,
+  motion: string,
+  mode: DeliberationMode
+): string {
+  const responses: Record<string, string[]> = {
+    'legislative': [
+      `As ${councilor.role}, I have analyzed this motion carefully. The implications for long-term stability must be weighed against short-term gains. I propose we consider the following amendments...`,
+      `${councilor.personality}. Therefore, I ${councilor.id.charCodeAt(0) % 2 === 0 ? 'support' : 'cannot support'} this motion in its current form. The council should deliberate further.`,
+      `My analysis indicates this motion aligns with ${councilor.id.charCodeAt(0) % 3 === 0 ? 'fundamental principles of justice and equity' : 'practical considerations of governance'}. I move we proceed to vote.`,
+    ],
+    'deep-research': [
+      `Researching the multidimensional aspects of this query... Initial findings suggest we must consider historical context, current data, and projected outcomes. Shall I compile a comprehensive report?`,
+      `Cross-referencing knowledge bases... The evidence points to nuanced conclusions requiring further investigation. I recommend a multi-pronged research approach.`,
+      `Synthesizing information from multiple domains. Key insights emerge: this matter is more complex than initially apparent. Extended deliberation is warranted.`,
+    ],
+    'swarm-coding': [
+      `Analyzing requirements for implementation... Architecture design in progress. I will focus on the core modules while coordinating with other councilors on integration.`,
+      `Code review indicates potential optimizations. I suggest refactoring the proposed solution to improve modularity and maintainability.`,
+      `Testing strategy formulated. I recommend TDD approach with comprehensive edge case coverage. My modules will integrate seamlessly with existing systems.`,
+    ],
   };
+  
+  const pool = responses[mode] || responses['legislative'];
+  return pool[parseInt(councilor.id) % pool.length];
+}
+
+export default function App() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [councilors] = useState<Councilor[]>(INITIAL_COUNCILORS);
+  const [activeCouncilorId, setActiveCouncilorId] = useState<string | undefined>();
+  const [speakingCouncilorId, setSpeakingCouncilorId] = useState<string | undefined>();
+  const [consensus, setConsensus] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(280);
+  const [rightWidth, setRightWidth] = useState(320);
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const centerWidth = containerRef.current 
+    ? containerRef.current.clientWidth - leftWidth - rightWidth - 4
+    : 600;
+
+  // Panel resize handlers
+  const handleLeftResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = leftWidth;
+    
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const delta = moveEvent.clientX - startX;
+      setLeftWidth(Math.max(200, Math.min(400, startWidth + delta)));
+    };
+    
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [leftWidth]);
+
+  const handleRightResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = rightWidth;
+    
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const delta = startX - moveEvent.clientX;
+      setRightWidth(Math.max(280, Math.min(450, startWidth + delta)));
+    };
+    
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [rightWidth]);
+
+  // Submit motion to council
+  const handleSubmitMotion = useCallback((motion: string, mode: DeliberationMode) => {
+    setIsProcessing(true);
+    setConsensus(0);
+    
+    // Add system message
+    const systemMsg: Message = {
+      id: `system-${Date.now()}`,
+      role: 'system',
+      content: `Motion submitted: "${motion}" (${mode} mode)`,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, systemMsg]);
+
+    // Simulate council deliberation
+    let responseCount = 0;
+    const totalResponses = Math.min(councilors.length, 8);
+    
+    // Shuffle councilors for variety
+    const shuffledCouncilors = [...councilors]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, totalResponses);
+
+    shuffledCouncilors.forEach((councilor, index) => {
+      setTimeout(() => {
+        setActiveCouncilorId(councilor.id);
+        setSpeakingCouncilorId(councilor.id);
+        
+        const response = generateCouncilorResponse(councilor, motion, mode);
+        
+        const councilorMsg: Message = {
+          id: `${councilor.id}-${Date.now()}`,
+          role: 'councilor',
+          councilorName: `${councilor.name} (${councilor.role})`,
+          content: response,
+          timestamp: new Date(),
+        };
+        
+        setMessages((prev) => [...prev, councilorMsg]);
+        responseCount++;
+        
+        // Update consensus as responses come in
+        const newConsensus = Math.round((responseCount / totalResponses) * 85 + Math.random() * 15);
+        setConsensus(Math.min(98, newConsensus));
+        
+        if (responseCount === totalResponses) {
+          setSpeakingCouncilorId(undefined);
+          setActiveCouncilorId(undefined);
+          setIsProcessing(false);
+          
+          // Add final system message
+          const finalMsg: Message = {
+            id: `final-${Date.now()}`,
+            role: 'system',
+            content: `Council deliberation complete. ${totalResponses} councilors have contributed. Final consensus: ${Math.round(consensus)}%`,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, finalMsg]);
+        }
+      }, 1500 + index * 800);
+    });
+  }, [councilors, consensus]);
 
   return (
-    <div className="h-full h-[100dvh] flex flex-col bg-[#0a0c10] text-white font-sans overflow-hidden">
-      {/* ═══ HEADER ═══ */}
-      <header className="flex-none bg-[#0a0c10] border-b border-slate-800/80">
-        <div className="px-4 py-3 flex items-center justify-between">
-          {/* Left: Logo + Title */}
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
-            >
-              <span className="text-lg">☰</span>
-            </button>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🏛️</span>
-              <div>
-                <h1 className="text-lg font-bold text-amber-500 leading-tight">AI Council Chamber</h1>
-                <div className="text-[10px] text-slate-500">
-                  {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {' '}
-                  {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Center: Gateway status */}
-          <div className="flex items-center gap-2">
-            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${
-              gatewayStatus === 'connected' 
-                ? 'bg-green-500/15 text-green-400' 
-                : gatewayStatus === 'checking'
-                ? 'bg-yellow-500/15 text-yellow-400'
-                : 'bg-red-500/15 text-red-400'
-            }`}>
-              <span className={`w-2 h-2 rounded-full ${
-                gatewayStatus === 'connected' 
-                  ? 'bg-green-400 animate-pulse' 
-                  : gatewayStatus === 'checking'
-                  ? 'bg-yellow-400 animate-pulse'
-                  : 'bg-red-400'
-              }`} />
-              {gatewayStatus === 'connected' ? 'Gateway' : gatewayStatus === 'checking' ? '...' : 'Offline'}
-            </div>
-            
-            <div className="h-4 w-px bg-slate-700 mx-1" />
-            
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-blue-500/15 text-blue-400">
-              <span>💻</span>
-              <span>OpenClaw</span>
-            </div>
-          </div>
-
-          {/* Right: Actions */}
-          <div className="flex items-center gap-2">
-            {messages.length > 0 && (
-              <button
-                onClick={handleExport}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors flex items-center gap-1.5"
-                title="Export transcript"
-              >
-                📥 Export
-              </button>
-            )}
-            <div className="relative">
-              <button className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
-                <span className="text-lg">⚙️</span>
-              </button>
-            </div>
-          </div>
+    <div className="h-screen w-screen flex flex-col bg-gray-950 text-gray-100 overflow-hidden">
+      {/* Header */}
+      <header className="h-14 bg-gray-900 border-b border-gray-800 flex items-center px-4 shrink-0">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🏛️</span>
+          <h1 className="text-lg font-bold">AI Council Chamber</h1>
+          <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">
+            Powered by @chenglou/pretext
+          </span>
+        </div>
+        <div className="ml-auto flex items-center gap-4">
+          <span className="text-xs text-gray-500">
+            Zero-reflow text measurement
+          </span>
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-xs text-gray-400">Live</span>
         </div>
       </header>
 
-      {/* ═══ MAIN CONTENT ═══ */}
-      <main className="flex-1 flex overflow-hidden">
-        {/* ─── LEFT SIDEBAR ─── */}
-        <aside className={`
-          ${sidebarOpen ? 'w-80' : 'w-0'} 
-          flex-none transition-all duration-300 overflow-hidden
-          bg-[#0a0c10] border-r border-slate-800/80
-          flex flex-col gap-3 p-3
-        `}>
-          {/* Mode Selector */}
-          <ModeSelector 
-            mode={mode} 
-            onChange={(m) => setMode(m as DeliberationMode)} 
-            disabled={isDeliberating}
+      {/* Main 3-column layout */}
+      <div className="flex-1 flex overflow-hidden" ref={containerRef}>
+        {/* Left: Councilor Grid */}
+        <div
+          className="shrink-0 border-r border-gray-800"
+          style={{ width: leftWidth }}
+        >
+          <CouncilorGrid
+            councilors={councilors}
+            activeCouncilorId={activeCouncilorId}
+            speakingCouncilorId={speakingCouncilorId}
+            onCouncilorSelect={(c) => setActiveCouncilorId(c.id)}
+            containerWidth={leftWidth - 12}
           />
+        </div>
 
-          {/* Councilor Roster */}
-          <div className="flex-1 overflow-hidden">
-            <CouncilorGrid
-              councilors={councilors}
-              selectedIds={activeCouncilors}
-              onToggle={toggleCouncilor}
-            />
-          </div>
+        {/* Left resize handle */}
+        <div
+          className="w-1 bg-gray-800 hover:bg-blue-600 cursor-col-resize transition-colors shrink-0"
+          onMouseDown={handleLeftResize}
+        />
 
+        {/* Center: Deliberation Chat */}
+        <div className="flex-1 flex flex-col overflow-hidden" style={{ minWidth: 400 }}>
+          <StreamingChat
+            messages={messages}
+            containerWidth={centerWidth}
+          />
+        </div>
+
+        {/* Right resize handle */}
+        <div
+          className="w-1 bg-gray-800 hover:bg-blue-600 cursor-col-resize transition-colors shrink-0"
+          onMouseDown={handleRightResize}
+        />
+
+        {/* Right: Motion Input + Consensus */}
+        <div
+          className="shrink-0 border-l border-gray-800 flex flex-col"
+          style={{ width: rightWidth }}
+        >
           {/* Consensus Meter */}
-          <ConsensusMeter 
-            consensus={consensus} 
-            isDeliberating={isDeliberating} 
-          />
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-slate-800/60 rounded-lg p-2">
-              <div className="text-lg font-bold text-amber-400">{councilors.length}</div>
-              <div className="text-[10px] text-slate-500 uppercase">Council</div>
-            </div>
-            <div className="bg-slate-800/60 rounded-lg p-2">
-              <div className="text-lg font-bold text-cyan-400">{activeCouncilors.length}</div>
-              <div className="text-[10px] text-slate-500 uppercase">Seated</div>
-            </div>
-            <div className="bg-slate-800/60 rounded-lg p-2">
-              <div className="text-lg font-bold text-green-400">{messages.filter(m => m.role === 'councilor').length}</div>
-              <div className="text-[10px] text-slate-500 uppercase">Spoken</div>
-            </div>
-          </div>
-        </aside>
-
-        {/* ─── MAIN PANEL ─── */}
-        <section className="flex-1 flex flex-col overflow-hidden p-3 gap-3">
-          {/* Motion Input */}
-          <div className="flex-none">
-            <MotionInput
-              mode={mode}
-              onSubmit={submitMotion}
-              onStart={startDeliberation}
-              onClear={clearDeliberation}
-              hasMotion={!!motion}
-              isDeliberating={isDeliberating}
-              activeCount={activeCouncilors.length}
+          <div className="shrink-0">
+            <ConsensusMeter
+              consensus={consensus}
+              phase={isProcessing ? 'deliberating' : consensus > 0 ? 'complete' : 'voting'}
+              votes={isProcessing || consensus > 0 ? {
+                inFavor: Math.round((consensus / 100) * councilors.length),
+                against: Math.round(((100 - consensus) / 100) * councilors.length * 0.3),
+                abstain: Math.round(((100 - consensus) / 100) * councilors.length * 0.2),
+              } : undefined}
             />
           </div>
-
-          {/* Deliberation Chat */}
-          <DeliberationChat 
-            messages={messages} 
-            isDeliberating={isDeliberating} 
-          />
-        </section>
-
-        {/* ─── RIGHT SIDEBAR (Current Motion + Speakers) ─── */}
-        {sidebarOpen && (
-          <aside className="w-64 flex-none bg-[#0a0c10] border-l border-slate-800/80 p-3 overflow-y-auto hide-scrollbar">
-            {/* Current Motion */}
-            {motion && (
-              <div className="mb-3">
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                  📋 Current Motion
-                </h3>
-                <div className="bg-slate-800/60 rounded-xl p-3 border border-amber-500/30">
-                  <div className="text-sm text-amber-300 italic">"{motion}"</div>
-                </div>
-              </div>
-            )}
-
-            {/* Speaking Now */}
-            <div className="mb-3">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                🗣️ Speaking
-              </h3>
-              <div className="space-y-2">
-                {councilors.filter(c => c.speaking).map(c => (
-                  <div 
-                    key={c.id}
-                    className="bg-slate-800/60 rounded-lg p-2 border-l-2"
-                    style={{ borderColor: c.color }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{c.emoji}</span>
-                      <div>
-                        <div className="text-xs font-bold" style={{ color: c.color }}>{c.name}</div>
-                        <div className="text-[10px] text-slate-500">{c.role}</div>
-                      </div>
-                    </div>
-                    <div className="mt-1.5 h-1 bg-slate-700 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full animate-pulse"
-                        style={{ width: '60%', backgroundColor: c.color }}
-                      />
-                    </div>
-                  </div>
-                ))}
-                {councilors.filter(c => c.speaking).length === 0 && (
-                  <div className="text-xs text-slate-600 text-center py-4">
-                    {isDeliberating ? 'Waiting for next speaker...' : 'No one speaking'}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Queue */}
-            <div className="mb-3">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                📜 Council Roster
-              </h3>
-              <div className="space-y-1">
-                {councilors
-                  .filter(c => activeCouncilors.includes(c.id))
-                  .slice(0, 12)
-                  .map((c, i) => (
-                    <div 
-                      key={c.id}
-                      className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${c.speaking ? 'bg-slate-700/80' : 'hover:bg-slate-800/60'}`}
-                    >
-                      <span className="text-sm w-6 text-center">{i + 1}</span>
-                      <span className="text-base">{c.emoji}</span>
-                      <span className="text-xs text-slate-300 truncate flex-1">{c.name}</span>
-                      {c.speaking && <span className="text-amber-400 text-xs">●</span>}
-                    </div>
-                  ))}
-              </div>
-              {activeCouncilors.length > 12 && (
-                <div className="text-[10px] text-slate-600 text-center mt-1">
-                  +{activeCouncilors.length - 12} more
-                </div>
-              )}
-            </div>
-
-            {/* Session Info */}
-            <div className="bg-slate-800/40 rounded-xl p-3 border border-slate-700/30">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                📊 Session Stats
-              </h3>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Mode</span>
-                  <span className="text-slate-300 capitalize">{mode}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Messages</span>
-                  <span className="text-slate-300">{messages.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Councilors</span>
-                  <span className="text-slate-300">{activeCouncilors.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Consensus</span>
-                  <span style={{ color: consensus >= 50 ? '#22c55e' : '#ef4444' }}>{consensus}%</span>
-                </div>
-              </div>
-            </div>
-          </aside>
-        )}
-      </main>
-
-      {/* ═══ STATUS BAR ═══ */}
-      <footer className="flex-none bg-[#0a0c10] border-t border-slate-800/80 px-4 py-1.5">
-        <div className="flex items-center justify-between text-[10px] text-slate-600">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <span className="text-amber-500">🏛️</span>
-              AI Council Chamber v2.0
-            </span>
-            <span>|</span>
-            <span>Routing via OpenClaw Gateway</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span>ws://localhost:18789</span>
-            <span className={gatewayStatus === 'connected' ? 'text-green-500' : 'text-red-500'}>
-              {gatewayStatus.toUpperCase()}
-            </span>
+          
+          {/* Motion Input */}
+          <div className="flex-1 overflow-hidden">
+            <MotionInput
+              onSubmit={handleSubmitMotion}
+              isProcessing={isProcessing}
+              containerWidth={rightWidth}
+            />
           </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="h-8 bg-gray-900 border-t border-gray-800 flex items-center px-4 text-xs text-gray-500 shrink-0">
+        <span>Pretext: Canvas测量 ~19ms → 数学计算 ~0.09ms</span>
+        <span className="mx-2">•</span>
+        <span>No layout reflow during streaming</span>
+        <span className="mx-2">•</span>
+        <span>Zero-reflow text measurement for AI UIs</span>
       </footer>
     </div>
   );
 }
-
-export default App;

@@ -2,44 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-html, body, #root {
-  height: 100%;
-  height: 100dvh;
-  overflow: hidden;
-  touch-action: manipulation;
-}
-
-/* Hide scrollbars but allow scrolling */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Mobile-first touch optimizations */
-button, a, [role="button"] {
-  touch-action: manipulation;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Prevent text selection on interactive elements */
-.no-select {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Smooth transitions */
-.transition-touch {
-  -webkit-transition: all 0.15s ease-out;
-  transition: all 0.15s ease-out;
+@layer components {
+  /* Custom scrollbar */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #4B5563;
+  }
+  
+  /* Speaking indicator animation */
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.5); }
+    50% { transform: scaleY(1); }
+  }
+  
+  /* Smooth streaming text */
+  .streaming-text {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Card entrance animation */
+  @keyframes pop-in {
+    0% {
+      opacity: 0;
+      transform: translateY(8px) scale(0.95);
+    }
+    70% {
+      transform: translateY(-2px) scale(1.02);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .animate-pop-in {
+    animation: pop-in 0.3s ease-out forwards;
+  }
+  
+  /* Consensus meter glow */
+  .consensus-glow {
+    box-shadow: 0 0 20px currentColor;
+  }
+  
+  /* Pretext demo highlight */
+  .pretext-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
 }
