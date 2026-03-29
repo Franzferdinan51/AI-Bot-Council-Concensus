@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { councilApi } from './services/apiService'
 import { miniMaxService, VOICES, ASPECT_RATIOS } from './services/minimaxService'
+import { prepare, layout } from '@chenglou/pretext'
 
 interface Message {
   id: string
@@ -8,6 +9,27 @@ interface Message {
   content: string
   councilorName?: string
   timestamp: number
+  measuredHeight?: number // Pre-measured height in px to prevent reflow
+}
+
+// Pre-measure text height without DOM reflow using @chenglou/pretext
+function preMeasureHeight(content: string, maxWidth: number, fontSize = 14, lineHeight = 1.5): number {
+  if (!content || content.trim() === '') return 0
+  if (maxWidth <= 0) return 0
+  try {
+    const prepared = prepare(content, `${fontSize}px sans-serif`)
+    const result = layout(prepared, maxWidth, lineHeight)
+    return Math.ceil(result.lineCount * fontSize * lineHeight + 16) // +16px padding
+  } catch {
+    return 0
+  }
+}
+
+// Pre-measure a message at creation time
+function withPreMeasure(msg: Omit<Message, 'measuredHeight'>, chatWidth: number): Message {
+  const isUser = msg.role === 'user'
+  const maxWidth = isUser ? chatWidth * 0.85 : chatWidth * 0.85
+  return { ...msg, measuredHeight: preMeasureHeight(msg.content, maxWidth) }
 }
 
 const COUNCILORS = [
@@ -38,6 +60,8 @@ export default function App() {
   const [inputText, setInputText] = useState('')
   const [isLMStudioOnline, setIsLMStudioOnline] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  // Chat container width for pre-measuring text (default ~400px, will be updated on mount)
+  const [chatWidth, setChatWidth] = useState(400)
 
   // TTS state
   const [ttsText, setTtsText] = useState('')
@@ -75,8 +99,8 @@ export default function App() {
     
     setIsLoading(true)
     setMessages([
-      { id: '1', role: 'system', content: `Starting ${MODES.find(m => m.id === selectedMode)?.name} deliberation...`, timestamp: Date.now() },
-      { id: '2', role: 'system', content: `Using: 💻 LM Studio (Free)`, timestamp: Date.now() + 1 }
+      withPreMeasure({ id: '1', role: 'system', content: `Starting ${MODES.find(m => m.id === selectedMode)?.name} deliberation...`, timestamp: Date.now() }, chatWidth),
+      withPreMeasure({ id: '2', role: 'system', content: `Using: 💻 LM Studio (Free)`, timestamp: Date.now() + 1 }, chatWidth)
     ])
     setCurrentView('deliberate')
     setIsLoading(false)
@@ -86,7 +110,7 @@ export default function App() {
     if (!inputText.trim()) return
     
     setIsLoading(true)
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: inputText, timestamp: Date.now() }
+    const userMsg: Message = withPreMeasure({ id: Date.now().toString(), role: 'user', content: inputText, timestamp: Date.now() }, chatWidth)
     setMessages(prev => [...prev, userMsg])
     setInputText('')
     
@@ -99,21 +123,21 @@ export default function App() {
         councilor?.name || 'Councilor'
       )
 
-      const councilorMsg: Message = {
+      const councilorMsg: Message = withPreMeasure({
         id: (Date.now() + 1).toString(),
         role: 'councilor',
         content: response,
         councilorName: councilor?.name,
         timestamp: Date.now(),
-      }
+      }, chatWidth)
       setMessages(prev => [...prev, councilorMsg])
     } catch (error: any) {
-      setMessages(prev => [...prev, {
+      setMessages(prev => [...prev, withPreMeasure({
         id: (Date.now() + 1).toString(),
         role: 'system',
         content: `❌ ${error.message}`,
         timestamp: Date.now()
-      }])
+      }, chatWidth)])
     }
     
     setIsLoading(false)
@@ -288,11 +312,14 @@ export default function App() {
             <div className="flex-1 overflow-y-auto hide-scrollbar p-4 space-y-4">
               {messages.map(msg => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                    msg.role === 'user' ? 'bg-amber-600 text-white rounded-br-md' :
-                    msg.role === 'system' ? 'bg-slate-800 text-slate-400 text-sm text-center w-full' :
-                    'bg-slate-800 rounded-bl-md'
-                  }`}>
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                      msg.role === 'user' ? 'bg-amber-600 text-white rounded-br-md' :
+                      msg.role === 'system' ? 'bg-slate-800 text-slate-400 text-sm text-center w-full' :
+                      'bg-slate-800 rounded-bl-md'
+                    }`}
+                    style={msg.measuredHeight ? { minHeight: `${msg.measuredHeight}px` } : undefined}
+                  >
                     {msg.role === 'councilor' && (
                       <div className="text-xs text-amber-400 font-medium mb-1">{msg.councilorName}</div>
                     )}
