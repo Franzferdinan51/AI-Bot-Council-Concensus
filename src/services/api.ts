@@ -3,7 +3,7 @@
  * Handles communication with the deliberation backend on port 3003
  */
 
-const API_BASE = 'http://localhost:3005';
+const API_BASE = 'window.location.origin';
 
 export interface ApiCouncilor {
   id: number;
