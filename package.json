@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deliberation": "node server.mjs",
+    "start": "node server.mjs & sleep 2 && vite --port 3002 --host"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.3",

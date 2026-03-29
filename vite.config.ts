@@ -5,6 +5,16 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3002,
-    host: true
-  }
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3005',
+        changeOrigin: true,
+      },
+      '/health': {
+        target: 'http://localhost:3005',
+        changeOrigin: true,
+      },
+    },
+  },
 })

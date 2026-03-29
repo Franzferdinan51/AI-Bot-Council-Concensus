@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { ParticleBackground } from './ParticleBackground';
+import { useEffect, useRef, useState } from 'react';
+import { CanvasParticleBackground } from './CanvasParticleBackground';
+import { CanvasMessageRenderer } from './CanvasMessageRenderer';
 import { measureText, createStreamingMeasurer } from '../lib/pretext';
 
 interface Message {
@@ -18,26 +19,34 @@ interface DeliberationTabProps {
 }
 
 export function DeliberationTab({ messages, currentStreamingId }: DeliberationTabProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(600);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
+  const [containerWidth, setContainerWidth] = useState(800);
   const [messageHeights, setMessageHeights] = useState<Map<string, number>>(new Map());
   const streamingMeasurers = useRef<Map<string, ReturnType<typeof createStreamingMeasurer>>>(new Map());
 
-  // Measure container width
+  // Measure container dimensions
   useEffect(() => {
-    const measureWidth = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth - 48);
+    const measureSize = () => {
+      if (scrollContainerRef.current) {
+        const rect = scrollContainerRef.current.getBoundingClientRect();
+        setContainerSize({
+          width: scrollContainerRef.current.clientWidth,
+          height: scrollContainerRef.current.clientHeight,
+        });
+        setContainerWidth(scrollContainerRef.current.clientWidth);
       }
     };
-    measureWidth();
-    window.addEventListener('resize', measureWidth);
-    return () => window.removeEventListener('resize', measureWidth);
+    measureSize();
+    window.addEventListener('resize', measureSize);
+    return () => window.removeEventListener('resize', measureSize);
   }, []);
 
-  // Pre-measure completed messages using pretext
+
+
+  // Pre-measure completed messages using pretext (for scroll height)
   useEffect(() => {
-    const contentWidth = Math.max(containerWidth - 80, 200);
+    const contentWidth = Math.max(containerWidth - 120, 200);
 
     messages.forEach((msg) => {
       if (msg.content && msg.id !== currentStreamingId) {
@@ -52,17 +61,14 @@ export function DeliberationTab({ messages, currentStreamingId }: DeliberationTa
     });
   }, [messages, containerWidth, currentStreamingId]);
 
-  // Update streaming message height in real-time — no reflow
+  // Streaming measurer update
   useEffect(() => {
-    if (!currentStreamingId) {
-      streamingMeasurers.current.delete(currentStreamingId || '');
-      return;
-    }
+    if (!currentStreamingId) return;
 
     const msg = messages.find((m) => m.id === currentStreamingId);
     if (!msg || !msg.content) return;
 
-    const contentWidth = Math.max(containerWidth - 80, 200);
+    const contentWidth = Math.max(containerWidth - 120, 200);
 
     if (!streamingMeasurers.current.has(currentStreamingId)) {
       streamingMeasurers.current.set(
@@ -84,108 +90,75 @@ export function DeliberationTab({ messages, currentStreamingId }: DeliberationTa
 
   // Auto-scroll
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [messages, messageHeights]);
+    if (containerSize.width === 0) return;
+    if (!scrollContainerRef.current) return;
+    scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+  }, [messages, messageHeights, containerSize]);
 
-  const isStreaming = useCallback((id: string) => currentStreamingId === id, [currentStreamingId]);
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
 
   return (
     <div
-      ref={containerRef}
+      ref={scrollContainerRef}
       className="relative h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
       style={{
         background: 'linear-gradient(180deg, rgba(15,23,42,1) 0%, rgba(30,41,59,0.5) 100%)',
       }}
     >
-      {/* Particle Background */}
-      <ParticleBackground />
+      {/* Particle Background — scrolls with content */}
+      <CanvasParticleBackground />
 
+      {/* Canvas Message Renderer — scrolls with content, offset by scrollTop */}
+      <CanvasMessageRenderer
+        messages={messages}
+        currentStreamingId={currentStreamingId}
+        containerWidth={containerSize.width}
+        containerHeight={messages.length > 0 ? undefined : containerSize.height}
+      />
+
+      {/* DOM layer for scroll height reservation + empty state */}
       <div className="relative z-10 max-w-3xl mx-auto p-6 space-y-6">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-96 text-center">
-            <span className="text-7xl mb-6 opacity-50">🏛️</span>
-            <h2 className="text-2xl font-bold text-white mb-2">AI Council Chamber</h2>
-            <p className="text-slate-400 max-w-md">
+          <div className="flex flex-col items-center justify-center h-[70vh] text-center">
+            <span className="text-7xl mb-6 opacity-40 animate-pulse">🏛️</span>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              AI Council Chamber
+            </h2>
+            <p className="text-slate-400 max-w-md mt-3">
               Submit a motion using the input below to begin deliberation with the council.
             </p>
-            <div className="mt-6 flex items-center gap-2 text-xs text-slate-500">
+            <div className="mt-8 flex items-center gap-2 text-xs text-slate-500">
               <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-              <span>Powered by @chenglou/pretext — Zero-reflow text measurement</span>
+              <span>Canvas particle text — powered by @chenglou/pretext</span>
             </div>
           </div>
         )}
 
-        {messages.map((msg) => {
-          const height = messageHeights.get(msg.id) || 80;
-          const streaming = isStreaming(msg.id);
-          const isUser = msg.role === 'user';
-          const isSystem = msg.role === 'system';
-
-          return (
-            <div
-              key={msg.id}
-              className={`flex gap-4 message-enter ${isUser ? 'flex-row-reverse' : ''}`}
-              style={{ minHeight: height }}
-            >
-              {/* Avatar */}
+        {/* Invisible height reservation */}
+        <div className="space-y-6">
+          {messages.map((msg) => {
+            const height = messageHeights.get(msg.id) || 80;
+            return (
               <div
-                className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-lg ${msg.role === 'councilor' ? 'councilor-avatar-glow' : ''}`}
-                style={{
-                  backgroundColor: msg.councilorColor || (isUser ? '#3B82F6' : '#1E293B'),
-                  boxShadow: msg.councilorColor ? `0 0 20px ${msg.councilorColor}30` : undefined,
-                }}
-              >
-                {isUser ? '👤' : msg.councilorEmoji || '🏛️'}
-              </div>
-
-              {/* Content */}
-              <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : ''}`}>
-                {/* Header */}
-                <div className={`flex items-baseline gap-2 mb-2 ${isUser ? 'flex-row-reverse' : ''}`}>
-                  <span
-                    className="font-semibold text-sm"
-                    style={{ color: msg.councilorColor || '#fff' }}
-                  >
-                    {isUser ? 'You' : msg.councilorName || 'System'}
-                  </span>
-                  <span className="text-xs text-slate-500">{formatTime(msg.timestamp)}</span>
-                  {streaming && (
-                    <span className="flex items-center gap-1 text-xs text-purple-400">
-                      <span className="animate-pulse">●</span>
-                      <span className="shimmer-text px-1.5 py-0.5 rounded">Thinking…</span>
-                    </span>
-                  )}
-                </div>
-
-                {/* Bubble */}
-                <div
-                  className={`
-                    inline-block text-left px-4 py-3 rounded-2xl text-sm leading-relaxed
-                    ${isUser ? 'bg-blue-600 text-white rounded-tr-sm' : ''}
-                    ${isSystem ? 'bg-slate-800/80 text-slate-200 border border-slate-700/50 shimmer-text' : ''}
-                    ${msg.role === 'councilor' ? 'bg-slate-800/60 text-slate-200 border border-slate-700/30' : ''}
-                  `}
-                  style={{
-                    minHeight: height - 52,
-                    maxWidth: '100%',
-                  }}
-                >
-                  {msg.content}
-                  {streaming && (
-                    <span className="inline-block w-2 h-3.5 bg-purple-400 ml-1 animate-bounce vertical-align-middle" />
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+                key={msg.id}
+                style={{ minHeight: height, opacity: 0, pointerEvents: 'none', height: 1 }}
+                aria-hidden="true"
+              />
+            );
+          })}
+        </div>
       </div>
+
+      {/* Streaming indicator */}
+      {currentStreamingId && (
+        <div className="fixed bottom-28 right-6 z-30 flex items-center gap-2 px-3 py-1.5 bg-slate-900/90 rounded-full border border-purple-500/30 shadow-lg shadow-purple-500/10 backdrop-blur-sm">
+          <span className="flex gap-0.5">
+            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          </span>
+          <span className="text-xs text-purple-300 font-medium">Council deliberating...</span>
+        </div>
+      )}
     </div>
   );
 }

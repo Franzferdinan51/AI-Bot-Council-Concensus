@@ -12,10 +12,10 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-const PORT = 3003;
+const PORT = 3005;
 const LM_STUDIO_URL = process.env.LM_STUDIO_URL || 'http://100.116.54.125:1234/v1';
 const LM_STUDIO_KEY = process.env.LM_STUDIO_KEY || 'sk-lm-zO7bswIc:WkHEMTUfVNkq5WYNyFOW';
-const MODEL_NAME = process.env.MODEL_NAME || 'qwen3.5-28b-a3b';
+const MODEL_NAME = process.env.MODEL_NAME || 'qwen3.5-27b';
 
 // In-memory session store for SSE streams
 const sessions = new Map();
@@ -138,7 +138,9 @@ async function queryLMStudio(messages, onToken, signal) {
               }
               try {
                 const parsed = JSON.parse(data);
-                const token = parsed.choices?.[0]?.delta?.content || '';
+                const token = parsed.choices?.[0]?.delta?.content 
+                  || parsed.choices?.[0]?.delta?.reasoning_content 
+                  || '';
                 if (token) {
                   fullContent += token;
                   if (onToken) onToken(token, false);
@@ -333,6 +335,9 @@ async function runDeliberation(session) {
 
 // ─── SERVER ───────────────────────────────────────────────────────────────────
 
+process.on('uncaughtException', (err) => console.error('[uncaughtException]', err));
+process.on('unhandledRejection', (err) => console.error('[unhandledRejection]', err));
+
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🏛️  AI Council Deliberation Server running on port ${PORT}`);
   console.log(`📡  SSE streaming: http://localhost:${PORT}/api/deliberate/stream`);
@@ -340,8 +345,11 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`📋  Model: ${MODEL_NAME}`);
 });
 
+// Keep process alive
+process.stdin.resume();
+
 process.on('SIGTERM', () => {
   console.log('Shutting down...');
   for (const [, s] of sessions) { s.aborted = true; s.abortController.abort(); }
-  server.close();
+  server.close(() => process.exit(0));
 });
