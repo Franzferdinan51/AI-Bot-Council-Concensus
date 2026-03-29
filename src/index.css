@@ -259,6 +259,24 @@ button, input, textarea, select {
   .flex-row {
     flex-direction: column;
   }
+
+  /* Ensure councilor cards never get cut off on small screens */
+  .councilor-card-cell {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Force full width for councilor cards in grid */
+  .grid.cols-1-sm {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Ensure councilor cards never overflow their containers */
+.councilor-card-cell {
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Prevent text selection on buttons */

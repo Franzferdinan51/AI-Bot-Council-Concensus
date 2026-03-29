@@ -1,46 +1,15 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { councilors, specialists, CATEGORIES, Category } from '../data/councilors';
 import { CouncilorCard } from './CouncilorCard';
-import { measureText } from '../lib/pretext';
 
 interface CouncilorsTabProps {
   selectedCouncilors: number[];
   onToggleCouncilor: (id: number) => void;
 }
 
-const LINE_HEIGHT = 18;
-
 export function CouncilorsTab({ selectedCouncilors, onToggleCouncilor }: CouncilorsTabProps) {
   const [category, setCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cardHeights, setCardHeights] = useState<Map<number, number>>(new Map());
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(1200);
-
-  useEffect(() => {
-    const measure = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth - 48);
-      }
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, []);
-
-  // Pre-measure all councilor cards using pretext
-  useEffect(() => {
-    const columnWidth = (containerWidth - 24) / 4;
-    const newHeights = new Map<number, number>();
-
-    councilors.forEach((c) => {
-      const text = `${c.name}\n${c.role}`;
-      const { height } = measureText(text, columnWidth - 24, 13, LINE_HEIGHT);
-      newHeights.set(c.id, Math.max(80, height + 52));
-    });
-
-    setCardHeights(newHeights);
-  }, [containerWidth]);
 
   const filteredCouncilors = useMemo(() => {
     let filtered = councilors;
@@ -109,7 +78,7 @@ export function CouncilorsTab({ selectedCouncilors, onToggleCouncilor }: Council
       </div>
 
       {/* Councilor Grid */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto p-4 min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 min-h-0">
         {filteredCouncilors.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-500">
             <span className="text-5xl mb-4">🔍</span>
@@ -117,25 +86,16 @@ export function CouncilorsTab({ selectedCouncilors, onToggleCouncilor }: Council
             <p className="text-sm mt-1">Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div
-            className="grid gap-3"
-            style={{
-              gridTemplateColumns: `repeat(auto-fill, minmax(${(containerWidth - 72) / 4}px, 1fr))`,
-            }}
-          >
-            {filteredCouncilors.map((councilor) => {
-              const height = cardHeights.get(councilor.id) || 80;
-              return (
-                <div key={councilor.id} style={{ minHeight: height }}>
-                  <CouncilorCard
-                    councilor={councilor}
-                    isSelected={selectedCouncilors.includes(councilor.id)}
-                    onClick={() => onToggleCouncilor(councilor.id)}
-                    minHeight={height}
-                  />
-                </div>
-              );
-            })}
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredCouncilors.map((councilor) => (
+              <div key={councilor.id} className="councilor-card-cell">
+                <CouncilorCard
+                  councilor={councilor}
+                  isSelected={selectedCouncilors.includes(councilor.id)}
+                  onClick={() => onToggleCouncilor(councilor.id)}
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -145,17 +105,17 @@ export function CouncilorsTab({ selectedCouncilors, onToggleCouncilor }: Council
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
           <span>🔬</span> Specialist Agents
         </h3>
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {specialists.map((spec) => (
             <div
               key={spec.id}
-              className="flex-shrink-0 w-48 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:border-slate-600 transition-colors cursor-pointer"
+              className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:border-slate-600 transition-colors cursor-pointer min-w-0"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg">{spec.emoji}</span>
-                <span className="font-semibold text-sm text-white">{spec.name}</span>
+              <div className="flex items-center gap-2 mb-1 min-w-0">
+                <span className="text-lg flex-shrink-0">{spec.emoji}</span>
+                <span className="font-semibold text-sm text-white truncate">{spec.name}</span>
               </div>
-              <p className="text-xs text-slate-400">{spec.role}</p>
+              <p className="text-xs text-slate-400 leading-tight break-words">{spec.role}</p>
             </div>
           ))}
         </div>

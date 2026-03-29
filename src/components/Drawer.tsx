@@ -85,14 +85,13 @@ export function Drawer({
     <div
       className={`
         fixed top-0 left-0 h-full z-50
-        w-[${DRAWER_WIDTH}px] max-w-[90vw]
+        w-[90vw] sm:w-[320px]
         bg-gray-900/98 backdrop-blur-md
         border-r border-gray-700/50
         transform transition-transform duration-300 ease-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         flex flex-col
       `}
-      style={{ width: DRAWER_WIDTH }}
     >
       {/* Header */}
       <div className="flex-shrink-0 p-4 border-b border-gray-700/50">
@@ -145,13 +144,12 @@ export function Drawer({
         </h3>
         <div className="flex flex-wrap gap-2" style={{ maxHeight: 100, overflowY: 'auto' }}>
           {specialists.map((spec) => (
-            <div key={spec.id} style={{ width: CARD_WIDTH, minHeight: 64 }}>
+            <div key={spec.id} style={{ width: CARD_WIDTH }}>
               <CouncilorCard
                 councilor={spec}
                 isSpecialist
                 isSelected={false}
                 onClick={() => {}}
-                minHeight={64}
               />
             </div>
           ))}
@@ -167,19 +165,15 @@ export function Drawer({
             minHeight: gridTotalHeight || 'auto',
           }}
         >
-          {filteredCouncilors.map((councilor) => {
-            const height = cardHeights.get(councilor.id) || 80;
-            return (
-              <div key={councilor.id} style={{ minHeight: height }}>
+          {filteredCouncilors.map((councilor) => (
+              <div key={councilor.id}>
                 <CouncilorCard
                   councilor={councilor}
                   isSelected={selectedCouncilors.includes(councilor.id)}
                   onClick={() => onToggleCouncilor(councilor.id)}
-                  minHeight={height}
                 />
               </div>
-            );
-          })}
+            ))}
         </div>
 
         {filteredCouncilors.length === 0 && (
