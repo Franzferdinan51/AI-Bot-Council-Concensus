@@ -53,7 +53,7 @@ export function CouncilorPickerFAB({ selectedCouncilors, onToggleCouncilor }: Co
           transition-all duration-300
           ${isOpen
             ? 'bg-slate-700 text-white rotate-45 shadow-lg'
-            : 'bg-gradient-to-br from-purple-600 to-blue-600 text-white hover:from-purple-500 hover:to-blue-500 shadow-purple-500/30 hover:scale-105'
+            : 'bg-gradient-to-br from-purple-600 to-blue-600 text-white hover:from-purple-500 hover:to-blue-500 shadow-purple-500/30 hover:scale-105 submit-btn-glow'
           }
         `}
       >
@@ -129,7 +129,7 @@ export function CouncilorPickerFAB({ selectedCouncilors, onToggleCouncilor }: Co
                   `}
                 >
                   <div
-                    className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm"
+                    className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm ${isSelected ? 'councilor-avatar-glow' : ''}`}
                     style={{ backgroundColor: isSelected ? c.color : `${c.color}40` }}
                   >
                     {c.emoji}

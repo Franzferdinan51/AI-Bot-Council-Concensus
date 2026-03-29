@@ -115,9 +115,9 @@ export function MotionInputBottom({
             type="submit"
             disabled={!canSubmit || disabled}
             className={`
-              px-5 py-2.5 rounded-xl font-semibold text-sm transition-all
+              px-5 py-2.5 rounded-xl font-semibold text-sm transition-all btn-ripple
               ${canSubmit && !disabled
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-500 hover:to-blue-500 shadow-lg shadow-purple-500/25'
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-500 hover:to-blue-500 shadow-lg shadow-purple-500/25 submit-btn-glow'
                 : 'bg-slate-700 text-slate-500 cursor-not-allowed'
               }
             `}

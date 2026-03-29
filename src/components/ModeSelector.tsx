@@ -28,8 +28,7 @@ export function ModeSelector({ selectedMode, onModeChange }: ModeSelectorProps) 
               style={{
                 backgroundColor: isActive ? `${mode.color}20` : undefined,
                 borderColor: isActive ? mode.color : '#374151',
-                ringColor: isActive ? mode.color : undefined,
-              }}
+              } as React.CSSProperties}
             >
               <span className="text-base">{mode.icon}</span>
               <div>

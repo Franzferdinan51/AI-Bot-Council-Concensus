@@ -134,7 +134,7 @@ export function ConsensusTab({ consensus, messages }: ConsensusTabProps) {
             <p className="text-white font-medium">{getStatusText()}</p>
             <div className="mt-3 flex items-center gap-2 justify-center">
               <div
-                className="h-1 w-16 rounded-full"
+                className="h-1 w-16 rounded-full consensus-bar-shimmer"
                 style={{ backgroundColor: animatedColor }}
               />
               <span className="text-xs text-slate-500">Consensus Level</span>

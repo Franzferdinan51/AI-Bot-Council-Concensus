@@ -9,7 +9,4 @@ export { ConsensusTab } from './ConsensusTab';
 export { CouncilorsTab } from './CouncilorsTab';
 export { DeliberationTab } from './DeliberationTab';
 export { SettingsTab } from './SettingsTab';
-export { ModeSelector } from './ModeSelector';
-export { ConsensusMeter } from './ConsensusMeter';
-export { SpecialistPanel } from './SpecialistPanel';
-
+export { TabBar } from './TabBar';

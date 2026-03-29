@@ -29,8 +29,13 @@ export function ConsensusMeter({ consensus }: ConsensusMeterProps) {
       </div>
       <div className="h-3 bg-gray-700 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${consensus}%`, backgroundColor: getColor() }}
+          className="h-full rounded-full transition-all duration-700 ease-out consensus-bar-shimmer"
+          style={{
+            width: `${consensus}%`,
+            background: consensus > 0
+              ? `linear-gradient(90deg, #ef4444, #eab308, #22c55e)`
+              : getColor(),
+          }}
         />
       </div>
       <div className="mt-2 flex items-center gap-2">

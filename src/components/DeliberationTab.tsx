@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { ParticleBackground } from './ParticleBackground';
 import { measureText, createStreamingMeasurer } from '../lib/pretext';
 
 interface Message {
@@ -97,12 +98,15 @@ export function DeliberationTab({ messages, currentStreamingId }: DeliberationTa
   return (
     <div
       ref={containerRef}
-      className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+      className="relative h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
       style={{
         background: 'linear-gradient(180deg, rgba(15,23,42,1) 0%, rgba(30,41,59,0.5) 100%)',
       }}
     >
-      <div className="max-w-3xl mx-auto p-6 space-y-6">
+      {/* Particle Background */}
+      <ParticleBackground />
+
+      <div className="relative z-10 max-w-3xl mx-auto p-6 space-y-6">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-96 text-center">
             <span className="text-7xl mb-6 opacity-50">🏛️</span>
@@ -126,12 +130,12 @@ export function DeliberationTab({ messages, currentStreamingId }: DeliberationTa
           return (
             <div
               key={msg.id}
-              className={`flex gap-4 ${isUser ? 'flex-row-reverse' : ''}`}
+              className={`flex gap-4 message-enter ${isUser ? 'flex-row-reverse' : ''}`}
               style={{ minHeight: height }}
             >
               {/* Avatar */}
               <div
-                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-lg"
+                className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-lg ${msg.role === 'councilor' ? 'councilor-avatar-glow' : ''}`}
                 style={{
                   backgroundColor: msg.councilorColor || (isUser ? '#3B82F6' : '#1E293B'),
                   boxShadow: msg.councilorColor ? `0 0 20px ${msg.councilorColor}30` : undefined,
@@ -154,7 +158,7 @@ export function DeliberationTab({ messages, currentStreamingId }: DeliberationTa
                   {streaming && (
                     <span className="flex items-center gap-1 text-xs text-purple-400">
                       <span className="animate-pulse">●</span>
-                      Streaming
+                      <span className="shimmer-text px-1.5 py-0.5 rounded">Thinking…</span>
                     </span>
                   )}
                 </div>
@@ -164,7 +168,7 @@ export function DeliberationTab({ messages, currentStreamingId }: DeliberationTa
                   className={`
                     inline-block text-left px-4 py-3 rounded-2xl text-sm leading-relaxed
                     ${isUser ? 'bg-blue-600 text-white rounded-tr-sm' : ''}
-                    ${isSystem ? 'bg-slate-800/80 text-slate-200 border border-slate-700/50' : ''}
+                    ${isSystem ? 'bg-slate-800/80 text-slate-200 border border-slate-700/50 shimmer-text' : ''}
                     ${msg.role === 'councilor' ? 'bg-slate-800/60 text-slate-200 border border-slate-700/30' : ''}
                   `}
                   style={{

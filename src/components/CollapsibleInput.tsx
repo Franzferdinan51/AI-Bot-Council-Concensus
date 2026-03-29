@@ -129,7 +129,7 @@ export function CollapsibleInput({
           <button
             type="submit"
             disabled={!canSubmit || disabled}
-            className="flex-shrink-0 px-4 py-2 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className={`flex-shrink-0 px-4 py-2 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 btn-ripple ${canSubmit && !disabled ? 'submit-btn-glow' : ''}`}
             style={{
               background: canSubmit && !disabled ? 'linear-gradient(135deg, #7c3aed, #2563eb)' : undefined,
               color: canSubmit && !disabled ? '#fff' : '#6b7280',

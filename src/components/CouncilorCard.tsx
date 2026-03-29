@@ -20,14 +20,14 @@ export function CouncilorCard({
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer rounded-lg p-3 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+      className={`cursor-pointer rounded-lg p-3 transition-all duration-200 hover:scale-105 ${isSelected ? 'councilor-active-glow' : 'hover:shadow-lg'}`}
       style={{
         minHeight,
         backgroundColor: `${councilor.color}${isSelected ? 'FF' : '99'}`,
         borderWidth: isSelected ? 2 : 0,
         borderColor: borderColor,
         boxShadow: isSelected
-          ? `0 0 20px ${councilor.color}50`
+          ? `0 0 25px ${councilor.color}60, 0 0 50px ${councilor.color}30`
           : '0 2px 8px rgba(0,0,0,0.1)',
       }}
     >
