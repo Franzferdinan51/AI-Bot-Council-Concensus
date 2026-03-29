@@ -20,6 +20,7 @@ export function StreamingChat({ messages, currentStreamingId }: StreamingChatPro
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(600);
   const [messageHeights, setMessageHeights] = useState<Map<string, number>>(new Map());
+  const streamingMeasurers = useRef<Map<string, ReturnType<typeof createStreamingMeasurer>>>(new Map());
 
   // Measure container width
   useEffect(() => {
@@ -28,25 +29,59 @@ export function StreamingChat({ messages, currentStreamingId }: StreamingChatPro
         setContainerWidth(containerRef.current.clientWidth - 32);
       }
     };
-
     measureWidth();
     window.addEventListener('resize', measureWidth);
     return () => window.removeEventListener('resize', measureWidth);
   }, []);
 
-  // Measure all messages using pretext
+  // Measure all messages using pretext — pre-reserve heights before content appears
   useEffect(() => {
-    const newHeights = new Map<string, number>();
+    const contentWidth = Math.max(containerWidth - 80, 200);
 
     messages.forEach((msg) => {
-      const content = msg.content || '...';
-      const width = containerWidth - 80; // Account for padding and avatar
-      const { height } = measureText(content, width, 15, 22);
-      newHeights.set(msg.id, Math.max(60, height + 40));
+      if (msg.content) {
+        const { height } = measureText(msg.content, contentWidth, 15, 22);
+        const reservedHeight = Math.max(60, height + 48);
+        setMessageHeights((prev) => {
+          const next = new Map(prev);
+          next.set(msg.id, reservedHeight);
+          return next;
+        });
+      }
     });
-
-    setMessageHeights(newHeights);
   }, [messages, containerWidth]);
+
+  // Update streaming message height as tokens arrive (no reflow)
+  useEffect(() => {
+    if (!currentStreamingId) {
+      // Clear measurers for completed streams
+      streamingMeasurers.current.delete(currentStreamingId || '');
+      return;
+    }
+
+    const msg = messages.find((m) => m.id === currentStreamingId);
+    if (!msg || !msg.content) return;
+
+    const contentWidth = Math.max(containerWidth - 80, 200);
+
+    // Get or create measurer for this streaming message
+    if (!streamingMeasurers.current.has(currentStreamingId)) {
+      streamingMeasurers.current.set(
+        currentStreamingId,
+        createStreamingMeasurer(contentWidth, 15, 22)
+      );
+    }
+
+    const measurer = streamingMeasurers.current.get(currentStreamingId)!;
+    const streamingHeight = measurer.append(msg.content);
+    const reservedHeight = Math.max(60, streamingHeight + 48);
+
+    setMessageHeights((prev) => {
+      const next = new Map(prev);
+      next.set(currentStreamingId, reservedHeight);
+      return next;
+    });
+  }, [messages, currentStreamingId, containerWidth]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -55,7 +90,7 @@ export function StreamingChat({ messages, currentStreamingId }: StreamingChatPro
     }
   }, [messages, messageHeights]);
 
-  const isStreaming = (id: string) => currentStreamingId === id;
+  const isStreaming = useCallback((id: string) => currentStreamingId === id, [currentStreamingId]);
 
   return (
     <div
@@ -72,13 +107,14 @@ export function StreamingChat({ messages, currentStreamingId }: StreamingChatPro
         )}
 
         {messages.map((msg) => {
+          // Use pre-measured height; fallback to 80 for new messages before measurement runs
           const height = messageHeights.get(msg.id) || 80;
           const streaming = isStreaming(msg.id);
 
           return (
             <div
               key={msg.id}
-              className="flex gap-3 animate-in slide-in-from-bottom-2 duration-300"
+              className="flex gap-3"
               style={{ minHeight: height }}
             >
               {/* Avatar / Role indicator */}
@@ -112,11 +148,9 @@ export function StreamingChat({ messages, currentStreamingId }: StreamingChatPro
                 </div>
 
                 <div
-                  className={`prose prose-sm max-w-none text-gray-200 ${
-                    streaming ? 'animate-pulse' : ''
-                  }`}
+                  className={`prose prose-sm max-w-none text-gray-200 ${streaming ? 'animate-pulse' : ''}`}
                   style={{
-                    minHeight: height - 50,
+                    minHeight: height - 48,
                     lineHeight: '22px',
                   }}
                 >

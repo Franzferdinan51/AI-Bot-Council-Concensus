@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { DeliberationModeId, deliberationModes } from '../data/councilors';
+import { measureText } from '../lib/pretext';
 
 interface MotionInputProps {
   onSubmit: (motion: string, mode: DeliberationModeId, selectedCouncilors: number[]) => void;
@@ -7,10 +8,29 @@ interface MotionInputProps {
   selectedCouncilors: number[];
 }
 
+const TEXTAREA_WIDTH = 280; // approx panel width minus padding
+const MIN_LINES = 4;
+const MAX_LINES = 12;
+const LINE_HEIGHT = 22;
+
 export function MotionInput({ onSubmit, disabled, selectedCouncilors }: MotionInputProps) {
   const [motion, setMotion] = useState('');
   const [mode, setMode] = useState<DeliberationModeId>('DELIBERATION');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [textareaHeight, setTextareaHeight] = useState(LINE_HEIGHT * MIN_LINES);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Pre-measure textarea height as user types — no resize jump
+  useEffect(() => {
+    if (!motion) {
+      setTextareaHeight(LINE_HEIGHT * MIN_LINES);
+      return;
+    }
+
+    const { height } = measureText(motion, TEXTAREA_WIDTH, 15, LINE_HEIGHT);
+    const numLines = Math.max(MIN_LINES, Math.min(MAX_LINES, Math.ceil(height / LINE_HEIGHT) + 1));
+    setTextareaHeight(numLines * LINE_HEIGHT);
+  }, [motion]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,17 +97,19 @@ export function MotionInput({ onSubmit, disabled, selectedCouncilors }: MotionIn
             </div>
           </div>
 
-          {/* Motion Input */}
+          {/* Motion Input — pre-measured height, no jump */}
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-2">
               Motion / Proposal
             </label>
             <textarea
+              ref={textareaRef}
               value={motion}
               onChange={(e) => setMotion(e.target.value)}
               placeholder="Enter your motion or proposal for the council to deliberate..."
               disabled={disabled}
-              className="w-full h-32 px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none transition-colors disabled:opacity-50"
+              style={{ minHeight: textareaHeight }}
+              className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none transition-all duration-200 disabled:opacity-50"
             />
           </div>
 
