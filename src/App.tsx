@@ -1,13 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
-  CouncilorGrid,
   StreamingChat,
-  ConsensusMeter,
-  ModeSelector,
   MotionInput,
-  SpecialistPanel,
+  Drawer,
 } from './components';
-import { DeliberationModeId, councilors } from './data/councilors';
+import { DeliberationModeId, deliberationModes, councilors } from './data/councilors';
 
 interface Message {
   id: string;
@@ -27,6 +24,8 @@ function App() {
   const [consensus, setConsensus] = useState(0);
   const [deliberationMode, setDeliberationMode] = useState<DeliberationModeId>('DELIBERATION');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [gatewayStatus, setGatewayStatus] = useState<'connected' | 'disconnected'>('connected');
 
   // Toggle councilor selection
   const handleToggleCouncilor = useCallback((id: number) => {
@@ -142,93 +141,140 @@ function App() {
     [simulateStream]
   );
 
-  // Handle specialist click
-  const handleSpecialistClick = useCallback((specialistId: string) => {
-    // Could open a modal or add specialist to council
-    console.log('Specialist clicked:', specialistId);
+  // Simulate gateway status check
+  useEffect(() => {
+    const checkGateway = () => {
+      setGatewayStatus('connected');
+    };
+    checkGateway();
+    const interval = setInterval(checkGateway, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
-      {/* Header */}
-      <header className="flex-shrink-0 bg-gradient-to-r from-purple-900 via-gray-900 to-blue-900 border-b border-gray-700/50 px-4 py-3">
-        <div className="flex items-center justify-between max-w-[1800px] mx-auto">
+    <div className="h-screen h-[100dvh] flex flex-col bg-gray-950 text-white overflow-hidden">
+      {/* Drawer Backdrop */}
+      {drawerOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* Drawer */}
+      <Drawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        selectedCouncilors={selectedCouncilors}
+        onToggleCouncilor={handleToggleCouncilor}
+      />
+
+      {/* Header - Fixed Top */}
+      <header className="flex-shrink-0 h-[60px] bg-gradient-to-r from-purple-900 via-gray-900 to-blue-900 border-b border-gray-700/50 z-30">
+        <div className="h-full flex items-center justify-between px-4 max-w-[2000px] mx-auto">
+          {/* Left: Logo/Title */}
           <div className="flex items-center gap-3">
-            <span className="text-3xl">🏛️</span>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                AI Council Chamber
-              </h1>
-              <p className="text-xs text-gray-400">
-                Powered by @chenglou/pretext — Zero-reflow text measurement
-              </p>
-            </div>
+            <span className="text-2xl">🏛️</span>
+            <h1 className="text-lg font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent hidden sm:block">
+              AI Council Chamber
+            </h1>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-xs text-gray-400">Active Councilors</div>
-              <div className="text-lg font-bold text-purple-400">
-                {selectedCouncilors.length}
-              </div>
+
+          {/* Center: Mode Selector Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+            {deliberationModes.map((mode) => (
+              <button
+                key={mode.id}
+                onClick={() => setDeliberationMode(mode.id)}
+                className={`
+                  flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all
+                  ${deliberationMode === mode.id
+                    ? 'scale-105 shadow-lg'
+                    : 'hover:bg-gray-700/50 text-gray-400 hover:text-white'
+                  }
+                `}
+                style={{
+                  backgroundColor: deliberationMode === mode.id ? `${mode.color}30` : undefined,
+                  borderWidth: deliberationMode === mode.id ? 1 : 0,
+                  borderColor: deliberationMode === mode.id ? mode.color : undefined,
+                }}
+              >
+                <span>{mode.icon}</span>
+                <span className="hidden md:inline">{mode.name}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Right: Gateway Status + Settings */}
+          <div className="flex items-center gap-3">
+            {/* Active Councilors Count */}
+            <div className="text-right hidden sm:block">
+              <div className="text-[10px] text-gray-400 uppercase tracking-wide">Councilors</div>
+              <div className="text-sm font-bold text-purple-400">{selectedCouncilors.length}</div>
             </div>
-            <div className="w-px h-8 bg-gray-700" />
-            <div className="text-right">
-              <div className="text-xs text-gray-400">Deliberation Mode</div>
-              <div className="text-sm font-medium text-blue-400">{deliberationMode}</div>
+
+            <div className="w-px h-6 bg-gray-700 hidden sm:block" />
+
+            {/* Gateway Status */}
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  gatewayStatus === 'connected'
+                    ? 'bg-green-500 animate-pulse shadow-lg shadow-green-500/50'
+                    : 'bg-red-500'
+                }`}
+              />
+              <span className="text-xs text-gray-400 hidden sm:inline">
+                {gatewayStatus === 'connected' ? 'Gateway' : 'Offline'}
+              </span>
             </div>
+
+            {/* Settings Gear */}
+            <button className="p-2 rounded-lg hover:bg-gray-700/50 transition-colors text-gray-400 hover:text-white">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content - 3 Column Layout */}
-      <main className="flex-1 flex gap-4 p-4 min-h-0 max-w-[1800px] mx-auto w-full">
-        {/* Left Column - Councilor Grid */}
-        <div className="w-80 flex-shrink-0">
-          <CouncilorGrid
-            selectedCouncilors={selectedCouncilors}
-            onToggleCouncilor={handleToggleCouncilor}
-          />
-        </div>
+      {/* Main Content - Hero StreamingChat */}
+      <main className="flex-1 overflow-hidden relative">
+        <StreamingChat messages={messages} currentStreamingId={currentStreamingId} />
 
-        {/* Center Column - Streaming Chat */}
-        <div className="flex-1 flex flex-col min-w-0 rounded-xl border border-gray-700/50 overflow-hidden bg-gray-900/30">
-          <StreamingChat messages={messages} currentStreamingId={currentStreamingId} />
-        </div>
+        {/* Floating Councilors Button */}
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className={`
+            fixed left-4 bottom-[140px] z-30
+            flex items-center gap-2 px-4 py-3 rounded-full
+            bg-gradient-to-r from-purple-600 to-blue-600
+            text-white font-semibold shadow-xl shadow-purple-500/30
+            hover:from-purple-500 hover:to-blue-500
+            transition-all hover:scale-105 active:scale-95
+            ${drawerOpen ? 'translate-x-[340px] opacity-0 pointer-events-none' : ''}
+          `}
+        >
+          <span className="text-xl">👥</span>
+          <span>Councilors</span>
+          <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">
+            {councilors.length}
+          </span>
+        </button>
+      </main>
 
-        {/* Right Column - Controls */}
-        <div className="w-80 flex-shrink-0 flex flex-col gap-4 overflow-y-auto">
-          <ConsensusMeter consensus={consensus} />
-
-          <SpecialistPanel onSpecialistClick={handleSpecialistClick} />
-
+      {/* Bottom Input Bar - Fixed */}
+      <footer className="flex-shrink-0 bg-gray-900/95 border-t border-gray-700/50 z-20">
+        <div className="max-w-[1200px] mx-auto px-4 py-4">
           <MotionInput
             onSubmit={handleSubmitMotion}
             disabled={isProcessing}
             selectedCouncilors={selectedCouncilors}
+            selectedMode={deliberationMode}
+            consensus={consensus}
           />
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="flex-shrink-0 border-t border-gray-700/50 bg-gray-900/50 px-4 py-2">
-        <div className="flex items-center justify-between max-w-[1800px] mx-auto text-xs text-gray-500">
-          <div className="flex items-center gap-4">
-            <span>
-              🏛️ {councilors.length} Councilors + {6} Specialists
-            </span>
-            <span>•</span>
-            <span>⚙️ {deliberationMode} Mode</span>
-            {messages.length > 0 && (
-              <>
-                <span>•</span>
-                <span>{messages.filter((m) => m.role === 'councilor').length} Responses</span>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span>Pretext Active — No DOM Reflow</span>
-          </div>
         </div>
       </footer>
     </div>
