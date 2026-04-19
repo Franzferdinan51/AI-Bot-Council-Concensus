@@ -17,6 +17,7 @@ app.use(express.json({ limit: '10mb' }));
 
 const PORT = process.env.PORT || 3006;
 const SSE_CLIENTS = new Set();
+const sessions = new Map();
 
 // ─── SSE BROADCAST ───────────────────────────────────────────
 function sseBroadcast(eventType, data) {
