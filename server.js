@@ -22,26 +22,93 @@ const PORT = process.env.PORT || 3006;
 const SSE_CLIENTS = new Set();
 const sessions = new Map();
 
-// ─── LLM Integration (MiniMax) ───────────────────────────────────
-const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY || '';
-const MINIMAX_API_URL = 'https://api.minimax.chat/v1/text/chatcompletion_pro?GroupId=tuoyunbauVJxbGWRy';
+// ─── LLM Integration (Multi-Provider: MiniMax, LM Studio, OpenRouter) ───────────────────────────────────
 
-async function callLLM(messages, model = 'MiniMax-M2.7') {
-    if (!MINIMAX_API_KEY) {
-        return { error: 'No API key configured' };
+// Provider configurations
+const PROVIDERS = {
+    minimax: {
+        name: 'MiniMax',
+        apiKey: process.env.MINIMAX_API_KEY || '',
+        apiUrl: 'https://api.minimax.chat/v1/text/chatcompletion_pro?GroupId=tuoyunbauVJxbGWRy',
+        model: 'MiniMax-M2.7',
+        default: true
+    },
+    lmstudio: {
+        name: 'LM Studio (Local)',
+        apiKey: process.env.LMSTUDIO_KEY || 'sk-lm-xWvfQHZF:L8P76SQakhEA95U8DDNf',
+        apiUrl: process.env.LMSTUDIO_URL || 'http://127.0.0.1:1234/v1',
+        model: process.env.LMSTUDIO_MODEL || 'gemma-4-e2b-it',
+        local: true
+    },
+    openrouter: {
+        name: 'OpenRouter',
+        apiKey: process.env.OPENROUTER_API_KEY || '',
+        apiUrl: 'https://openrouter.ai/api/v1/chat/completions',
+        model: 'minimax/minimax-m2.5:free'
+    }
+};
+
+// Current provider selection (can be changed via API)
+let currentProvider = process.env.LLM_PROVIDER || 'minimax';
+
+// Get provider configuration
+function getProvider(name) {
+    return PROVIDERS[name] || PROVIDERS.minimax;
+}
+
+// List available providers
+function listProviders() {
+    return Object.entries(PROVIDERS).map(([key, p]) => ({
+        id: key,
+        name: p.name,
+        model: p.model,
+        local: p.local || false,
+        active: key === currentProvider,
+        hasKey: !!p.apiKey
+    }));
+}
+
+// Call LLM with automatic fallback
+async function callLLM(messages, options = {}) {
+    const providerName = options.provider || currentProvider;
+    const provider = getProvider(providerName);
+    
+    // Try specified provider first
+    const result = await callProvider(providerName, messages, options);
+    if (!result.error) return result;
+    
+    // Fallback chain
+    const fallbackOrder = ['minimax', 'lmstudio', 'openrouter'];
+    for (const fallback of fallbackOrder) {
+        if (fallback === providerName) continue;
+        const fp = getProvider(fallback);
+        if (fp.apiKey) {
+            console.log(`[LLM] Falling back to ${fp.name}...`);
+            const fr = await callProvider(fallback, messages, options);
+            if (!fr.error) return fr;
+        }
+    }
+    
+    return { error: 'All LLM providers failed' };
+}
+
+// Call specific provider
+async function callProvider(providerName, messages, options = {}) {
+    const provider = getProvider(providerName);
+    
+    if (!provider.apiKey) {
+        return { error: `${provider.name}: No API key configured` };
     }
     
     try {
-        const response = await fetch(MINIMAX_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${MINIMAX_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'MiniMax-M2.7',
-                tokens_to_generate: 512,
-                temperature: 0.7,
+        let payload, headers, url;
+        
+        if (providerName === 'minimax') {
+            // MiniMax API
+            payload = {
+                model: provider.model,
+                tokens_to_generate: options.maxTokens || 512,
+                temperature: options.temperature || 0.7,
                 top_p: 0.95,
                 stream: false,
                 messages: messages.map(m => ({
@@ -49,18 +116,54 @@ async function callLLM(messages, model = 'MiniMax-M2.7') {
                     name: m.name || m.councilor || 'assistant',
                     content: m.content
                 }))
-            })
-        });
+            };
+            headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.apiKey}` };
+            url = provider.apiUrl;
+        } else if (providerName === 'lmstudio') {
+            // LM Studio API (OpenAI compatible)
+            payload = {
+                model: options.model || provider.model,
+                messages: messages.map(m => ({ role: m.role || 'user', content: m.content })),
+                temperature: options.temperature || 0.7,
+                max_tokens: options.maxTokens || 512
+            };
+            headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.apiKey}` };
+            url = `${provider.apiUrl}/chat/completions`;
+        } else if (providerName === 'openrouter') {
+            // OpenRouter API
+            payload = {
+                model: options.model || provider.model,
+                messages: messages.map(m => ({ role: m.role || 'user', content: m.content })),
+                temperature: options.temperature || 0.7,
+                max_tokens: options.maxTokens || 512
+            };
+            headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.apiKey}` };
+            url = provider.apiUrl;
+        }
+        
+        const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
         
         if (!response.ok) {
             const err = await response.text();
-            return { error: `API error ${response.status}: ${err}` };
+            return { error: `${provider.name} error ${response.status}: ${err.substring(0, 100)}` };
         }
         
         const data = await response.json();
-        return { content: data?.choices?.[0]?.messages?.[0]?.text || data?.choices?.[0]?.message?.content || '' };
+        
+        // Parse response based on provider
+        let content = '';
+        if (providerName === 'minimax') {
+            content = data?.choices?.[0]?.messages?.[0]?.text || data?.choices?.[0]?.message?.content || '';
+        } else {
+            // LM Studio / OpenAI compatible - check reasoning_content first (Qwen puts reasoning there)
+            content = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.message?.reasoning_content || '';
+            // Clean up reasoning markers if present
+            content = content.replace(/Thinking Process:\s*/gi, '').trim();
+        }
+        
+        return { content, provider: providerName, model: provider.model };
     } catch (e) {
-        return { error: e.message };
+        return { error: `${provider.name}: ${e.message}` };
     }
 }
 
@@ -75,8 +178,58 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
-        viewers: SSE_CLIENTS.size
+        viewers: SSE_CLIENTS.size,
+        providers: listProviders().map(p => ({ id: p.id, name: p.name, local: p.local, active: p.active }))
     });
+});
+
+// ─── LLM Provider Status & Control ────────────────────────────
+app.get('/api/llm/providers', (req, res) => {
+    res.json({ providers: listProviders() });
+});
+
+app.get('/api/llm/status', (req, res) => {
+    const providers = listProviders();
+    res.json({
+        current: currentProvider,
+        providers,
+        lmStudio: {
+            url: PROVIDERS.lmstudio.apiUrl,
+            model: PROVIDERS.lmstudio.model,
+            modelsAvailable: providers.find(p => p.id === 'lmstudio')?.hasKey ? 'check /api/llm/models' : 'no key'
+        }
+    });
+});
+
+app.get('/api/llm/models', async (req, res) => {
+    if (!PROVIDERS.lmstudio.apiKey) {
+        return res.json({ error: 'LM Studio not configured' });
+    }
+    try {
+        const response = await fetch(`${PROVIDERS.lmstudio.apiUrl}/models`, {
+            headers: { 'Authorization': `Bearer ${PROVIDERS.lmstudio.apiKey}` }
+        });
+        const data = await response.json();
+        res.json({ models: data.data || [] });
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+});
+
+app.post('/api/llm/provider', (req, res) => {
+    const { provider } = req.body;
+    if (!PROVIDERS[provider]) {
+        return res.json({ error: 'Unknown provider' });
+    }
+    currentProvider = provider;
+    res.json({ ok: true, provider, name: PROVIDERS[provider].name });
+});
+
+app.post('/api/llm/test', async (req, res) => {
+    const result = await callLLM([
+        { role: 'user', content: 'Say hello in 3 words.' }
+    ]);
+    res.json(result);
 });
 
 // ─── SSE ENDPOINT — live deliberation stream ──────────────────
