@@ -13,16 +13,29 @@ export enum AuthorType {
   SYSTEM = 'system',
 }
 
-export type BotRole = 'speaker' | 'councilor' | 'specialist' | 'moderator' | 'swarm_agent';
+export type BotRole = 'speaker' | 'councilor' | 'specialist' | 'moderator' | 'swarm_agent'
+  | 'senator'           // Upper House - long-term vision, constitutional interpretation
+  | 'representative'    // Lower House - constituent interests, practical impact
+  | 'executive'         // Executive Branch - decisions, veto power, implementation
+  | 'judge'            // Judicial - constitutionality, precedent
+  | 'lobbyist';        // Special interests - narrow stakeholder viewpoints
 
 export enum SessionMode {
-    PROPOSAL = 'proposal',       // Standard Legislative: Debate -> Vote -> Enact
+    PROPOSAL = 'proposal',           // Standard Legislative: Debate -> Vote -> Enact
     DELIBERATION = 'deliberation', // Roundtable: Deep discussion -> Summary (No Vote)
-    INQUIRY = 'inquiry',          // Q&A: Direct answers -> Synthesis
-    RESEARCH = 'research',         // Agentic: Deep Dive -> Plan -> Investigate -> Report
+    INQUIRY = 'inquiry',           // Q&A: Direct answers -> Synthesis
+    RESEARCH = 'research',          // Agentic: Deep Dive -> Plan -> Investigate -> Report
     SWARM = 'swarm',               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
     SWARM_CODING = 'swarm_coding', // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
-    PREDICTION = 'prediction'      // Superforecasting: Probability & Outcome Analysis
+    PREDICTION = 'prediction',     // Superforecasting: Probability & Outcome Analysis
+    LEGISLATIVE = 'legislative',   // US Government: Bill -> Committee -> Floor Vote -> President
+    OVERSIGHT = 'oversight',       // Investigation -> Subpoena -> Report
+    BUDGET = 'budget',             // Budget proposal -> Committee -> Floor -> Signing
+    IMPEACHMENT = 'impeachment',   // House charges -> Senate trial -> Vote
+    CONFIRMATION = 'confirmation', // Nominee hearing -> Committee -> Floor vote
+    TREATY = 'treaty',             // Negotiation -> Senate ratification
+    CONSTITUTIONAL = 'constitutional', // Supreme Court review -> Precedent setting
+    EMERGENCY = 'emergency',          // Crisis response -> Rapid deliberation
 }
 
 export interface BotConfig {
@@ -86,9 +99,9 @@ export interface ProviderSettings {
     ollamaEndpoint: string;
     lmStudioEndpoint: string;
     janAiEndpoint: string;
-    genericOpenAIEndpoint?: string; 
+    genericOpenAIEndpoint?: string;
     genericOpenAIKey?: string;
-    
+
     // New Providers
     zaiApiKey?: string;
     zaiEndpoint?: string;
@@ -96,6 +109,17 @@ export interface ProviderSettings {
     moonshotEndpoint?: string;
     minimaxApiKey?: string;
     minimaxEndpoint?: string;
+
+    // DeepSeek
+    deepseekApiKey?: string;
+    deepseekEndpoint?: string;
+
+    // Provider priority order (used by routing)
+    providerPriority: string[]; // e.g. ['minimax', 'kimi', 'openrouter', 'lmstudio']
+
+    // Cost limits
+    dailyBudget?: number;       // Max USD per day
+    maxTokensPerRequest?: number; // Cap response tokens
 }
 
 // --- GLOBAL MEMORY (Laws/Precedents) ---
@@ -133,6 +157,7 @@ export interface Settings {
   knowledge: {
       documents: RAGDocument[];
   };
+  predictionCalibration?: PredictionCalibration;
 }
 
 export interface VoteData {
@@ -157,6 +182,50 @@ export interface PredictionData {
     confidence: number; // 0-100
     timeline: string;
     reasoning: string;
+    // Extended superforecasting fields
+    probability?: number;        // 0-100 (alias for confidence in new format)
+    baseRate?: number;           // Historical frequency (0-1)
+    timeframe?: string;          // When outcome expected
+    resolutionCriteria?: string; // What counts as correct/incorrect
+    factors?: PredictionFactor[];
+    contraryEvidence?: string;
+    sources?: string[];
+    calibrationNote?: string;
+    subQuestionAnalysis?: {
+        subQuestions: { question: string; probability: number; direction: 'and' | 'or' }[];
+        combinedProbability: number;
+        decompositionQuality: string;
+    };
+    conditionalDrivers?: {
+        driver: string;
+        probabilityIfDriver: number;
+        probabilityIfNot: number;
+        currentLikelihood: number;
+        conditionalProbability: number;
+    }[];
+    temporalNote?: string;
+    falsificationTest?: string;
+    aggregation?: {
+        councilorRange: string;
+        consensusScore: number;
+        keyDisagreement: string;
+    };
+    informationGaps?: string;
+}
+
+export interface PredictionFactor {
+    factor: string;
+    direction: 'for' | 'against';
+    weight: number;    // 0-1
+    evidence: string;
+}
+
+export interface PredictionCalibration {
+    totalPredictions: number;
+    correctPredictions: number;    // within 10% of actual
+    averageConfidence: number;      // 0-1
+    brierScore: number;              // Mean squared error (lower is better)
+    calibrationByBin: Record<string, { count: number; correct: number }>;
 }
 
 export interface Attachment {

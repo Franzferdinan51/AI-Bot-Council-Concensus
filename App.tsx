@@ -3,35 +3,33 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal, PredictionData, ConvergenceState, DebateRound } from './types';
 import { getBotResponse, generateSpeech, streamBotResponse } from './services/aiService';
 import { searchMemories, searchDocuments, saveMemory } from './services/knowledgeService';
-import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS } from './constants';
+import { COUNCIL_SYSTEM_INSTRUCTION, GOV_CHAMBER_INSTRUCTION, DEFAULT_SETTINGS } from './constants';
+// v2.1: Senate Ledger - precedent system (inspired by OpenClaw MetaLearner)
+import { getPrecedentContext, logDeliberation, extractKeywords, buildPrecedentContext, getLedgerStats } from './senate-ledger';
+// v2.1: Provider health monitoring
+import { checkProviderHealth, providerHealth, getBestModelForTask } from './services/providerHealth';
 import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
 import LiveSession from './components/LiveSession';
 import CodingInterface from './components/CodingInterface';
 
 // v2.0: ErrorBoundary - prevents white screen on API/stream failures
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error?: string}> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError(e: Error) {
-    return { hasError: true, error: e.message };
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen w-full bg-[#0a0c10] text-slate-200 flex items-center justify-center p-8">
-          <div className="bg-slate-900 border border-red-900/50 rounded-xl p-6 max-w-lg text-center">
-            <h2 className="text-red-500 font-bold text-lg mb-2">Council Session Crashed</h2>
-            <p className="text-slate-400 text-sm mb-4">{this.state.error}</p>
-            <button onClick={() => window.location.reload()} className="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm">Reload Council</button>
-          </div>
+function ErrorBoundary(props: { children: React.ReactNode }) {
+  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen w-full bg-[#0a0c10] text-slate-200 flex items-center justify-center p-8">
+        <div className="bg-slate-900 border border-red-900/50 rounded-xl p-6 max-w-lg text-center">
+          <h2 className="text-red-500 font-bold text-lg mb-2">Council Session Crashed</h2>
+          <p className="text-slate-400 text-sm mb-4">{error}</p>
+          <button onClick={() => window.location.reload()} className="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm">Reload Council</button>
         </div>
-      );
-    }
-    return this.props.children;
+      </div>
+    );
   }
+  return props.children;
 }
 
 const App: React.FC = () => {
@@ -88,6 +86,23 @@ const App: React.FC = () => {
           window.speechSynthesis?.cancel();
           speechUtteranceRef.current = null;
       };
+  }, []);
+
+  // v2.1: Provider health check on startup (OpenClaw agent startup pattern)
+  useEffect(() => {
+      checkProviderHealth().catch(() => {/* non-blocking */});
+      const interval = setInterval(() => checkProviderHealth().catch(() => {/* non-blocking */}), 300000); // every 5min
+      return () => clearInterval(interval);
+  }, []);
+
+  // v2.1: Load Constitution.md as a setting reference
+  useEffect(() => {
+      fetch('/CONSTITUTION.md')
+          .then(r => r.ok ? r.text() : null)
+          .then(text => {
+              if (text) localStorage.setItem('ai_senate_constitution', text);
+          })
+          .catch(() => {/* Constitution is optional */});
   }, []);
 
   // v2.0: Save messages - with cleanup
@@ -336,9 +351,12 @@ const App: React.FC = () => {
     
     const precedents = searchMemories(topic);
     const docSnippets = searchDocuments(settings.knowledge.documents, topic);
+    // v2.1: Senate Ledger - get relevant past deliberations (OpenClaw MetaLearner pattern)
+    const precedentContext = getPrecedentContext(topic, { limit: 3, includeArguments: true });
     const contextBlock = [
         precedents.length > 0 ? `\n\n[RELEVANT PRECEDENTS]:\n${precedents.map(p => `- ${p.topic}: ${p.content.substring(0, 100)}...`).join('\n')}` : '',
-        docSnippets.length > 0 ? `\n\n[KNOWLEDGE BASE]:\n${docSnippets.join('\n')}` : ''
+        docSnippets.length > 0 ? `\n\n[KNOWLEDGE BASE]:\n${docSnippets.join('\n')}` : '',
+        precedentContext ? `\n\n${precedentContext}` : ''
     ].join('');
 
     const customDirective = settings.ui.customDirective || "";
@@ -363,16 +381,200 @@ const App: React.FC = () => {
                  sessionHistory.push({ id: `pred-councilor-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "SUPERFORECASTER" });
              });
              setSessionStatus(SessionStatus.RESOLVING);
+             // v2.1: Enhanced prediction - inject calibration data and superforecaster context
+             const calibrationCtx = getLedgerStats().predictionAccuracy 
+                 ? `\n\n[CALIBRATION DATA] Average prediction accuracy: ${getLedgerStats().predictionAccuracy.score}% (${getLedgerStats().predictionAccuracy.correct}/${getLedgerStats().predictionAccuracy.total} predictions within 10%).` 
+                 : '';
              if (speaker) {
-                 const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PREDICTION.SPEAKER_PREDICTION)} Persona: ${speaker.persona}`;
+                 const finalPrompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PREDICTION.SPEAKER_PREDICTION)}${calibrationCtx} Persona: ${speaker.persona}`;
                  const finalRes = await processBotTurn(speaker, sessionHistory, finalPrompt, "FINAL PREDICTION");
                  const predictionData = parsePredictionFromResponse(finalRes);
                  if (predictionData) {
-                     const predMsg: Message = { id: `pred-dashboard-${Date.now()}`, author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: "Prediction Model Generated.", predictionData: predictionData };
+                     const predMsg: Message = { id: `pred-dashboard-${Date.now()}`, author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: `Superforecast complete. Outcome: ${predictionData.outcome} (${predictionData.confidence}% confidence). Reasoning: ${predictionData.reasoning.substring(0, 200)}...`, predictionData: predictionData };
                      setMessages(prev => [...prev, predMsg]);
                      sessionHistory.push(predMsg);
                  }
                  sessionHistory.push({ id: 'final-pred-text', author: speaker.name, authorType: speaker.authorType, content: finalRes });
+             }
+        }
+        // v2.1: Government Modes - US Congress-style legislative process
+        else if (mode === SessionMode.LEGISLATIVE) {
+             // Bill → Committee → Floor Debate → House Vote → Senate Vote → President
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `LEGISLATIVE MODE: Processing "${topic}" as a bill.` });
+             const billNumber = `H.R.${Date.now().toString().slice(-6)}`;
+             const injectLegislative = (tpl: string) => injectTopic(tpl)
+                 .replace('{{BILL_NUMBER}}', billNumber)
+                 .replace('{{BILL_TITLE}}', topic)
+                 .replace('{{BILL_DESCRIPTION}}', topic);
+             setSessionStatus(SessionStatus.OPENING);
+             if (speaker) {
+                 const res = await processBotTurn(speaker, sessionHistory, `${injectLegislative(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.BILL_INTRODUCTION)} Persona: ${speaker.persona}`, "SPONSOR");
+                 sessionHistory.push({ id: `leg-intro-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: res });
+             }
+             setSessionStatus(SessionStatus.DEBATING);
+             const commRes = await runBatchWithConcurrency(initialCouncilors.slice(0, 3), async (bot: BotConfig) => {
+                 const r = await processBotTurn(bot, sessionHistory, `${injectLegislative(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.COMMITTEE_HEARING)} Persona: ${bot.persona}`, "COMMITTEE");
+                 return { bot, res: r };
+             }, maxConcurrency);
+             commRes.forEach(({ bot, res }) => { sessionHistory.push({ id: `comm-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "COMMITTEE MEMBER" }); });
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: "Committee stage complete. Floor debate begins." });
+             const floorRes = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const r = await processBotTurn(bot, sessionHistory, `${injectLegislative(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.FLOOR_DEBATE_HOUSE)} Persona: ${bot.persona}`, "REP");
+                 return { bot, res: r };
+             }, maxConcurrency);
+             floorRes.forEach(({ bot, res }) => { sessionHistory.push({ id: `floor-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "REPRESENTATIVE" }); });
+             setSessionStatus(SessionStatus.VOTING);
+             if (speaker) {
+                 const voteRes = await processBotTurn(speaker, sessionHistory, `${injectLegislative(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.HOUSE_VOTE)} Persona: ${speaker.persona}`, "HOUSE VOTE");
+                 const voteData = parseVotesFromResponse(voteRes, topic, initialCouncilors);
+                 const voteMsg: Message = { id: `vote-${Date.now()}`, author: 'Clerk', authorType: AuthorType.SYSTEM, content: `House Vote: ${voteData.yeas} YEA / ${voteData.nays} NAY — ${voteData.result}` };
+                 setMessages(prev => [...prev, voteMsg]);
+                 sessionHistory.push(voteMsg);
+                 if (voteData.result === 'PASSED') {
+                     const senateVoteRes = await processBotTurn(speaker, sessionHistory, `${injectLegislative(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.SENATE_VOTE)} Persona: ${speaker.persona}`, "SENATE VOTE");
+                     const senateVoteData = parseVotesFromResponse(senateVoteRes, topic, initialCouncilors);
+                     const svMsg: Message = { id: `svote-${Date.now()}`, author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Senate Vote: ${senateVoteData.yeas} YEA / ${senateVoteData.nays} NAY — ${senateVoteData.result}` };
+                     setMessages(prev => [...prev, svMsg]);
+                     sessionHistory.push(svMsg);
+                     if (senateVoteData.result === 'PASSED') {
+                         const vetoRes = await processBotTurn(speaker, sessionHistory, `${injectLegislative(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.PRESIDENT_VETO)} Persona: ${speaker.persona}`, "PRESIDENT");
+                         sessionHistory.push({ id: `veto-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: vetoRes, roleLabel: "PRESIDENT" });
+                         if (vetoRes.toLowerCase().includes('veto')) {
+                             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: "⚠️ Presidential veto received. Override requires 2/3 majority in both chambers." });
+                         }
+                     }
+                 }
+             }
+        }
+        else if (mode === SessionMode.OVERSIGHT) {
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `OVERSIGHT MODE: Opening investigation into "${topic}".` });
+             setSessionStatus(SessionStatus.OPENING);
+             if (moderator) {
+                 const res = await processBotTurn(moderator, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.OVERSIGHT_PROLOGUE)} Persona: ${moderator.persona}`, "LEAD INVESTIGATOR");
+                 sessionHistory.push({ id: `inv-${Date.now()}`, author: moderator.name, authorType: moderator.authorType, content: res });
+             }
+             setSessionStatus(SessionStatus.DEBATING);
+             const results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const r = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.COUNCILOR)} Persona: ${bot.persona}`, "WITNESS");
+                 return { bot, res: r };
+             }, maxConcurrency);
+             results.forEach(({ bot, res }) => { sessionHistory.push({ id: `witness-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "WITNESS" }); });
+             setSessionStatus(SessionStatus.RESOLVING);
+             if (speaker) {
+                 const r = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.SPEAKER_ANSWER)} Persona: ${speaker.persona}`, "INVESTIGATION REPORT");
+                 sessionHistory.push({ id: `report-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: r });
+             }
+        }
+        else if (mode === SessionMode.BUDGET) {
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `BUDGET MODE: Fiscal Year ${new Date().getFullYear()} — "${topic}".` });
+             setSessionStatus(SessionStatus.OPENING);
+             if (speaker) {
+                 const res = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.BUDGET_PROLOGUE)} Persona: ${speaker.persona}`, "BUDGET CHAIR");
+                 sessionHistory.push({ id: `budj-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: res });
+             }
+             setSessionStatus(SessionStatus.DEBATING);
+             const results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const r = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.FLOOR_DEBATE_HOUSE)} Persona: ${bot.persona}`, "BUDGET MEMBER");
+                 return { bot, res: r };
+             }, maxConcurrency);
+             results.forEach(({ bot, res }) => { sessionHistory.push({ id: `budj-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "BUDGET MEMBER" }); });
+             setSessionStatus(SessionStatus.VOTING);
+             if (speaker) {
+                 const voteRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.HOUSE_VOTE)} Persona: ${speaker.persona}`, "BUDGET VOTE");
+                 const voteData = parseVotesFromResponse(voteRes, topic, initialCouncilors);
+                 const voteMsg: Message = { id: `bvote-${Date.now()}`, author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Budget Vote: ${voteData.yeas} YEA / ${voteData.nays} NAY — ${voteData.result}` };
+                 setMessages(prev => [...prev, voteMsg]);
+                 sessionHistory.push(voteMsg);
+             }
+        }
+        else if (mode === SessionMode.IMPEACHMENT) {
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `⚖️ IMPEACHMENT MODE: Articles of Impeachment for "${topic}".` });
+             setSessionStatus(SessionStatus.OPENING);
+             if (speaker) {
+                 const res = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.IMPEACHMENT_PROLOGUE)} Persona: ${speaker.persona}`, "HOUSE MANAGER");
+                 sessionHistory.push({ id: `imp-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: res });
+             }
+             setSessionStatus(SessionStatus.DEBATING);
+             const results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const r = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.SENATE_VOTE)} Persona: ${bot.persona}`, "SENATOR");
+                 return { bot, res: r };
+             }, maxConcurrency);
+             results.forEach(({ bot, res }) => { sessionHistory.push({ id: `trial-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "SENATOR (JUROR)" }); });
+             setSessionStatus(SessionStatus.VOTING);
+             if (speaker) {
+                 const voteRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.SENATE_VOTE)} Persona: ${speaker.persona}`, "IMPEACHMENT VOTE");
+                 const voteData = parseVotesFromResponse(voteRes, topic, initialCouncilors);
+                 const verdict = voteData.yeas >= (initialCouncilors.length * 2 / 3) ? 'GUILTY — REMOVED FROM OFFICE' : 'NOT GUILTY — ACQUITTED';
+                 const voteMsg: Message = { id: `impvote-${Date.now()}`, author: 'Clerk', authorType: AuthorType.SYSTEM, content: `IMPEACHMENT VOTE: ${voteData.yeas} GUILTY / ${voteData.nays} NOT GUILTY — ${verdict}` };
+                 setMessages(prev => [...prev, voteMsg]);
+                 sessionHistory.push(voteMsg);
+             }
+        }
+        else if (mode === SessionMode.CONFIRMATION) {
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `CONFIRMATION MODE: "${topic}" — Senate hearing.` });
+             setSessionStatus(SessionStatus.OPENING);
+             if (speaker) {
+                 const res = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.CONFIRMATION_HEARING)} Persona: ${speaker.persona}`, "SENATE CHAIR");
+                 sessionHistory.push({ id: `conf-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: res });
+             }
+             setSessionStatus(SessionStatus.DEBATING);
+             const results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const r = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.COUNCILOR)} Persona: ${bot.persona}`, "SENATOR");
+                 return { bot, res: r };
+             }, maxConcurrency);
+             results.forEach(({ bot, res }) => { sessionHistory.push({ id: `ques-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "SENATOR" }); });
+             setSessionStatus(SessionStatus.VOTING);
+             if (speaker) {
+                 const voteRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.SENATE_VOTE)} Persona: ${speaker.persona}`, "CONFIRMATION VOTE");
+                 const voteData = parseVotesFromResponse(voteRes, topic, initialCouncilors);
+                 const confirmed = voteData.yeas > voteData.nays ? 'CONFIRMED' : 'REJECTED';
+                 const voteMsg: Message = { id: `cfvote-${Date.now()}`, author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Confirmation Vote: ${voteData.yeas} CONFIRM / ${voteData.nays} REJECT — ${confirmed}` };
+                 setMessages(prev => [...prev, voteMsg]);
+                 sessionHistory.push(voteMsg);
+             }
+        }
+        else if (mode === SessionMode.TREATY) {
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `🌐 TREATY MODE: "${topic}" — Senate ratification.` });
+             setSessionStatus(SessionStatus.OPENING);
+             if (speaker) {
+                 const res = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.TREATY_RATIFICATION)} Persona: ${speaker.persona}`, "FOREIGN RELATIONS CHAIR");
+                 sessionHistory.push({ id: `treaty-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: res });
+             }
+             setSessionStatus(SessionStatus.DEBATING);
+             const results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const r = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.FLOOR_DEBATE_SENATE)} Persona: ${bot.persona}`, "SENATOR");
+                 return { bot, res: r };
+             }, maxConcurrency);
+             results.forEach(({ bot, res }) => { sessionHistory.push({ id: `treaty-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "SENATOR" }); });
+             setSessionStatus(SessionStatus.VOTING);
+             if (speaker) {
+                 const voteRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.SENATE_VOTE)} Persona: ${speaker.persona}`, "TREATY VOTE");
+                 const voteData = parseVotesFromResponse(voteRes, topic, initialCouncilors);
+                 const ratified = voteData.yeas >= (initialCouncilors.length * 2 / 3) ? 'RATIFIED (2/3 supermajority)' : 'REJECTED';
+                 const voteMsg: Message = { id: `treatyvote-${Date.now()}`, author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Treaty Vote: ${voteData.yeas} YEA / ${voteData.nays} NAY — ${ratified}` };
+                 setMessages(prev => [...prev, voteMsg]);
+                 sessionHistory.push(voteMsg);
+             }
+        }
+        else if (mode === SessionMode.CONSTITUTIONAL) {
+             addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `⚖️ CONSTITUTIONAL MODE: "${topic}" — Supreme Court review.` });
+             setSessionStatus(SessionStatus.OPENING);
+             if (speaker) {
+                 const res = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.SUPREME_COURT_REVIEW)} Persona: ${speaker.persona}`, "CHIEF JUSTICE");
+                 sessionHistory.push({ id: `court-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: res });
+             }
+             setSessionStatus(SessionStatus.DEBATING);
+             const results = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const r = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INQUIRY.COUNCILOR)} Persona: ${bot.persona}`, "JUSTICE");
+                 return { bot, res: r };
+             }, maxConcurrency);
+             results.forEach(({ bot, res }) => { sessionHistory.push({ id: `court-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "JUSTICE" }); });
+             setSessionStatus(SessionStatus.RESOLVING);
+             if (speaker) {
+                 const rulingRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOV_CHAMBER_INSTRUCTION.SUPREME_COURT_RULING)} Persona: ${speaker.persona}`, "COURT RULING");
+                 sessionHistory.push({ id: `ruling-${Date.now()}`, author: speaker.name, authorType: speaker.authorType, content: rulingRes });
+                 const isConst = rulingRes.toLowerCase().includes('unconstitutional') ? 'STRUCK DOWN' : 'UPHELD';
+                 addMessage({ author: 'Clerk', authorType: AuthorType.SYSTEM, content: `🏛️ SUPREME COURT RULING: ${isConst}` });
              }
         }
         else if (mode === SessionMode.SWARM_CODING) {
