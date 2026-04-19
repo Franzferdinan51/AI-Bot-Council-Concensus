@@ -18,7 +18,7 @@
 - [Overview](#overview)
 - [Features](#features)
 - [45 Councilors](#45-councilors)
-- [11 Deliberation Modes](#11-deliberation-modes)
+- [13 Deliberation Modes](#13-deliberation-modes)
 - [Smart Selection](#smart-councilor-selection)
 - [Multi-Provider Support](#multi-provider-support)
 - [Mobile-Friendly WebUI](#mobile-friendly-webui)
@@ -104,7 +104,7 @@ This means AI Council is now the **single source of truth** for both:
 
 ### 🏛️ Core Deliberation
 
-- **11 Deliberation Modes** including Vision Council, Swarm Coding, Emergency Response
+- **13 Deliberation Modes** — Vision Council, Swarm Coding, Emergency Response, Legislature, Inspector
 - **45 Specialized Councilors** across 8 categories
 - Auto-selected based on topic
 - Smart scaling (5-20+ councilors)
@@ -113,8 +113,9 @@ This means AI Council is now the **single source of truth** for both:
 
 - **Image Analysis** - Upload photos for multi-perspective analysis
 - **8 Vision Specialists** - Visual Analyst, Pattern Recognizer, Color Specialist, etc.
-- **Multi-Model Vision** - Kimi Vision, GPT-4V, Gemini Vision, Qwen-VL
+- **Multi-Model Vision** - Gemini Vision, Kimi Vision, GPT-4V, Qwen-VL
 - **Collaborative Deliberation** - Vision councilors discuss and debate
+- **Inspector Mode** - Deep multi-angle visual analysis with structured dossier reports
 - **Rich Export** - PDF, Markdown, JSON with images
 - **See [VISION-COUNCIL.md](VISION-COUNCIL.md) for complete guide**
 
@@ -264,7 +265,7 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
 
 ---
 
-## 🎭 11 Deliberation Modes
+## 🎭 13 Deliberation Modes
 
 ### Core Modes (6)
 
@@ -301,7 +302,7 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
    - Minimal deliberation, maximum speed
    - Best for: Quick questions, fact-finding
 
-### Advanced Modes (5) 🆕
+### Advanced Modes (7) 🆕
 
 7. **🌪️ Emergency Response** - Rapid crisis deliberation
    - Fast-track decision making for emergencies
@@ -309,25 +310,42 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
    - Councilors: Meteorologist, Emergency Manager, Risk Analyst, Local Resident
    - Best for: Weather emergencies, security incidents, crisis management
 
-8. **📊 Risk Assessment** - Comprehensive risk analysis
+8. **🏛️ Legislature** - Full legislative process 🆕
+   - 5-phase legislative cycle: First Reading → Committee Deliberation → Second Reading → Final Vote → Enactment
+   - Each councilor acts as a committee member assessing the proposal from their political persona
+   - Coalition building in final votes with concessions documented
+   - Speaker issues official `<legislative_record>` with vote tally, coalition map, and effective date
+   - Political personas: Libertarian, Progressive, Centrist, etc. deliberate amendments
+   - Best for: Policy proposals, governance decisions, rule-making, legislative analysis
+
+9. **🔬 Inspector** - Deep visual & data analysis 🆕
+   - Upload images for structured multi-angle inspection
+   - Speaker assigns each councilor a specific inspection angle (technical, analytical, specialist, generalist)
+   - Each councilor produces `<inspection_report>` with findings, anomalies, concerns, uncertainties
+   - Speaker synthesizes into unified `<inspection_dossier>`: primary findings, critical issues, cross-perspectives, data quality, next steps, gaps
+   - Images passed to Gemini as inline base64 for native vision analysis
+   - Teal dossier card with color-coded sections (green findings, red critical, amber cross-perspectives)
+   - Best for: Visual inspection, anomaly detection, data quality assessment, evidence analysis
+
+10. **📊 Risk Assessment** - Comprehensive risk analysis
    - Quantitative and qualitative risk scoring
    - Mitigation strategy development
    - Councilors: Risk Analyst, Security Expert, Finance Expert, Legal Expert
    - Best for: Project risks, security reviews, financial risk assessment
 
-9. **🤝 Consensus Building** - Find common ground
+11. **🤝 Consensus Building** - Find common ground
    - Facilitated dialogue to find agreement
    - Documents areas of agreement/disagreement
    - Councilors: Diplomat, Psychologist, Moderator, Ethicist
    - Best for: Team disputes, stakeholder alignment, conflict resolution
 
-10. **🎯 Strategic Planning** - Long-term strategic thinking
+12. **🎯 Strategic Planning** - Long-term strategic thinking
     - Multi-year planning with scenario analysis
     - Competitive analysis and positioning
     - Councilors: Visionary, Historian, Economist, Product Manager
     - Best for: Roadmap planning, strategy sessions, competitive analysis
 
-11. **👁️ Vision Council** - Image-based deliberation ⭐ **NEW**
+13. **👁️ Vision Council** - Image-based deliberation
     - Upload photos for multi-perspective analysis
     - 8 vision-specialized councilors
     - Multi-model vision analysis (Kimi Vision, GPT-4V, Gemini Vision, Qwen-VL)
@@ -532,9 +550,9 @@ The AI Council Chamber is now a **Progressive Web App (PWA)**!
 
 ---
 
-## 👁️ Vision Council Mode
+## 👁️ Vision Council + Inspector Mode
 
-Upload photos for comprehensive multi-perspective analysis!
+Upload photos for multi-perspective analysis — **Vision Council** for creative review, **Inspector** for structured deep-dive assessment!
 
 ### 8 Vision Specialists
 
@@ -557,8 +575,8 @@ Upload photos for comprehensive multi-perspective analysis!
 ### How to Use
 
 1. Click "New Deliberation"
-2. Select "👁️ Vision Council" mode
-3. Upload image (drag & drop, camera, or file picker)
+2. Select "👁️ Vision Council" or **🔬 Inspector** mode
+3. Upload image (Inspector mode provides structured dossier reports) (drag & drop, camera, or file picker)
 4. Add prompt/question (optional)
 5. Click "Start Analysis"
 6. Review individual analyses
@@ -608,7 +626,7 @@ cp .env.example .env
 npm run dev
 
 # Open browser
-http://localhost:3003/
+http://localhost:3002/
 ```
 
 ### Auto-Start
@@ -674,7 +692,7 @@ OPENAI_API_KEY=your-openai-key
 LM_STUDIO_ENDPOINT=http://localhost:1234/v1
 
 # Server
-PORT=3003
+PORT=3002
 HOST=0.0.0.0
 
 # Models
@@ -722,7 +740,7 @@ Connect AI Council to LM Studio, OpenClaw, Claude Desktop, and any MCP-compatibl
 
 ### 38 Available Tools
 
-#### Vision Council (5 tools)
+#### Vision + Inspector (6 tools)
 | Tool | Description |
 |------|-------------|
 | `vision_analyze` | Analyze images with vision councilors |
@@ -730,6 +748,7 @@ Connect AI Council to LM Studio, OpenClaw, Claude Desktop, and any MCP-compatibl
 | `vision_upload` | Upload image for analysis |
 | `vision_get_models` | List available vision models |
 | `get_vision_session` | Get vision analysis results |
+| `inspection_parse` | Parse inspection dossier from deliberation |
 
 #### Councilor Management (6 tools)
 | Tool | Description |
@@ -947,7 +966,7 @@ ws.onmessage = (e) => console.log(JSON.parse(e.data));
 ### Start Deliberation
 
 1. Click **"New Deliberation"**
-2. Select mode (Legislative, Research, Vision, etc.)
+2. Select mode (Legislative, Research, Vision, Inspector, etc.)
 3. Select councilors (or use auto-select)
 4. Enter topic or upload image
 5. Click **"Start"**
