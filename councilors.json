@@ -366,5 +366,53 @@
     "enabled": true,
     "model": "MiniMax-M2.5",
     "color": "from-violet-600 to-purple-800"
+  },
+  {
+    "id": "cultivator",
+    "name": "The Cultivator",
+    "role": "specialist",
+    "enabled": true,
+    "model": "MiniMax-M2.5",
+    "color": "from-green-600 to-emerald-700"
+  },
+  {
+    "id": "trichome-inspector",
+    "name": "The Trichome Inspector",
+    "role": "specialist",
+    "enabled": true,
+    "model": "MiniMax-M2.5",
+    "color": "from-purple-500 to-violet-700"
+  },
+  {
+    "id": "nutrient-manager",
+    "name": "The Nutrient Manager",
+    "role": "specialist",
+    "enabled": true,
+    "model": "MiniMax-M2.5",
+    "color": "from-amber-500 to-orange-600"
+  },
+  {
+    "id": "ipm-specialist",
+    "name": "The IPM Specialist",
+    "role": "specialist",
+    "enabled": true,
+    "model": "MiniMax-M2.5",
+    "color": "from-red-600 to-red-800"
+  },
+  {
+    "id": "cure-master",
+    "name": "The Cure Master",
+    "role": "specialist",
+    "enabled": true,
+    "model": "MiniMax-M2.5",
+    "color": "from-yellow-600 to-amber-700"
+  },
+  {
+    "id": "compliance-officer",
+    "name": "The Compliance Officer",
+    "role": "specialist",
+    "enabled": true,
+    "model": "MiniMax-M2.5",
+    "color": "from-slate-500 to-gray-700"
   }
 ]
