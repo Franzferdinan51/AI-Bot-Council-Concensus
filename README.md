@@ -5,7 +5,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-compatible-brightgreen.svg)](https://github.com/openclaw/openclaw)
 [![Providers](https://img.shields.io/badge/providers-10+-brightgreen.svg)](PROVIDERS.md)
-[![Councilors](https://img.shields.io/badge/councilors-46-brightgreen.svg)](COUNCILORS.md)
+[![Councilors](https://img.shields.io/badge/councilors-52-brightgreen.svg)](COUNCILORS.md)
 [![Mobile Friendly](https://img.shields.io/badge/mobile-friendly-brightgreen.svg)](MOBILE-UI.md)
 [![PWA](https://img.shields.io/badge/PWA-enabled-brightgreen.svg)](PWA-GUIDE.md)
 [![Vision Mode](https://img.shields.io/badge/vision-mode-brightgreen.svg)](VISION-COUNCIL.md)
@@ -17,7 +17,7 @@
 
 - [Overview](#overview)
 - [Features](#features)
-- [46 Councilors](#46-councilors)
+- [52 Councilors](#52-councilors)
 - [9 Deliberation Modes](#13-deliberation-modes)
 - [Smart Selection](#smart-councilor-selection)
 - [Multi-Provider Support](#multi-provider-support)
@@ -105,7 +105,7 @@ This means AI Council is now the **single source of truth** for both:
 ### 🏛️ Core Deliberation
 
 - **9 Deliberation Modes** — Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction, Legislature, Inspector
-- **46 Specialized Councilors** across 8 categories
+- **52 Specialized Councilors** across 9 categories
 - Auto-selected based on topic
 - Smart scaling (5-20+ councilors)
 
@@ -191,7 +191,7 @@ This means AI Council is now the **single source of truth** for both:
 
 ---
 
-## 🏛️ 46 Councilors
+## 🏛️ 52 Councilors
 
 ### Original (15)
 
@@ -272,7 +272,19 @@ This means AI Council is now the **single source of truth** for both:
 - **Emotion Reader** - Emotional content, mood, feelings
 - **Symbol Interpreter** - Symbols, meanings, cultural context
 
-**Total: 46 specialized councilors for comprehensive deliberation!**
+**Total: 52 specialized councilors for comprehensive deliberation!**
+
+### 🌿 Cannabis Cultivation Specialists
+
+6 specialist councilors for cannabis cultivation decisions:
+- **The Cultivator** 🌱 — Growing techniques, strain selection, harvest timing
+- **The Trichome Inspector** 🔬 — Trichome development, harvest windows
+- **The Nutrient Manager** 🧪 — NPK, pH, feeding schedules
+- **The IPM Specialist** 🛡️ — Pest prevention, organic treatments
+- **The Cure Master** 🏺 — Drying, curing, storage optimization
+- **The Compliance Officer** ⚖️ — Regulations, testing, licensing
+
+Integrated with [CannaAI](https://github.com/Franzferdinan51/CannaAI) via `duck cannaai council`.
 
 See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, and use cases.
 
@@ -371,7 +383,7 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
 
 ## 🎯 Smart Councilor Selection
 
-**Never run all 46 councilors!** The AI Council auto-selects the most relevant councilors for each decision.
+**Never run all 52 councilors!** The AI Council auto-selects the most relevant councilors for each decision.
 
 ### Selection Tiers
 
