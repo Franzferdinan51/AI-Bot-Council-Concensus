@@ -15,7 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '10mb' }));
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3006;
 const SSE_CLIENTS = new Set();
 
 // ─── SSE BROADCAST ───────────────────────────────────────────

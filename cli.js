@@ -7,11 +7,11 @@
  *   OR: alias council="node /path/to/cli.js"
  * 
  * Environment:
- *   COUNCIL_API   API base URL (default: http://localhost:3004)
+ *   COUNCIL_API   API base URL (default: http://localhost:3006)
  *   COUNCIL_KEY   API key (optional)
  */
 
-const API = process.env.COUNCIL_API || 'http://localhost:3004';
+const API = process.env.COUNCIL_API || 'http://localhost:3006';
 const API_KEY = process.env.COUNCIL_KEY || '';
 const args = process.argv.slice(2);
 
@@ -493,7 +493,7 @@ function printUsage() {
   council vote "Should we ban lethal autonomous weapons?"
 
 \x1b[33mENVIRONMENT:\x1b[0m
-  COUNCIL_API   API base URL  (default: http://localhost:3004)
+  COUNCIL_API   API base URL  (default: http://localhost:3006)
   COUNCIL_KEY   API key       (optional)
 
 \x1b[33mMODES:\x1b[0m
