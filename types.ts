@@ -153,10 +153,18 @@ export interface VoteData {
 }
 
 export interface PredictionData {
-    outcome: string;
-    confidence: number; // 0-100
-    timeline: string;
-    reasoning: string;
+    // New general forecast format
+    summary?: string;
+    timeline?: string;
+    probability?: string; // range or percentage
+    confidence?: string; // High/Medium/Low + reason
+    best_case?: string;
+    worst_case?: string;
+    indicators?: string; // newline-separated list
+    reasoning?: string;
+    // Legacy fields (for backwards compat)
+    outcome?: string;
+    confidence_legacy?: number; // 0-100
 }
 
 export interface Attachment {

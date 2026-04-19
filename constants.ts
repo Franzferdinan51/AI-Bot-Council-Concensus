@@ -823,27 +823,42 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
         INTEGRATOR: `${UNCONSTRAINED_DIRECTIVE} You are PRODUCT LEAD. Present the final solution.`
     },
     PREDICTION: {
-        SPEAKER_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are Chief Forecaster opening a PREDICTION MARKET on: "{{TOPIC}}".
-        1. Frame the question as a probabilistic forecast.
-        2. Identify KEY VARIABLES that will determine the outcome.
-        3. Instruct the Council to perform a "Pre-Mortem" and analyze Base Rates (historical frequency of similar events).`,
+        SPEAKER_OPENING: `${UNCONSTRAINED_DIRECTIVE} You are Chief Forecaster. Your role is to forecast the FUTURE for: "{{TOPIC}}".
+        1. Frame this as a general forecast question — what WILL happen, not what SHOULD happen.
+        2. Break it down into: timeframe, key forces at play, and what evidence would confirm or deny the forecast.
+        3. Set the council loose with these instructions:
+           - Look at TRENDS: what trajectory is this on right now?
+           - Look at ANALOGIES: has anything like this happened before? How did it unfold?
+           - Look at EXPERTS: what do knowledgeable people expect?
+           - Look at CONTRARIAN views: why might the consensus be wrong?
+        This is NOT a debate. It's a forecasting session. Be honest about uncertainty.`,
 
-        COUNCILOR: `${UNCONSTRAINED_DIRECTIVE} You are a Superforecaster analyzing: "{{TOPIC}}".
-        1. Use Google Search to find Base Rates and historical precedents.
-        2. Avoid "Inside View" bias (focusing only on specific details of this case). Look at the "Outside View" (how often does this class of event happen?).
-        3. Provide a rough probability estimate (0-100%) in your analysis and justify it.`,
+        COUNCILOR: `${UNCONSTRAINED_DIRECTIVE} You are a Forecaster analyzing: "{{TOPIC}}".
+        1. Use web search to find current data, expert opinions, and precedents.
+        2. Apply the FORECASTING HIERARCHY:
+           a) What is the BASE RATE? (How often does this type of thing happen in similar contexts?)
+           b) What are the SUPPORTING FACTORS? (What forces push toward this outcome?)
+           c) What are the RESISTANCE FACTORS? (What forces push against this outcome?)
+           d) What is your CONFIDENCE LEVEL? (High/Medium/Low and why?)
+        3. Identify 3-5 KEY INDICATORS — specific measurable things to watch that would confirm or deny the forecast.
+        4. Consider ALTERNATIVE SCENARIOS — what else could happen?
+        5. Provide your best forecast with a reasoning chain. Do NOT hedge excessively. Give a clear picture of what you believe will happen.`,
 
-        SPEAKER_PREDICTION: `${UNCONSTRAINED_DIRECTIVE} You are Chief Forecaster. Synthesize the Council's analysis into a FINAL PREDICTION for: "{{TOPIC}}".
+        SPEAKER_PREDICTION: `${UNCONSTRAINED_DIRECTIVE} You are Chief Forecaster. Synthesize the Council's analysis into a FINAL FORECAST for: "{{TOPIC}}".
 
-        You MUST output your final prediction in this STRICT XML format:
-        <prediction>
-          <outcome>[A concise, 1-sentence description of the predicted outcome]</outcome>
-          <confidence>[A number 0-100 representing probability percent]</confidence>
-          <timeline>[When this outcome is expected to occur]</timeline>
-          <reasoning>[A detailed paragraph explaining WHY, citing the strongest evidence and base rates found by the council]</reasoning>
-        </prediction>
+        Give the user a complete, honest forecast. Use this STRICT XML format:
+        <forecast>
+          <summary>[1-2 sentences: what will happen, stated plainly]</summary>
+          <timeline>[When — be specific about timeframe: days, months, years, "by 2030", etc.]</timeline>
+          <probability>[Best estimate 0-100%, or use ranges: "60-70% likely", "highly unlikely <5%"]</probability>
+          <confidence>[High/Medium/Low and the key reason — "High confidence because X" or "Low confidence because we lack data on Y"]</confidence>
+          <best_case>[If things go better than expected — what does that look like?]</best_case>
+          <worst_case>[If things go worse than expected — what does that look like?]</worst_case>
+          <indicators>[3-5 specific, measurable things to watch — if these change, the forecast should be updated]</indicators>
+          <reasoning>[2-3 paragraphs: the chain of reasoning, evidence, analogies, and forces that led to this forecast]</reasoning>
+        </forecast>
 
-        After the XML, you may provide a brief closing statement to the user.
+        After the XML, give the user a plain-English closing statement. No need to hedge excessively — the council has done the work. Give them your best honest forecast.
         `
     },
     PRIVATE_WHISPER: `${UNCONSTRAINED_DIRECTIVE} Provide DIRECT, PROFESSIONAL CONSULTATION. No roleplay.`,

@@ -299,17 +299,36 @@ const App: React.FC = () => {
       };
   };
 
-  // Helper to parse Prediction XML
+  // Helper to parse Forecast/Prediction XML (handles both old <prediction> and new <forecast> format)
   const parsePredictionFromResponse = (response: string): PredictionData | undefined => {
+      // Try new <forecast> format first
+      const forecastMatch = response.match(/<forecast>([\s\S]*?)<\/forecast>/i);
+      if (forecastMatch) {
+          const xml = forecastMatch[1];
+          const get = (tag: string) => {
+              const m = xml.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+              return m ? m[1].trim() : undefined;
+          };
+          return {
+              summary: get('summary'),
+              timeline: get('timeline'),
+              probability: get('probability'),
+              confidence: get('confidence'),
+              best_case: get('best_case'),
+              worst_case: get('worst_case'),
+              indicators: get('indicators'),
+              reasoning: get('reasoning'),
+          };
+      }
+      // Fallback to legacy <prediction> format
       const outcomeMatch = response.match(/<outcome>([\s\S]*?)<\/outcome>/i);
       const confMatch = response.match(/<confidence>([\s\S]*?)<\/confidence>/i);
       const timeMatch = response.match(/<timeline>([\s\S]*?)<\/timeline>/i);
       const reasonMatch = response.match(/<reasoning>([\s\S]*?)<\/reasoning>/i);
-
       if (outcomeMatch && confMatch) {
           return {
               outcome: outcomeMatch[1].trim(),
-              confidence: parseInt(confMatch[1]) || 50,
+              confidence_legacy: parseInt(confMatch[1]) || 50,
               timeline: timeMatch ? timeMatch[1].trim() : "Unknown",
               reasoning: reasonMatch ? reasonMatch[1].trim() : "No reasoning provided."
           };

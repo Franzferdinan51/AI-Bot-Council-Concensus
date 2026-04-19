@@ -215,7 +215,104 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       }
       
       if (message.predictionData) {
-          const { outcome, confidence, timeline, reasoning } = message.predictionData;
+          const pd = message.predictionData;
+          // New forecast format
+          if (pd.summary || pd.probability) {
+              return (
+                <div className="flex justify-center my-6 animate-fade-in w-full px-2">
+                    <div className="bg-gradient-to-b from-indigo-950/80 to-slate-900/90 border border-indigo-500/40 rounded-2xl p-5 max-w-3xl w-full shadow-[0_0_40px_rgba(99,102,241,0.15)] relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl" />
+                        <div className="relative z-10">
+                            {/* Header */}
+                            <div className="flex items-center gap-3 mb-5 border-b border-indigo-500/20 pb-4">
+                                <div className="bg-indigo-950 p-2 rounded-xl border border-indigo-500/30 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-indigo-100 font-serif text-lg tracking-widest uppercase font-bold">Forecast</h3>
+                                    <p className="text-[10px] text-indigo-400 uppercase tracking-widest font-mono">AI Council Prediction</p>
+                                </div>
+                            </div>
+
+                            {/* Summary + Probability Row */}
+                            {pd.summary && (
+                                <div className="mb-4 p-3 bg-indigo-950/40 rounded-xl border border-indigo-500/20">
+                                    <p className="text-white font-serif text-base leading-relaxed font-medium">{pd.summary}</p>
+                                </div>
+                            )}
+
+                            <div className="flex flex-col md:flex-row gap-4 mb-4">
+                                {/* Probability */}
+                                {pd.probability && (
+                                    <div className="flex-1 p-3 bg-slate-900/60 rounded-xl border border-slate-700/50 text-center">
+                                        <div className="text-2xl font-black font-serif text-indigo-200">{pd.probability}</div>
+                                        <div className="text-[9px] text-indigo-400 uppercase tracking-widest mt-1">Probability</div>
+                                    </div>
+                                )}
+                                {/* Timeline */}
+                                {pd.timeline && (
+                                    <div className="flex-1 p-3 bg-slate-900/60 rounded-xl border border-slate-700/50 text-center">
+                                        <div className="text-sm font-black font-serif text-amber-200">{pd.timeline}</div>
+                                        <div className="text-[9px] text-amber-400 uppercase tracking-widest mt-1">Timeline</div>
+                                    </div>
+                                )}
+                                {/* Confidence */}
+                                {pd.confidence && (
+                                    <div className="flex-1 p-3 bg-slate-900/60 rounded-xl border border-slate-700/50 text-center">
+                                        <div className="text-sm font-black font-serif text-slate-200">{pd.confidence}</div>
+                                        <div className="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Confidence</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Best / Worst Case */}
+                            {(pd.best_case || pd.worst_case) && (
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    {pd.best_case && (
+                                        <div className="p-2.5 bg-emerald-950/30 rounded-lg border border-emerald-500/20">
+                                            <div className="text-[9px] text-emerald-400 uppercase tracking-widest font-bold mb-1">🌱 Best Case</div>
+                                            <p className="text-emerald-200 text-xs leading-snug">{pd.best_case}</p>
+                                        </div>
+                                    )}
+                                    {pd.worst_case && (
+                                        <div className="p-2.5 bg-red-950/30 rounded-lg border border-red-500/20">
+                                            <div className="text-[9px] text-red-400 uppercase tracking-widest font-bold mb-1">🔥 Worst Case</div>
+                                            <p className="text-red-200 text-xs leading-snug">{pd.worst_case}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Key Indicators */}
+                            {pd.indicators && (
+                                <div className="mb-4 p-3 bg-amber-950/20 rounded-xl border border-amber-500/20">
+                                    <div className="text-[9px] text-amber-400 uppercase tracking-widest font-bold mb-2">📊 Key Indicators to Watch</div>
+                                    <div className="space-y-1">
+                                        {pd.indicators.split('\n').filter(Boolean).map((ind, i) => (
+                                            <div key={i} className="flex items-start gap-1.5">
+                                                <span className="text-amber-500 shrink-0 mt-0.5">▸</span>
+                                                <span className="text-amber-200 text-xs">{ind.trim()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Reasoning */}
+                            {pd.reasoning && (
+                                <div className="p-3 bg-black/30 rounded-xl border border-white/5">
+                                    <div className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-2">Reasoning Chain</div>
+                                    <p className="text-slate-300 text-xs leading-relaxed">{pd.reasoning}</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+              );
+          }
+
+          // Legacy prediction format
+          const { outcome, confidence_legacy, timeline, reasoning } = pd;
           return (
             <div className="flex justify-center my-8 animate-fade-in w-full px-2 md:px-0">
                 <div className="bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-6 max-w-3xl w-full shadow-[0_0_30px_rgba(99,102,241,0.1)] relative overflow-hidden backdrop-blur-md">
@@ -224,13 +321,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                         <div className="flex items-center gap-3 mb-6 border-b border-indigo-500/20 pb-4">
                              <div className="bg-indigo-950 p-2.5 rounded-xl border border-indigo-500/30"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400"><path d="M2 12h10"/><path d="M9 4v16"/><path d="M3 9l9 6 9-6"/><path d="M12 2v20"/></svg></div>
                              <div>
-                                 <h3 className="text-indigo-100 font-serif text-xl tracking-widest uppercase font-bold">Prediction Market</h3>
+                                 <h3 className="text-indigo-100 font-serif text-xl tracking-widest uppercase font-bold">Prediction</h3>
                                  <p className="text-xs text-indigo-400 uppercase tracking-wider font-mono">Council Forecast</p>
                              </div>
                         </div>
                         <div className="flex flex-col md:flex-row gap-8 items-center">
                             <div className="flex-shrink-0 w-32 h-32 relative flex items-center justify-center bg-indigo-950/30 rounded-full border border-indigo-500/20">
-                                 <span className="text-3xl font-black text-indigo-100 font-serif">{confidence}%</span>
+                                 <span className="text-3xl font-black text-indigo-100 font-serif">{confidence_legacy}%</span>
                                  <span className="absolute bottom-6 text-[8px] text-indigo-400 uppercase tracking-widest">Confidence</span>
                             </div>
                             <div className="flex-1 space-y-4">
