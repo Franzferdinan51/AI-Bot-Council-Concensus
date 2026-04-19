@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal, PredictionData } from './types';
+import { Message, Settings, AuthorType, SessionStatus, BotConfig, VoteData, Attachment, SessionMode, MemoryEntry, ControlSignal, PredictionData, ConvergenceState, DebateRound } from './types';
 import { getBotResponse, generateSpeech, streamBotResponse } from './services/aiService';
 import { searchMemories, searchDocuments, saveMemory } from './services/knowledgeService';
 import { COUNCIL_SYSTEM_INSTRUCTION, DEFAULT_SETTINGS } from './constants';
@@ -8,6 +8,31 @@ import SettingsPanel from './components/SettingsPanel';
 import ChatWindow from './components/ChatWindow';
 import LiveSession from './components/LiveSession';
 import CodingInterface from './components/CodingInterface';
+
+// v2.0: ErrorBoundary - prevents white screen on API/stream failures
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error?: string}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(e: Error) {
+    return { hasError: true, error: e.message };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen w-full bg-[#0a0c10] text-slate-200 flex items-center justify-center p-8">
+          <div className="bg-slate-900 border border-red-900/50 rounded-xl p-6 max-w-lg text-center">
+            <h2 className="text-red-500 font-bold text-lg mb-2">Council Session Crashed</h2>
+            <p className="text-slate-400 text-sm mb-4">{this.state.error}</p>
+            <button onClick={() => window.location.reload()} className="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm">Reload Council</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -35,7 +60,13 @@ const App: React.FC = () => {
   const [privateInput, setPrivateInput] = useState("");
 
   const controlSignal = useRef<ControlSignal>({ stop: false, pause: false });
+  // v2.0: Track speech utterance for cleanup on unmount
+  const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  // v2.0: Debate round tracking for anti-sycophancy + hard limit
+  const debateRoundRef = useRef<number>(0);
+  const debateRoundsRef = useRef<DebateRound[]>([]);
 
+  // v2.0: Cost warning - with proper cleanup
   useEffect(() => {
       const hasAck = localStorage.getItem('ai_council_cost_ack');
       if (!hasAck) {
@@ -52,11 +83,16 @@ const App: React.FC = () => {
               }
           } catch (e) { /* ignore */ }
       }
+      // v2.0: Cleanup - cancel any ongoing speech when component unmounts
+      return () => {
+          window.speechSynthesis?.cancel();
+          speechUtteranceRef.current = null;
+      };
   }, []);
 
+  // v2.0: Save messages - with cleanup
   useEffect(() => {
       if (messages.length > 1) {
-          // Save last 50 messages
           const toSave = messages.slice(-50);
           localStorage.setItem('ai_council_messages', JSON.stringify(toSave));
       }
@@ -67,33 +103,40 @@ const App: React.FC = () => {
       setShowCostWarning(false);
   };
 
-  // --- AUDIO HANDLING ---
+  // --- AUDIO HANDLING (v2.0: error-safe with cleanup) ---
   const speakText = useCallback(async (text: string, bot: BotConfig | null) => {
     if (!settings.audio.enabled) return;
     const cleanText = text.replace(/https?:\/\/[^\s]+/g, '').replace(/[*_#]/g, '').replace(/```[\s\S]*?```/g, 'Code block omitted.');
 
     if (settings.audio.useGeminiTTS && bot && bot.authorType === AuthorType.GEMINI) {
-        const apiKey = settings.providers.geminiApiKey || process.env.API_KEY || '';
-        const audioData = await generateSpeech(cleanText, bot.role, apiKey);
-        if (audioData) {
-            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const binaryString = atob(audioData);
-            const bytes = new Uint8Array(binaryString.length);
-            for(let i=0; i<binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-            const buffer = await audioCtx.decodeAudioData(bytes.buffer);
-            const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-            source.connect(audioCtx.destination);
-            source.start();
-            return;
+        try {
+            const apiKey = settings.providers.geminiApiKey || process.env.API_KEY || '';
+            const audioData = await generateSpeech(cleanText, bot.role, apiKey);
+            if (audioData) {
+                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                const binaryString = atob(audioData);
+                const bytes = new Uint8Array(binaryString.length);
+                for(let i=0; i<binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                // v2.0: wrap decodeAudioData in try-catch (can fail on corrupt data or closed context)
+                const buffer = await audioCtx.decodeAudioData(bytes.buffer);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start();
+                return;
+            }
+        } catch (e) {
+            // Audio generation failed silently - fall through to speech synthesis
         }
     }
 
     if (!window.speechSynthesis) return;
+    // v2.0: Cancel previous utterance before starting new one
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = settings.audio.speechRate;
     utterance.volume = settings.audio.voiceVolume;
+    speechUtteranceRef.current = utterance; // Track for unmount cleanup
 
     const voices = window.speechSynthesis.getVoices();
     if (voices.length > 0 && bot) {
@@ -487,8 +530,46 @@ const App: React.FC = () => {
     }
   };
 
+  // v2.0: Helper - compute semantic similarity between responses (keyword overlap)
+  const computeRoundSimilarity = (responses: string[]): number => {
+    if (responses.length < 2) return 1.0;
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter((w: string) => w.length > 3);
+    const allWords = responses.map(normalize);
+    let matchCount = 0; let totalPairs = 0;
+    for (let i = 0; i < allWords.length; i++) {
+      for (let j = i + 1; j < allWords.length; j++) {
+        const set_i = new Set(allWords[i]);
+        const intersection = allWords[j].filter((w: string) => set_i.has(w));
+        const union = new Set([...allWords[i], ...allWords[j]]);
+        if (union.size > 0) matchCount += intersection.length / union.size;
+        totalPairs++;
+      }
+    }
+    return totalPairs > 0 ? matchCount / totalPairs : 1.0;
+  };
+
+  // v2.0: Reset round tracking at start of new session
+  const resetDebateRounds = () => { debateRoundRef.current = 0; debateRoundsRef.current = []; };
+
+  // v2.0: Record a completed round and detect convergence
+  const recordDebateRound = (councilorResponses: {bot: BotConfig; res: string}[]) => {
+    debateRoundRef.current += 1;
+    const similarity = computeRoundSimilarity(councilorResponses.map(r => r.res));
+    let state: ConvergenceState;
+    if (similarity >= 0.85) state = ConvergenceState.CONVERGED;
+    else if (similarity >= 0.40) state = ConvergenceState.REFINING;
+    else state = debateRoundRef.current > 1 ? ConvergenceState.IMPASSE : ConvergenceState.DIVERGING;
+    debateRoundsRef.current.push({ roundNumber: debateRoundRef.current, responses: councilorResponses.map(r => ({
+      councilorId: r.bot.id, councilorName: r.bot.name,
+      position: r.res.toLowerCase().includes('agree') ? 'AGREE' : r.res.toLowerCase().includes('disagree') ? 'DISAGREE' : 'PARTIALLY_AGREE',
+      confidence: 0.7, reasoning: r.res.substring(0, 200), changedFromRound1: debateRoundRef.current > 1
+    })), convergenceState: state, timestamp: Date.now() });
+    return { similarity, state, roundNumber: debateRoundRef.current };
+  };
+
   const handleSendMessage = (content: string, attachments: Attachment[], mode: SessionMode) => {
     if (privateCouncilorId) { handlePrivateSend(content); return; }
+    resetDebateRounds(); // v2.0: reset round tracking for new session
     setCurrentTopic(content);
     setSessionMode(mode);
     setSessionStatus(SessionStatus.OPENING);
@@ -534,7 +615,11 @@ const App: React.FC = () => {
           const res = await getBotResponse(bot, history, prompt, settings);
           const botMsg: Message = { id: Date.now().toString(), author: bot.name, authorType: bot.authorType, content: res };
           setPrivateMessages(prev => ({ ...prev, [privateCouncilorId]: [...(prev[privateCouncilorId] || []), botMsg] }));
-      } catch (e) { console.error(e); }
+      } catch (e: any) {
+          // v2.0: Show error to user instead of swallowing it
+          const errMsg: Message = { id: Date.now().toString(), author: 'Clerk', authorType: AuthorType.SYSTEM, content: `Consultation Error: ${e.message}` };
+          setPrivateMessages(prev => ({ ...prev, [privateCouncilorId]: [...(prev[privateCouncilorId] || []), errMsg] }));
+      }
   };
   const activePrivateHistory = privateCouncilorId ? privateMessages[privateCouncilorId] : [];
   const activePrivateBot = settings.bots.find(b => b.id === privateCouncilorId);
@@ -543,6 +628,7 @@ const App: React.FC = () => {
   const showCodingUI = isCodingMode && (settings.ui.proCodingUI ?? false);
 
   return (
+    <ErrorBoundary>
     <div className="min-h-screen w-full bg-[#0a0c10] text-slate-200 font-sans overflow-y-auto bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950/80 to-[#050608]">
       
       {showCodingUI ? (
@@ -622,6 +708,7 @@ const App: React.FC = () => {
           </div>
       )}
     </div>
+    </ErrorBoundary>
   );
 };
 

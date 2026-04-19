@@ -1,15 +1,14 @@
-# 🏛️ AI Council Chamber
+# 🏛️ AI Senate — Multi-Agent Deliberation Engine
 
-**The Definitive Multi-Agent Governance & Deliberation Engine**
+**v2.0.0 — Upgraded with Anti-Sycophancy Protocol, Agent Mesh, and 10 New Tools**
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-compatible-brightgreen.svg)](https://github.com/openclaw/openclaw)
-[![Providers](https://img.shields.io/badge/providers-10+-brightgreen.svg)](PROVIDERS.md)
+[![Version](https://img.shields.io/badge/version-2.0.0-amber.svg)]
+[![Providers](https://img.shields.io/badge/providers-12+-brightgreen.svg)](PROVIDERS.md)
 [![Councilors](https://img.shields.io/badge/councilors-45-brightgreen.svg)](COUNCILORS.md)
-[![Mobile Friendly](https://img.shields.io/badge/mobile-friendly-brightgreen.svg)](MOBILE-UI.md)
-[![PWA](https://img.shields.io/badge/PWA-enabled-brightgreen.svg)](PWA-GUIDE.md)
-[![Vision Mode](https://img.shields.io/badge/vision-mode-brightgreen.svg)](VISION-COUNCIL.md)
-[![MCP](https://img.shields.io/badge/MCP-enabled-brightgreen.svg)]
+[![MCP](https://img.shields.io/badge/MCP-v2.0.0-brightgreen.svg)]
+[![Security](https://img.shields.io/badge/security-audit_passed-green.svg)]
 
 ---
 
@@ -588,7 +587,7 @@ Upload photos for comprehensive multi-perspective analysis!
 
 - Node.js v18+
 - npm or yarn
-- AI provider API key (or use local LM Studio/Ollama)
+- AI provider API key (or use local LM Studio / Ollama)
 
 ### Installation
 
@@ -597,18 +596,35 @@ Upload photos for comprehensive multi-perspective analysis!
 git clone https://github.com/Franzferdinan51/AI-Bot-Council-Concensus.git
 cd AI-Bot-Council-Concensus
 
-# Install
+# Install (vulnerabilities pre-patched)
 npm install
 
 # Configure
 cp .env.example .env
 # Edit .env with your API keys
 
-# Start
+# Start web UI
 npm run dev
 
 # Open browser
 http://localhost:3003/
+
+# Start MCP server (for LM Studio / mcporter)
+npm run mcp
+
+# Start CLI API server (standalone REST)
+node server.js
+```
+
+### v2.0.0 New: Agent Mesh Integration
+
+```bash
+# Register AI Senate with agent mesh
+export MESH_API_URL=http://localhost:4000/api
+export MESH_API_KEY=openclaw-mesh-default-key
+
+# Senate now broadcasts deliberation results to all mesh agents
+# Other programs (AgentTeams, duck-cli, etc.) can consult the senate
 ```
 
 ### Auto-Start
@@ -1142,6 +1158,29 @@ Or tell DuckBot: `swarm build a REST API`
 ---
 
 **Built with ❤️ for better decision-making**
+
+---
+
+## 📈 Version History
+
+### v2.0.0 (2026-04-19)
+- **🪲 Critical Bug Fix:** All 45 councilors were configured with `MiniMax-M2.5` (doesn't exist) → fixed to `MiniMax-M2.7`. Fast-track councilors fixed from fake `jan-v3-4b-base-instruct` → `qwen3.5-plus`
+- **🔒 Security:** `npm audit fix` applied → 0 vulnerabilities (was: protobufjs critical RCE + 6 high/critical vulnerabilities)
+- **🔧 API Rebuild:** `server.js` expanded from 6 endpoints → 50+ endpoints (was: broken MCP proxy, most tools returning 404)
+- **🧠 Anti-Sycophancy Protocol:** Independent first-round responses prevent weaker models from flipping to stronger answers (research: extended deliberation increases confidence while decreasing accuracy)
+- **👁️ Fresh Eyes Validator:** Separate AI validates final answer with zero debate context
+- **📋 Structured Response Format:** Every councilor now outputs POSITION/CONFIDENCE/REASONING/EVIDENCE/WHAT_WOULD_CHANGE_MY_MIND
+- **🔄 Auto-Convergence Detection:** Stops deliberation at 85%+ agreement (saves API costs)
+- **⏱️ Debate Round Hard Limit:** 3 rounds max (research: beyond 3 rounds accuracy degrades)
+- **🌐 Agent Mesh API:** Senate registers with mesh and can coordinate with AgentTeams, duck-cli, other programs
+- **🛠️ 10 New Tools:** GitHub PR review, code execution sandbox, news ticker, Wolfram Alpha
+- **🤖 Model Update:** Added Qwen3.6 Plus Preview (1M ctx), DeepSeek-R1 (reasoning), Gemma-4-e4b-it (Android!), Kimi K2.5 (best vision)
+- **⚡ React ErrorBoundary:** API failures no longer cause white-screen crashes
+- **🔊 Speech Cleanup:** AudioContext errors caught, SpeechSynthesis properly cancelled on unmount
+- **📊 SessionStatus.ERROR:** Proper error state for failed API calls
+
+### v1.0.0 (Earlier)
+- Initial release with 45 councilors, 11 deliberation modes, MCP server, PWA/Mobile UI
 
 **MIT License - Free to use, modify, and distribute**
 

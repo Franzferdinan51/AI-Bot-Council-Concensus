@@ -5,7 +5,7 @@ import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprot
 const COUNCIL_API = process.env.COUNCIL_API || 'http://localhost:3001';
 
 const server = new Server(
-  { name: 'ai-council-mcp', version: '3.1.0' },
+  { name: 'ai-council-mcp', version: '2.0.0' },
   { capabilities: { tools: {} } }
 );
 
@@ -227,7 +227,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 async function main() {
-  console.error('🏛️ AI Council MCP v3.1.0 starting...');
+  console.error('🏛️ AI Council MCP v2.0.0 starting...');
   console.error(`📍 Connecting to: ${COUNCIL_API}`);
   console.error(`🔧 Base tools: ${tools.length}`);
   await server.connect(new StdioServerTransport());

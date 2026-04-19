@@ -197,10 +197,47 @@ export enum SessionStatus {
     VOTING = 'voting',
     ENACTING = 'enacting',
     ADJOURNED = 'adjourned',
-    PAUSED = 'paused'
+    PAUSED = 'paused',
+    ERROR = 'error'
+}
+
+export enum ConvergenceState {
+    UNKNOWN = 'unknown',    // Not yet evaluated
+    DIVERGING = 'diverging', // <40% similarity - keep deliberating
+    REFINING = 'refining',   // 40-85% similarity - continue
+    CONVERGED = 'converged', // >=85% similarity - stop early
+    IMPASSE = 'impasse'      // Stable disagreement
 }
 
 export interface ControlSignal {
     stop: boolean;
     pause: boolean;
+}
+
+// v2.0: Debate round tracking
+export interface DebateRound {
+    roundNumber: number;
+    responses: CouncilorRoundResponse[];
+    convergenceState: ConvergenceState;
+    timestamp: number;
+}
+
+export interface CouncilorRoundResponse {
+    councilorId: string;
+    councilorName: string;
+    position: 'AGREE' | 'DISAGREE' | 'PARTIALLY_AGREE' | 'ABSTAIN';
+    confidence: number; // 0-1
+    reasoning: string;
+    evidence?: string;
+    changedFromRound1: boolean;
+}
+
+// v2.0: Fresh Eyes validation result
+export interface FreshEyesResult {
+    validatorId: string;
+    validatorName: string;
+    validation: 'VALID' | 'REVISED' | 'REJECTED';
+    concerns: string[];
+    improvements: string[];
+    confidence: number;
 }
