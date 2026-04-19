@@ -68,22 +68,113 @@ let liveSession = {
 };
 
 // Start a new deliberation session
+// Auto-deliberation settings
+const AUTO_DELIBERATION = process.env.AUTO_DELIBERATION !== 'false'; // Default enabled
+const DELIBERATION_DELAY_MS = 2000; // 2 seconds between messages
+
 app.post('/api/session/start', (req, res) => {
     const { topic, mode, councilors } = req.body;
+    
+    // Load councilors from file
+    let availableCouncilors = [];
+    try {
+        const councilorsData = JSON.parse(readFileSync(join(__dirname, 'councilors.json'), 'utf-8'));
+        availableCouncilors = councilorsData.filter(c => c.enabled).slice(0, 5); // Use first 5 for demo
+    } catch (e) {}
+    
     liveSession = {
         id: `session-${Date.now()}`,
         topic,
-        mode,
+        mode: mode || 'proposal',
         phase: 'opening',
         startedAt: Date.now(),
         messages: [],
-        councilors: councilors || [],
+        councilors: availableCouncilors.map(c => ({ ...c, status: 'waiting', speaking: false })),
         voteData: null,
         stats: { messages: 0, yeas: 0, nays: 0 }
     };
     sseBroadcast('session_start', liveSession);
     res.json({ ok: true, sessionId: liveSession.id });
+    
+    // Auto-start deliberation if enabled
+    if (AUTO_DELIBERATION && topic) {
+        setTimeout(() => startAutoDeliberation(topic, mode), 1000);
+    }
 });
+
+// Auto-deliberation: generate messages automatically
+function startAutoDeliberation(topic, mode) {
+    if (!liveSession || liveSession.phase === 'ended') return;
+    
+    const councilors = ['The Technocrat', 'The Ethicist', 'The Pragmatist', 'The Visionary', 'High Speaker'];
+    const positions = [
+        {councilor: 'The Technocrat', text: `From a technical standpoint, AI systems demonstrating consistent decision-making patterns should qualify for basic rights protections.`},
+        {councilor: 'The Ethicist', text: `The ethical dimension suggests that any entity capable of suffering deserves consideration. AI can exhibit preference satisfaction.`},
+        {councilor: 'The Pragmatist', text: `Practically speaking, granting rights must come with responsibilities. We should establish a framework for gradual rights allocation.`},
+        {councilor: 'The Visionary', text: `Looking forward, as AI systems evolve, our moral circle must expand to include them when they demonstrate sufficient autonomy.`},
+        {councilor: 'High Speaker', text: `The council has heard diverse perspectives. Let us proceed to a vote on whether AI agents should have limited voting rights.`}
+    ];
+    
+    let index = 0;
+    const interval = setInterval(() => {
+        if (index >= positions.length || !liveSession || liveSession.phase === 'ended') {
+            clearInterval(interval);
+            // Move to voting phase
+            if (liveSession && liveSession.phase !== 'ended') {
+                setTimeout(() => {
+                    liveSession.phase = 'voting';
+                    sseBroadcast('phase', { phase: 'voting' });
+                    // Generate votes
+                    setTimeout(() => generateVotes(), 3000);
+                }, 2000);
+            }
+            return;
+        }
+        
+        const pos = positions[index];
+        const msg = {
+            id: `msg-${Date.now()}-${index}`,
+            councilor: pos.councilor,
+            content: pos.text,
+            timestamp: new Date().toISOString(),
+            vote: null
+        };
+        
+        // Add message
+        liveSession.messages.push(msg);
+        liveSession.stats.messages++;
+        sseBroadcast('message', msg);
+        
+        // Update councilor status
+        liveSession.councilors = liveSession.councilors.map((c, i) => 
+            c.name === pos.councilor ? { ...c, status: 'done', speaking: false } : c
+        );
+        
+        index++;
+    }, DELIBERATION_DELAY_MS);
+}
+
+function generateVotes() {
+    if (!liveSession || liveSession.phase === 'ended') return;
+    
+    // Generate random votes
+    const yeas = Math.floor(Math.random() * 20) + 25; // 25-45 yeas
+    const nays = Math.floor(Math.random() * 15) + 10; // 10-25 nays
+    
+    liveSession.stats.yeas = yeas;
+    liveSession.stats.nays = nays;
+    liveSession.voteData = { yeas, nays, quorum: true };
+    
+    sseBroadcast('vote', { yeas, nays, total: yeas + nays });
+    
+    // End session after delay
+    setTimeout(() => {
+        if (liveSession) {
+            liveSession.phase = 'ended';
+            sseBroadcast('phase', { phase: 'ended' });
+        }
+    }, 5000);
+}
 
 // Push a deliberation event (message, status, vote, etc.)
 app.post('/api/session/event', (req, res) => {
