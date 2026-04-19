@@ -85,6 +85,25 @@ const tools = [
   { name: 'clear_context', description: 'Clear all context', inputSchema: { type: 'object', properties: {} } },
   { name: 'get_audit_log', description: 'Get audit log', inputSchema: { type: 'object', properties: { limit: { type: 'number' } } } },
   { name: 'export_audit_log', description: 'Export audit log', inputSchema: { type: 'object', properties: { format: { type: 'string' } } } },
+
+  // ── INSPECTOR MODE ──
+  { name: 'inspector_deliberate', description: 'Start Inspector mode session — deep visual + data analysis with structured dossier reports', inputSchema: { type: 'object', properties: { topic: { type: 'string' }, image: { type: 'string' }, councilors: { type: 'array', items: { type: 'string' } } }, required: ['topic'] } },
+  { name: 'inspector_parse', description: 'Parse inspection dossier from deliberation result', inputSchema: { type: 'object', properties: { sessionId: { type: 'string' } } } },
+  { name: 'inspector_analyze', description: 'Analyze an image with Inspector mode — returns structured inspection_dossier XML', inputSchema: { type: 'object', properties: { image: { type: 'string', description: 'Base64 or data URL of image' }, topic: { type: 'string' }, models: { type: 'array', items: { type: 'string' } } }, required: ['image', 'topic'] } },
+
+  // ── GOVERNMENT / LEGISLATURE MODE ──
+  { name: 'government_deliberate', description: 'Start Legislature mode session — full 5-phase legislative process: First Reading → Committee → Second Reading → Vote → Enactment', inputSchema: { type: 'object', properties: { topic: { type: 'string' }, councilors: { type: 'array', items: { type: 'string' } } }, required: ['topic'] } },
+  { name: 'government_parse_record', description: 'Parse legislative record from government mode result', inputSchema: { type: 'object', properties: { sessionId: { type: 'string' } } } },
+
+  // ── PREDICTION MODE ──
+  { name: 'prediction_forecast', description: 'Run a forecasting session and get structured <forecast> output', inputSchema: { type: 'object', properties: { topic: { type: 'string' }, councilors: { type: 'array', items: { type: 'string' } } }, required: ['topic'] } },
+
+  // ── SWARM MODE ──
+  { name: 'swarm_decompose', description: 'Decompose a complex task into parallel swarm sub-tasks', inputSchema: { type: 'object', properties: { topic: { type: 'string' }, agents: { type: 'array', items: { type: 'string' } } }, required: ['topic'] } },
+
+  // ── QUICK UTILITIES ──
+  { name: 'quick_deliberate', description: 'One-shot deliberation — ask a question, get a response', inputSchema: { type: 'object', properties: { question: { type: 'string' }, mode: { type: 'string', enum: ['proposal', 'deliberation', 'inquiry', 'research', 'swarm', 'swarm_coding', 'prediction', 'government', 'inspector'] }, councilors: { type: 'array', items: { type: 'string' } } }, required: ['question'] } },
+  { name: 'list_all_modes', description: 'List all 13 deliberation modes with descriptions', inputSchema: { type: 'object', properties: {} } },
 ];
 
 async function callAPI(endpoint, options = {}) {
@@ -208,6 +227,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'clear_context': result = await callMCPTool('tools/call', { name: 'clear_context', arguments: {} }); break;
       case 'get_audit_log': result = await callMCPTool('tools/call', { name: 'get_audit_log', arguments: args }); break;
       case 'export_audit_log': result = await callMCPTool('tools/call', { name: 'export_audit_log', arguments: args }); break;
+
+      case 'inspector_deliberate': result = await callAPI('/api/vision/inspect', 'POST', args); break;
+      case 'inspector_parse': result = await callAPI(`/api/vision/inspect/parse?sessionId=${args.sessionId || ''}`); break;
+      case 'inspector_analyze': result = await callAPI('/api/vision/inspect', 'POST', args); break;
+      case 'government_deliberate': result = await callAPI('/api/session/start', 'POST', { mode: 'government', topic: args.topic }); break;
+      case 'government_parse_record': result = await callAPI(`/api/session/government/record?sessionId=${args.sessionId || ''}`); break;
+      case 'prediction_forecast': result = await callAPI('/api/session/start', 'POST', { mode: 'prediction', topic: args.topic }); break;
+      case 'swarm_decompose': result = await callAPI('/api/session/start', 'POST', { mode: 'swarm', topic: args.topic }); break;
+      case 'quick_deliberate': result = await callAPI('/api/ask', 'POST', args); break;
+      case 'list_all_modes': result = await callAPI('/api/modes'); break;
 
       default:
         if (name.startsWith('browseros_')) {

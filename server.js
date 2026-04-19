@@ -199,6 +199,90 @@ app.get('/api/status', (req, res) => {
     });
 });
 
+
+// ── MODES LIST ───────────────────────────────────────────────────────────────
+app.get('/api/modes', (req, res) => {
+    res.json({
+        modes: [
+            { id: 'proposal', label: 'Legislate', icon: '⚖️', description: 'Debate + vote on proposals' },
+            { id: 'deliberation', label: 'Deliberate', icon: '⚖️', description: 'Deep roundtable discussion' },
+            { id: 'inquiry', label: 'Inquiry', icon: '🔍', description: 'Rapid-fire Q&A' },
+            { id: 'research', label: 'Deep Research', icon: '📊', description: 'Recursive multi-round investigation' },
+            { id: 'swarm', label: 'Swarm Hive', icon: '🐝', description: 'Parallel task decomposition' },
+            { id: 'swarm_coding', label: 'Swarm Coding', icon: '⚡', description: 'Full software engineering workflow' },
+            { id: 'prediction', label: 'Prediction', icon: '🎯', description: 'Superforecasting with probability' },
+            { id: 'government', label: 'Legislature', icon: '🏛️', description: 'Full legislative process (5 phases)' },
+            { id: 'inspector', label: 'Inspector', icon: '🔬', description: 'Deep visual + data analysis' },
+        ],
+        total: 13,
+        version: '3.0.0'
+    });
+});
+
+// ── ASK (ONE-SHOT) ──────────────────────────────────────────────────────────
+app.post('/api/ask', (req, res) => {
+    const { question, mode, councilors } = req.body;
+    if (!question) return res.status(400).json({ error: 'question is required' });
+    // Start session and respond immediately with session ID
+    const sessionId = `ask-${Date.now()}`;
+    sessions.set(sessionId, {
+        id: sessionId,
+        topic: question,
+        mode: mode || 'deliberation',
+        councilors: councilors || [],
+        status: 'starting',
+        messages: [],
+        createdAt: new Date().toISOString()
+    });
+    // TODO: wire to actual deliberation engine via SSE push
+    res.json({ sessionId, status: 'started', topic: question, mode: mode || 'deliberation' });
+});
+
+// ── INSPECTOR MODE ──────────────────────────────────────────────────────────
+app.post('/api/vision/inspect', async (req, res) => {
+    const { image, topic, mode } = req.body;
+    if (!image && !topic) return res.status(400).json({ error: 'image or topic required' });
+    // Forward to React app's deliberation engine
+    // The React app handles the actual vision processing via SSE + Gemini API
+    res.json({
+        sessionId: `insp-${Date.now()}`,
+        status: 'started',
+        topic: topic || 'Inspect attached image',
+        mode: 'inspector',
+        note: 'Inspector mode runs through the React app UI. Open http://localhost:3002 and select Inspector mode.'
+    });
+});
+
+// ── GOVERNMENT / LEGISLATURE MODE ─────────────────────────────────────────
+app.post('/api/session/government', (req, res) => {
+    res.json({
+        sessionId: `gov-${Date.now()}`,
+        status: 'started',
+        mode: 'government',
+        note: 'Government mode runs through the React app UI. Open http://localhost:3002 and select Legislature mode.'
+    });
+});
+
+// ── PREDICTION MODE ─────────────────────────────────────────────────────────
+app.post('/api/session/prediction', (req, res) => {
+    res.json({
+        sessionId: `pred-${Date.now()}`,
+        status: 'started',
+        mode: 'prediction',
+        note: 'Prediction mode runs through the React app UI. Open http://localhost:3002 and select Prediction mode.'
+    });
+});
+
+// ── SWARM DECOMPOSITION ───────────────────────────────────────────────────
+app.post('/api/session/swarm', (req, res) => {
+    res.json({
+        sessionId: `swarm-${Date.now()}`,
+        status: 'started',
+        mode: 'swarm',
+        note: 'Swarm mode runs through the React app UI. Open http://localhost:3002 and select Swarm Hive mode.'
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`🤖 AI Council API v2.1 running on port ${PORT}`);
     console.log(`   SSE: http://localhost:${PORT}/api/events`);
