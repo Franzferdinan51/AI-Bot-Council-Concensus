@@ -3,10 +3,15 @@
  * REST + SSE for live deliberation streaming
  */
 
-const express = require('express');
-const cors = require('cors');
+
+import express from 'express';
+import cors from 'cors';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
+const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '10mb' }));
 
@@ -176,7 +181,7 @@ app.post('/api/session/clear', (req, res) => {
 // ─── Get councilors list ─────────────────────────────────────
 app.get('/api/councilors', (req, res) => {
     try {
-        const settings = require('./constants').DEFAULT_BOTS;
+        const settings = JSON.parse(readFileSync(join(__dirname, 'councilors.json'), 'utf-8'));
         res.json(settings.map(b => ({
             id: b.id,
             name: b.name,
@@ -214,7 +219,7 @@ app.get('/api/modes', (req, res) => {
             { id: 'government', label: 'Legislature', icon: '🏛️', description: 'Full legislative process (5 phases)' },
             { id: 'inspector', label: 'Inspector', icon: '🔬', description: 'Deep visual + data analysis' },
         ],
-        total: 13,
+        total: 9,
         version: '3.0.0'
     });
 });
