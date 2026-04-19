@@ -130,6 +130,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
           case SessionMode.SWARM: return 'orange';
           case SessionMode.PREDICTION: return 'indigo';
           case SessionMode.SWARM_CODING: return 'pink';
+          case SessionMode.GOVERNMENT: return 'red';
           default: return 'slate';
       }
   };
@@ -144,6 +145,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
       { m: SessionMode.PREDICTION, label: 'Prediction', color: 'indigo' },
   ];
   if (enableCodingMode) availableModes.push({ m: SessionMode.SWARM_CODING, label: 'Swarm Coding', color: 'pink' });
+  availableModes.push({ m: SessionMode.GOVERNMENT, label: 'Legislature', color: 'red' });
 
   // --- TOOL TOGGLING ---
   const togglePublicTool = (toolId: string) => {

@@ -429,6 +429,47 @@ const App: React.FC = () => {
                  sessionHistory.push({ id: 'final', author: speaker.name, authorType: speaker.authorType, content: finalRes });
              }
         }
+        else if (mode === SessionMode.GOVERNMENT) {
+             // ── GOVERNMENT MODE: Full legislative process ──
+             // Phase 1: First Reading
+             setSessionStatus(SessionStatus.OPENING);
+             if (speaker) {
+                 addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: 'LEGISLATIVE SESSION — FIRST READING' });
+                 const r1Res = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOVERNMENT.FIRST_READING)} Persona: ${speaker.persona}`, "SPEAKER");
+                 sessionHistory.push({ id: 'gov-r1', author: speaker.name, authorType: speaker.authorType, content: r1Res });
+             }
+             // Phase 2: Committee Deliberation
+             setSessionStatus(SessionStatus.DEBATING);
+             const commResults = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const res = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOVERNMENT.COMMITTEE_DELIBERATION)} Persona: ${bot.persona}`, "COMMITTEE MEMBER");
+                 return { bot, res };
+             }, maxConcurrency);
+             commResults.forEach(({ bot, res }) => {
+                 sessionHistory.push({ id: `gov-comm-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "COMMITTEE MEMBER" });
+             });
+             // Phase 3: Second Reading
+             setSessionStatus(SessionStatus.RECONCILING);
+             if (speaker) {
+                 addMessage({ author: 'Council Clerk', authorType: AuthorType.SYSTEM, content: 'LEGISLATIVE SESSION — SECOND READING' });
+                 const r2Res = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOVERNMENT.SECOND_READING)} Persona: ${speaker.persona}`, "SPEAKER");
+                 sessionHistory.push({ id: 'gov-r2', author: speaker.name, authorType: speaker.authorType, content: r2Res });
+             }
+             // Phase 4: Final Vote
+             setSessionStatus(SessionStatus.VOTING);
+             const voteResults = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const res = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOVERNMENT.FINAL_VOTE)} Persona: ${bot.persona}`, "LEGISLATOR");
+                 return { bot, res };
+             }, maxConcurrency);
+             voteResults.forEach(({ bot, res }) => {
+                 sessionHistory.push({ id: `gov-vote-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "LEGISLATOR" });
+             });
+             // Phase 5: Enactment
+             setSessionStatus(SessionStatus.ENACTING);
+             if (speaker) {
+                 const enactRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.GOVERNMENT.SPEAKER_ENACTMENT)} Persona: ${speaker.persona}`, "SPEAKER");
+                 sessionHistory.push({ id: 'gov-enact', author: speaker.name, authorType: speaker.authorType, content: enactRes });
+             }
+        }
         else if (mode === SessionMode.SWARM) {
              if (speaker) {
                  const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.SWARM.SPEAKER_DECOMPOSITION)} Persona: ${speaker.persona}`;

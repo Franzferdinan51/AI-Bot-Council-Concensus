@@ -22,7 +22,8 @@ export enum SessionMode {
     RESEARCH = 'research',         // Agentic: Deep Dive -> Plan -> Investigate -> Report
     SWARM = 'swarm',               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
     SWARM_CODING = 'swarm_coding', // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
-    PREDICTION = 'prediction'      // Superforecasting: Probability & Outcome Analysis
+    PREDICTION = 'prediction',      // Superforecasting: Probability & Outcome Analysis
+    GOVERNMENT = 'government'       // Full Legislative: First Reading -> Committee -> Second Reading -> Vote -> Enactment
 }
 
 export interface BotConfig {
