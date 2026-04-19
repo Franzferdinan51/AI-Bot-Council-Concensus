@@ -43,7 +43,7 @@ export interface LiveSessionState {
     connected: boolean;
 }
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = ''; // Same origin, proxied by Vite to localhost:3001
 
 export function useLiveSession() {
     const [state, setState] = useState<LiveSessionState>({

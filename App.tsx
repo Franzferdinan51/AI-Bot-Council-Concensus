@@ -38,7 +38,7 @@ const App: React.FC = () => {
   const controlSignal = useRef<ControlSignal>({ stop: false, pause: false });
 
   // ── SSE SESSION EMITTER ──────────────────────────────────
-  const API_BASE = 'http://localhost:3001';
+  const API_BASE = ''; // Empty = same origin, proxied by Vite dev server
   const emitSSE = useCallback(async (type: string, data?: any) => {
       try {
           await fetch(`${API_BASE}/api/session/event`, {
