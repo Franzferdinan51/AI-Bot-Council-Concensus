@@ -334,7 +334,7 @@ export const streamBotResponse = async (
     await waitWithJitter(200, 800);
 
     if (bot.authorType === AuthorType.GEMINI) {
-        const apiKey = settings.providers.geminiApiKey || process.env.API_KEY;
+        const apiKey = settings.providers.geminiApiKey || (import.meta.env.VITE_API_KEY || '');
         if (!apiKey) throw new Error("Gemini API Key missing.");
 
         const ai = new GoogleGenAI({ apiKey });

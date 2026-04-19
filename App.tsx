@@ -94,6 +94,15 @@ const App: React.FC = () => {
               }
           } catch (e) { /* ignore */ }
       }
+      
+      // Load saved settings from localStorage
+      try {
+          const savedSettings = localStorage.getItem('ai_council_settings');
+          if (savedSettings) {
+              const parsed = JSON.parse(savedSettings);
+              setSettings(prev => ({ ...prev, ...parsed }));
+          }
+      } catch (e) { /* ignore */ }
   }, []);
 
   useEffect(() => {
@@ -103,6 +112,11 @@ const App: React.FC = () => {
           localStorage.setItem('ai_council_messages', JSON.stringify(toSave));
       }
   }, [messages]);
+
+  // Persist settings to localStorage whenever they change
+  useEffect(() => {
+      localStorage.setItem('ai_council_settings', JSON.stringify(settings));
+  }, [settings]);
 
   const handleAckCost = () => {
       localStorage.setItem('ai_council_cost_ack', 'true');
@@ -115,7 +129,7 @@ const App: React.FC = () => {
     const cleanText = text.replace(/https?:\/\/[^\s]+/g, '').replace(/[*_#]/g, '').replace(/```[\s\S]*?```/g, 'Code block omitted.');
 
     if (settings.audio.useGeminiTTS && bot && bot.authorType === AuthorType.GEMINI) {
-        const apiKey = settings.providers.geminiApiKey || process.env.API_KEY || '';
+        const apiKey = settings.providers.geminiApiKey || import.meta.env.VITE_API_KEY || '';
         const audioData = await generateSpeech(cleanText, bot.role, apiKey);
         if (audioData) {
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -685,6 +699,37 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-[#0a0c10] text-slate-200 font-sans overflow-y-auto bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950/80 to-[#050608]">
       
+      {/* Quick Settings Bar */}
+      <div className="flex items-center gap-4 px-4 py-2 bg-slate-900/80 border-b border-slate-800 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-slate-400">Temp:</span>
+          <input
+            type="range"
+            min="0.0"
+            max="1.0"
+            step="0.1"
+            value={settings.audio.temperature || 0.7}
+            onChange={e => setSettings(prev => ({ ...prev, audio: { ...prev.audio, temperature: parseFloat(e.target.value) } }))}
+            className="w-16 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+          />
+          <span className="text-amber-400 font-mono w-6">{settings.audio.temperature?.toFixed(1) || '0.7'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="quick-stream-toggle"
+            checked={settings.audio.enabled}
+            onChange={e => setSettings(prev => ({ ...prev, audio: { ...prev.audio, enabled: e.target.checked } }))}
+            className="w-4 h-4 accent-amber-500 cursor-pointer"
+          />
+          <label htmlFor="quick-stream-toggle" className="text-slate-300 cursor-pointer">Stream</label>
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-slate-500">Council:</span>
+          <span className="text-emerald-400 font-bold">{settings.bots.filter(b => b.enabled).length} active</span>
+        </div>
+      </div>
+      
       {showCodingUI ? (
           <div className="flex-1 min-h-0 relative flex flex-col">
             <CodingInterface 
@@ -735,7 +780,7 @@ const App: React.FC = () => {
           />
       )}
 
-      <SettingsPanel settings={settings} onSettingsChange={setSettings} isOpen={isSettingsOpen} onToggle={() => setIsSettingsOpen(!isSettingsOpen)} />
+      <SettingsPanel settings={settings} onSettingsChange={setSettings} isOpen={isSettingsOpen} onToggle={() => setIsSettingsOpen(!isSettingsOpen)} messages={messages} sessionStartedAt={sessionStartedAt} />
       {isLiveSessionOpen && <LiveWatcher onClose={() => setIsLiveSessionOpen(false)} />}
       
       {showCostWarning && (

@@ -60,6 +60,7 @@ export interface AudioSettings {
     autoPlay: boolean;
     speechRate: number; // 0.5 to 2.0
     voiceVolume: number; // 0 to 1.0
+    temperature: number; // 0.0 to 1.0
 }
 
 export interface UISettings {

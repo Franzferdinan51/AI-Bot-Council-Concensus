@@ -5,7 +5,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-compatible-brightgreen.svg)](https://github.com/openclaw/openclaw)
 [![Providers](https://img.shields.io/badge/providers-10+-brightgreen.svg)](PROVIDERS.md)
-[![Councilors](https://img.shields.io/badge/councilors-45-brightgreen.svg)](COUNCILORS.md)
+[![Councilors](https://img.shields.io/badge/councilors-46-brightgreen.svg)](COUNCILORS.md)
 [![Mobile Friendly](https://img.shields.io/badge/mobile-friendly-brightgreen.svg)](MOBILE-UI.md)
 [![PWA](https://img.shields.io/badge/PWA-enabled-brightgreen.svg)](PWA-GUIDE.md)
 [![Vision Mode](https://img.shields.io/badge/vision-mode-brightgreen.svg)](VISION-COUNCIL.md)
@@ -17,8 +17,8 @@
 
 - [Overview](#overview)
 - [Features](#features)
-- [45 Councilors](#45-councilors)
-- [13 Deliberation Modes](#13-deliberation-modes)
+- [46 Councilors](#46-councilors)
+- [9 Deliberation Modes](#13-deliberation-modes)
 - [Smart Selection](#smart-councilor-selection)
 - [Multi-Provider Support](#multi-provider-support)
 - [Mobile-Friendly WebUI](#mobile-friendly-webui)
@@ -104,8 +104,8 @@ This means AI Council is now the **single source of truth** for both:
 
 ### 🏛️ Core Deliberation
 
-- **13 Deliberation Modes** — Vision Council, Swarm Coding, Emergency Response, Legislature, Inspector
-- **45 Specialized Councilors** across 8 categories
+- **9 Deliberation Modes** — Vision Council, Swarm Coding, Emergency Response, Legislature, Inspector
+- **46 Specialized Councilors** across 8 categories
 - Auto-selected based on topic
 - Smart scaling (5-20+ councilors)
 
@@ -178,7 +178,7 @@ This means AI Council is now the **single source of truth** for both:
 
 ---
 
-## 🏛️ 45 Councilors
+## 🏛️ 46 Councilors
 
 ### Original (15)
 
@@ -259,13 +259,13 @@ This means AI Council is now the **single source of truth** for both:
 - **Emotion Reader** - Emotional content, mood, feelings
 - **Symbol Interpreter** - Symbols, meanings, cultural context
 
-**Total: 45 specialized councilors for comprehensive deliberation!**
+**Total: 46 specialized councilors for comprehensive deliberation!**
 
 See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, and use cases.
 
 ---
 
-## 🎭 13 Deliberation Modes
+## 🎭 9 Deliberation Modes
 
 ### Core Modes (6)
 
@@ -358,7 +358,7 @@ See [COUNCILORS.md](COUNCILORS.md) for complete guide with roles, priorities, an
 
 ## 🎯 Smart Councilor Selection
 
-**Never run all 45 councilors!** The AI Council auto-selects the most relevant councilors for each decision.
+**Never run all 46 councilors!** The AI Council auto-selects the most relevant councilors for each decision.
 
 ### Selection Tiers
 

@@ -832,7 +832,8 @@ export const DEFAULT_SETTINGS: Settings = {
         useGeminiTTS: true,
         autoPlay: true,
         speechRate: 1.0,
-        voiceVolume: 1.0
+        voiceVolume: 1.0,
+        temperature: 0.7
     },
     ui: {
         debateDelay: 2000,

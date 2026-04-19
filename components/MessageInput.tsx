@@ -66,7 +66,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
                   const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
                   setContent("Transcribing audio...");
                   try {
-                      const text = await transcribeAudio(audioBlob, process.env.API_KEY || '');
+                      const text = await transcribeAudio(audioBlob, import.meta.env.VITE_API_KEY || '');
                       setContent(text);
                   } catch (e) {
                       console.error(e);

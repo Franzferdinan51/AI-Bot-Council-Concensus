@@ -22,7 +22,7 @@ const LiveSession: React.FC<LiveSessionProps> = ({ onClose }) => {
     useEffect(() => {
         const connect = async () => {
             try {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+                const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY || '' });
                 const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
                 audioContextRef.current = audioCtx;
 

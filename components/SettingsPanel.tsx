@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, BotConfig, AuthorType, MCPTool, RAGDocument, BotMemory } from '../types';
+import { Message, Settings, BotConfig, AuthorType, MCPTool, RAGDocument, BotMemory } from '../types';
 import { MCP_PRESETS, PERSONA_PRESETS, PUBLIC_MCP_REGISTRY } from '../constants';
 import { getMemories, getBotMemories, addBotMemory, deleteBotMemory } from '../services/knowledgeService';
 
@@ -9,9 +9,11 @@ interface SettingsPanelProps {
   onSettingsChange: (newSettings: Settings) => void;
   isOpen: boolean;
   onToggle: () => void;
+  messages?: Message[];
+  sessionStartedAt?: number | null;
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChange, isOpen, onToggle }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChange, isOpen, onToggle, messages = [], sessionStartedAt }) => {
   const [activeTab, setActiveTab] = useState<'council' | 'providers' | 'audio' | 'mcp' | 'cost' | 'knowledge' | 'ui'>('council');
   const [editingBot, setEditingBot] = useState<BotConfig | null>(null);
   const [memories, setMemories] = useState(getMemories());
@@ -770,6 +772,42 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSettingsChang
                 <div className="space-y-6">
                     <h3 className="text-white font-serif text-lg mb-4">General Preferences</h3>
                     <div className="space-y-4">
+                         {/* Session Stats - Display Only */}
+                         <div className="bg-slate-800 p-3 rounded border border-slate-700">
+                            <h4 className="text-sm font-bold text-amber-400 mb-2 uppercase tracking-wider">Session Stats</h4>
+                            <div className="grid grid-cols-3 gap-2 text-center">
+                                <div className="bg-slate-900 p-2 rounded">
+                                    <div className="text-lg font-bold text-emerald-400">{messages.length}</div>
+                                    <div className="text-[10px] text-slate-500 uppercase">Messages</div>
+                                </div>
+                                <div className="bg-slate-900 p-2 rounded">
+                                    <div className="text-lg font-bold text-cyan-400">{sessionStartedAt ? Math.floor((Date.now() - sessionStartedAt) / 60000) + 'm' : '0m'}</div>
+                                    <div className="text-[10px] text-slate-500 uppercase">Duration</div>
+                                </div>
+                                <div className="bg-slate-900 p-2 rounded">
+                                    <div className="text-lg font-bold text-purple-400">{settings.bots.filter(b => b.enabled).length}</div>
+                                    <div className="text-[10px] text-slate-500 uppercase">Councilors</div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    const exportData = {
+                                        timestamp: new Date().toISOString(),
+                                        sessionDuration: sessionStartedAt ? Date.now() - sessionStartedAt : 0,
+                                        activeCouncilors: settings.bots.filter(b => b.enabled).length,
+                                        messages: messages
+                                    };
+                                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `ai-council-session-${Date.now()}.json`;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                }}
+                                className="w-full mt-3 bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold py-2 rounded"
+                            >Export Session</button>
+                         </div>
                          {/* ... UI Settings ... */}
                         <div>
                             <label className="flex items-center cursor-pointer">
