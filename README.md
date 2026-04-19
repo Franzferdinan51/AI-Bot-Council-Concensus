@@ -104,10 +104,19 @@ This means AI Council is now the **single source of truth** for both:
 
 ### 🏛️ Core Deliberation
 
-- **9 Deliberation Modes** — Vision Council, Swarm Coding, Emergency Response, Legislature, Inspector
+- **9 Deliberation Modes** — Proposal, Deliberation, Inquiry, Research, Swarm, Swarm Coding, Prediction, Legislature, Inspector
 - **46 Specialized Councilors** across 8 categories
 - Auto-selected based on topic
 - Smart scaling (5-20+ councilors)
+
+### 🎛️ Orchestration Engine ⭐ NEW
+
+- **5 Coordination Patterns** — Generator-Verifier, Orchestrator-Subagent, Agent Teams, Message Bus, Shared State
+- **Meta-Agent Cycle** — Plan → Execute → Critic → Heal → Learn
+- **Quality Gates** — Auto-retry on short/hallucinated responses
+- **Dynamic Selection** — Scores councilors by topic affinity and relevance
+- **Session Management** — Pause, resume, abort active sessions
+- **Pattern Selector UI** — Choose coordination pattern per session
 
 ### 👁️ Vision Council Mode ⭐ NEW
 
@@ -135,6 +144,10 @@ This means AI Council is now the **single source of truth** for both:
 - **Fast Performance** - <3s load, <1s paint, 60 FPS animations
 - **Accessible** - WCAG 2.1 AA compliant, screen reader support
 - **Themes** - Dark/light mode, high contrast mode
+- **Quick Settings Bar** - Temperature slider, stream toggle, active councilor count (always visible)
+- **Session Stats** - Messages/duration/councilors count in Settings panel
+- **Export Session** - Download full session as JSON file
+- **Settings Persistence** - All settings survive page reloads
 - **See [MOBILE-UI.md](MOBILE-UI.md) for complete mobile guide**
 
 ### 📲 PWA Support ⭐ NEW
@@ -622,8 +635,15 @@ npm install
 cp .env.example .env
 # Edit .env with your API keys
 
-# Start
-npm run dev
+# Start API server (default port: 3006)
+PORT=3006 node server.js &
+
+# Start web UI (in another terminal or use concurrently)
+npm run dev -- --host 0.0.0.0
+
+# Or run both together:
+# npm install -D concurrently
+# npm run dev:full
 
 # Open browser
 http://localhost:3002/
