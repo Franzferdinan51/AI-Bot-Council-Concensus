@@ -186,26 +186,18 @@ const formatHistoryForGemini = (history: Message[], settings: Settings) => {
         text = `${msg.author} (${msg.roleLabel || 'Member'}): (Silent/No Content)`;
     }
 
-    if (msg.attachments && msg.attachments.length > 0) {
-        const links = msg.attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
-        if (links) {
-            text += `\n\n[URGENT SYSTEM INSTRUCTION: The user has provided external sources via URL: ${links}.`;
-            text += `\n1. You MUST use the 'googleSearch' tool IMMEDIATELY to access these URLs.`;
-            text += `\n2. First, FETCH and SUMMARIZE the content of the link in your <thinking> block before answering.`;
-            text += `\n3. Do NOT hallucinate the content. If you cannot access the specific URL directly, search for the page title or video ID to find a summary/transcript.`;
-            
-            if (links.includes('youtube.com') || links.includes('youtu.be')) {
-                 text += `\n4. FOR YOUTUBE VIDEOS: You CANNOT watch the video directly. You MUST perform a Google Search for "transcript of youtube video ${links}" or "summary of youtube video ${links}" or the video title to understand its actual content. Extract the title and key arguments.`;
-            }
-            text += `]`;
-        }
+    // Collect non-image attachments (links) as text context
+    const linkAtts = msg.attachments?.filter(a => a.type === 'link') || [];
+    if (linkAtts.length > 0) {
+        const links = linkAtts.map(a => a.data).join(', ');
+        text += `\n\n[ATTACHED URLS]: ${links}`;
     }
     
     const parts: any[] = [{ text }];
     
     if (msg.attachments && msg.attachments.length > 0) {
         msg.attachments.forEach(att => {
-            if (att.type === 'file' && att.mimeType && att.data) {
+            if ((att.type === 'file' || att.type === 'image') && att.mimeType && att.data) {
                 parts.push({
                     inlineData: {
                         mimeType: att.mimeType,

@@ -23,7 +23,8 @@ export enum SessionMode {
     SWARM = 'swarm',               // Swarm: Dynamic Decomposition -> Parallel Execution -> Aggregation
     SWARM_CODING = 'swarm_coding', // Claude Code / OK Computer Style: Architect -> Dev Swarm -> Code Gen
     PREDICTION = 'prediction',      // Superforecasting: Probability & Outcome Analysis
-    GOVERNMENT = 'government'       // Full Legislative: First Reading -> Committee -> Second Reading -> Vote -> Enactment
+    GOVERNMENT = 'government',     // Full Legislative: First Reading -> Committee -> Second Reading -> Vote -> Enactment
+    INSPECTOR = 'inspector'        // Deep Visual + Data Analysis: Multi-angle inspection -> Structured report
 }
 
 export interface BotConfig {
@@ -169,9 +170,9 @@ export interface PredictionData {
 }
 
 export interface Attachment {
-    type: 'file' | 'link';
+    type: 'file' | 'link' | 'image'; // 'image' = base64 captured photo
     mimeType?: string; // for files
-    data: string; // base64 for files, url for links
+    data: string; // base64 for files/images, url for links
     title?: string; // for links
 }
 

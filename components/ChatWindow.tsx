@@ -39,6 +39,7 @@ const MODES: { id: SessionMode; label: string; icon: string }[] = [
   { id: SessionMode.SWARM_CODING, label: 'Swarm Code', icon: '⚡' },
   { id: SessionMode.PREDICTION, label: 'Prediction', icon: '🎯' },
   { id: SessionMode.GOVERNMENT, label: 'Legislature', icon: '🏛️' },
+  { id: SessionMode.INSPECTOR, label: 'Inspector', icon: '🔬' },
 ];
 
 const PHASE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {

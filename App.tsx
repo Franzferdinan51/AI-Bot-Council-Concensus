@@ -365,9 +365,14 @@ const App: React.FC = () => {
         docSnippets.length > 0 ? `\n\n[KNOWLEDGE BASE]:\n${docSnippets.join('\n')}` : ''
     ].join('');
 
+    // ── IMAGE/MEDIA ATTACHMENTS → pass to AI for analysis ──
+    const latestHumanMsg = initialHistory[initialHistory.length - 1];
+    const hasImageAttachments = latestHumanMsg?.attachments?.some(a => a.type === 'file' || a.type === 'image') || false;
+    const imageContext = hasImageAttachments ? `\n\n[VISUAL DATA AVAILABLE]: The Petitioner has provided ${latestHumanMsg.attachments.filter(a => a.type === 'file' || a.type === 'image').length} image(s) for analysis. Councilors should INCLUDE detailed visual analysis in their responses. The Speaker must reference what can be observed in the images when framing the discussion.` : '';
+
     const customDirective = settings.ui.customDirective || "";
     const atmospherePrompt = "TONE: Professional, Objective, Legislative.";
-    const injectTopic = (template: string) => (atmospherePrompt + "\n\n" + (customDirective ? customDirective + "\n\n" : "") + template.replace(/{{TOPIC}}/g, topic)) + contextBlock;
+    const injectTopic = (template: string) => (atmospherePrompt + imageContext + "\n\n" + (customDirective ? customDirective + "\n\n" : "") + template.replace(/{{TOPIC}}/g, topic)) + contextBlock;
     const maxConcurrency = settings.cost.maxConcurrentRequests || 2;
 
     try {
@@ -517,6 +522,26 @@ const App: React.FC = () => {
              setSessionStatus(SessionStatus.RESOLVING);
              if (speaker) { await processBotTurn(speaker, sessionHistory, `${injectTopic(closingPrompt)} Persona: ${speaker.persona}`, closingRole); }
         }
+        else if (mode === SessionMode.INSPECTOR) {
+             setSessionStatus(SessionStatus.OPENING);
+             if (speaker) {
+                 const planRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INSPECTOR.SPEAKER_ANALYSIS_PLAN)} Persona: ${speaker.persona}`, "CHIEF INSPECTOR");
+                 sessionHistory.push({ id: 'insp-plan', author: speaker.name, authorType: speaker.authorType, content: planRes });
+             }
+             setSessionStatus(SessionStatus.DEBATING);
+             const inspectionResults = await runBatchWithConcurrency(initialCouncilors, async (bot: BotConfig) => {
+                 const res = await processBotTurn(bot, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INSPECTOR.COUNCILOR_INSPECTION)} Persona: ${bot.persona}`, "INSPECTOR");
+                 return { bot, res };
+             }, maxConcurrency);
+             inspectionResults.forEach(({ bot, res }) => {
+                 sessionHistory.push({ id: `insp-${bot.id}-${Date.now()}`, author: bot.name, authorType: bot.authorType, content: res, roleLabel: "INSPECTOR" });
+             });
+             setSessionStatus(SessionStatus.RESOLVING);
+             if (speaker) {
+                 const synthRes = await processBotTurn(speaker, sessionHistory, `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.INSPECTOR.SPEAKER_SYNTHESIS)} Persona: ${speaker.persona}`, "CHIEF INSPECTOR");
+                 sessionHistory.push({ id: 'insp-synth', author: speaker.name, authorType: speaker.authorType, content: synthRes });
+             }
+        }
         else {
              if (speaker) {
                 const prompt = `${injectTopic(COUNCIL_SYSTEM_INSTRUCTION.PROPOSAL.SPEAKER_OPENING)} Persona: ${speaker.persona}`;
@@ -604,9 +629,12 @@ const App: React.FC = () => {
     setSessionStatus(SessionStatus.OPENING);
     setSessionStartedAt(Date.now());
     let fullContent = content;
-    if (attachments.length > 0) {
-        const links = attachments.filter(a => a.type === 'link').map(a => a.data).join(', ');
-        if (links) fullContent += `\n[ATTACHED RESOURCES: ${links}]`;
+    // Separate link attachments from image/file attachments
+    const linkAttachments = attachments.filter(a => a.type === 'link');
+    const mediaAttachments = attachments.filter(a => a.type === 'file' || a.type === 'image');
+    if (linkAttachments.length > 0) {
+        const links = linkAttachments.map(a => a.data).join(', ');
+        fullContent += `\n[ATTACHED URLS: ${links}]`;
     }
     const newMessage: Message = { id: Date.now().toString(), author: 'Petitioner', authorType: AuthorType.HUMAN, content: fullContent, attachments };
     setMessages(prev => [...prev, newMessage]);

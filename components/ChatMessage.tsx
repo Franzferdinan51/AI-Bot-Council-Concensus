@@ -351,6 +351,94 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           );
       }
 
+      // INSPECTOR DOSSIER — parse <inspection_dossier> and show structured report
+      const inspStart = mainContent.indexOf('<inspection_dossier>');
+      const inspEnd = mainContent.indexOf('</inspection_dossier>');
+      if (inspStart >= 0 && inspEnd > inspStart) {
+          const inspRaw = mainContent.slice(inspStart + '<inspection_dossier>'.length, inspEnd);
+          const getSection = (tag: string) => {
+              const m = inspRaw.match(new RegExp(`<\${tag}>([\\s\\S]*?)<\\/\${tag}>`, 'i'));
+              return m ? m[1].trim() : '';
+          };
+          const insp_summary = getSection('summary');
+          const insp_findings = getSection('primary_findings');
+          const insp_cross = getSection('cross_perspectives');
+          const insp_critical = getSection('critical_issues');
+          const insp_quality = getSection('data_quality');
+          const insp_next = getSection('recommended_next_steps');
+          const insp_gaps = getSection('gaps_identified');
+
+          return (
+            <div className="flex justify-center my-6 animate-fade-in w-full px-2">
+              <div className="bg-gradient-to-b from-teal-950/80 to-slate-900/90 border border-teal-500/40 rounded-2xl p-5 max-w-3xl w-full shadow-[0_0_40px_rgba(20,184,166,0.15)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl" />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-5 border-b border-teal-500/20 pb-4">
+                    <div className="bg-teal-950 p-2 rounded-xl border border-teal-500/30 shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-400"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                    </div>
+                    <div>
+                      <h3 className="text-teal-100 font-serif text-lg tracking-widest uppercase font-bold">Inspection Dossier</h3>
+                      <p className="text-[10px] text-teal-400 uppercase tracking-widest font-mono">AI Council — Deep Analysis</p>
+                    </div>
+                  </div>
+                  {insp_summary && (
+                    <div className="mb-4 p-3 bg-teal-950/40 rounded-xl border border-teal-500/20">
+                      <p className="text-white font-serif text-base leading-relaxed">{insp_summary}</p>
+                    </div>
+                  )}
+                  {insp_findings && (
+                    <div className="mb-3 p-3 bg-black/30 rounded-xl border border-white/5">
+                      <div className="text-[9px] text-teal-400 uppercase tracking-widest font-bold mb-2">Primary Findings</div>
+                      <div className="space-y-1">{insp_findings.split('\n').filter(l => l.trim()).map((l, i) => (
+                        <div key={i} className="flex items-start gap-1.5"><span className="text-teal-500 shrink-0 mt-0.5">▸</span><span className="text-slate-300 text-xs">{l.replace(/^[-•*]\s*/, '')}</span></div>
+                      ))}</div>
+                    </div>
+                  )}
+                  {insp_critical && (
+                    <div className="mb-3 p-3 bg-red-950/30 rounded-xl border border-red-500/30">
+                      <div className="text-[9px] text-red-400 uppercase tracking-widest font-bold mb-2">Critical Issues</div>
+                      <div className="space-y-1">{insp_critical.split('\n').filter(l => l.trim()).map((l, i) => (
+                        <div key={i} className="flex items-start gap-1.5"><span className="text-red-500 shrink-0 mt-0.5">!</span><span className="text-red-200 text-xs">{l.replace(/^[-•*]\s*/, '')}</span></div>
+                      ))}</div>
+                    </div>
+                  )}
+                  {insp_cross && (
+                    <div className="mb-3 p-3 bg-amber-950/20 rounded-xl border border-amber-500/20">
+                      <div className="text-[9px] text-amber-400 uppercase tracking-widest font-bold mb-2">Cross-Perspective Analysis</div>
+                      <div className="space-y-1">{insp_cross.split('\n').filter(l => l.trim()).map((l, i) => (
+                        <div key={i} className="flex items-start gap-1.5"><span className="text-amber-500 shrink-0 mt-0.5">↔</span><span className="text-amber-200 text-xs">{l.replace(/^[-•*]\s*/, '')}</span></div>
+                      ))}</div>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    {insp_quality && (
+                      <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-700/50">
+                        <div className="text-[9px] text-slate-400 uppercase tracking-widest font-bold mb-1">Data Quality</div>
+                        <p className="text-slate-300 text-xs">{insp_quality}</p>
+                      </div>
+                    )}
+                    {insp_next && (
+                      <div className="p-3 bg-blue-950/30 rounded-xl border border-blue-500/20">
+                        <div className="text-[9px] text-blue-400 uppercase tracking-widest font-bold mb-1">Next Steps</div>
+                        <p className="text-blue-200 text-xs">{insp_next}</p>
+                      </div>
+                    )}
+                  </div>
+                  {insp_gaps && (
+                    <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
+                      <div className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-2">Gaps Identified</div>
+                      <p className="text-slate-400 text-xs">{insp_gaps}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+      }
+
+
+
       // Default System Message
       return (
           <div className="flex justify-center my-4 animate-fade-in px-4">
