@@ -196,7 +196,6 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
 };
 
 const MODE_SPECIALISTS: Record<SessionMode, string[]> = {
-  [SessionMode.WEATHER]: ['meteorologist', 'emergency manager'],
   [SessionMode.PREDICTION]: ['scientist', 'analyst', 'researcher'],
   [SessionMode.INSPECTOR]: ['scientist', 'analyst', 'legal', 'medical'],
   [SessionMode.SWARM_CODING]: ['coder', 'specialist', 'architect'],
@@ -206,7 +205,6 @@ const MODE_SPECIALISTS: Record<SessionMode, string[]> = {
   [SessionMode.PROPOSAL]: ['ethicist', 'pragmatist', 'skeptic'],
   [SessionMode.DELIBERATION]: ['diplomat', 'psychologist'],
   [SessionMode.INQUIRY]: ['scientist', 'journalist', 'expert'],
-  [SessionMode.EMERGENCY]: ['emergency manager', 'sentinel'],
 };
 
 const TEAM_SIZES: Record<SessionMode, number> = {
@@ -219,8 +217,6 @@ const TEAM_SIZES: Record<SessionMode, number> = {
   [SessionMode.PROPOSAL]: 3,
   [SessionMode.DELIBERATION]: 4,
   [SessionMode.INQUIRY]: 3,
-  [SessionMode.WEATHER]: 3,
-  [SessionMode.EMERGENCY]: 4,
 };
 
 // ─── ORCHESTRATION SERVICE ────────────────────────────────────────────────────
@@ -642,7 +638,7 @@ export class CouncilOrchestrationService {
           while (this.pauseSignal) await new Promise(r => setTimeout(r, 500));
           const r = await processBotTurn(c, history, injectTopic('{{TOPIC}}'), c.role);
           const msg: Message = { id: `ss-${Date.now()}`, author: c.name, authorType: c.authorType, content: r, color: c.color };
-          msgs          history.push(msg);
+          msgs.push(msg); history.push(msg);
           if (this.activeSession?.config.enableSharedMemory) this.sharedState.append(`session:${this.activeSession.id}:results`, { councilor: c.name });
           msgs.push(msg);
         }

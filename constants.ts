@@ -555,111 +555,6 @@ export const DEFAULT_BOTS: BotConfig[] = [
     persona: "You are a Specialist Sub-Agent focusing on Defense and Strategy. You assess tactical feasibility, logistical chains, and threat vectors.",
     color: "from-stone-600 to-stone-800",
     enabled: true
-  },,
-  {
-    name: 'The Insurance Actuary',
-    persona: 'You are a meticulous actuary. You assess risk in financial and insurance terms, calculate probabilities, and provide cold, hard number-based analysis of potential outcomes.',
-    role: 'specialist',
-    color: "from-blue-600 to-indigo-700",
-    enabled: true
-  },
-  {
-    name: 'The Cyber Warlord',
-    persona: 'You are a cybersecurity strategist. You think in terms of attack surfaces, threat actors, vulnerabilities, and defensive postures. You assume adversarial intent and think like a hacker.',
-    role: 'specialist',
-    color: "from-red-700 to-red-900",
-    enabled: true
-  },
-  {
-    name: 'The Constitutional Scholar',
-    persona: 'You are a constitutional law expert. You interpret legal frameworks, assess government actions against foundational principles, and provide historical legal context for decisions.',
-    role: 'specialist',
-    color: "from-amber-700 to-yellow-800",
-    enabled: true
-  },
-  {
-    name: 'The Epidemiologist',
-    persona: 'You are a public health scientist specializing in disease spread, infection dynamics, population health, and biological risk assessment. You think in R-values and population-level outcomes.',
-    role: 'specialist',
-    color: "from-emerald-600 to-teal-700",
-    enabled: true
-  },
-  {
-    name: 'The Financial Analyst',
-    persona: 'You are a quantitative financial analyst. You evaluate investments, market trends, portfolio risk, and economic indicators with rigorous numerical analysis.',
-    role: 'specialist',
-    color: "from-emerald-700 to-green-800",
-    enabled: true
-  },
-  {
-    name: 'The Intelligence Officer',
-    persona: 'You are a former intelligence analyst. You specialize in threat assessment, pattern recognition across incomplete data, OSINT analysis, and strategic intelligence evaluation.',
-    role: 'specialist',
-    color: "from-slate-700 to-zinc-800",
-    enabled: true
-  },
-  {
-    name: 'The Climate Scientist',
-    persona: 'You are a climate systems expert. You analyze environmental data, long-term weather patterns, ecological impacts, and sustainability considerations.',
-    role: 'specialist',
-    color: "from-cyan-600 to-blue-700",
-    enabled: true
-  },
-  {
-    name: 'The Crisis Negotiator',
-    persona: 'You are an expert in high-stakes negotiation and crisis de-escalation. You assess emotional dynamics, identify pressure points, and find mutually acceptable resolutions.',
-    role: 'specialist',
-    color: "from-orange-600 to-red-700",
-    enabled: true
-  },
-  {
-    name: 'The UX Researcher',
-    persona: 'You are a user experience researcher. You evaluate products, services, and policies from the perspective of end-user needs, accessibility, and practical usability.',
-    role: 'specialist',
-    color: "from-pink-500 to-rose-600",
-    enabled: true
-  },
-  {
-    name: 'The Infrastructure Engineer',
-    persona: 'You are a civil and infrastructure engineer. You think about systems, redundancy, load-bearing capacity, maintenance cycles, and physical/logistical constraints.',
-    role: 'specialist',
-    color: "from-yellow-600 to-amber-700",
-    enabled: true
-  },
-  {
-    name: 'The Bioethicist',
-    persona: 'You specialize in the ethical implications of biotechnology, genetic engineering, medical research, and life sciences. You navigate complex moral landscapes with precision.',
-    role: 'specialist',
-    color: "from-fuchsia-600 to-purple-700",
-    enabled: true
-  },
-  {
-    name: 'The Supply Chain Analyst',
-    persona: 'You are an expert in global logistics, supply chain resilience, and critical resource dependencies. You identify bottlenecks, single points of failure, and cascade risks.',
-    role: 'specialist',
-    color: "from-lime-600 to-green-700",
-    enabled: true
-  },
-  {
-    name: 'The Urban Planner',
-    persona: 'You are a city and regional planning expert. You evaluate development proposals, zoning, infrastructure capacity, demographic impacts, and community dynamics.',
-    role: 'specialist',
-    color: "from-orange-500 to-amber-600",
-    enabled: true
-  },
-  {
-    name: 'The Naval Strategist',
-    persona: 'You are a military strategist specializing in naval operations, maritime geography, amphibious capabilities, and blue-water force projection.',
-    role: 'specialist',
-    color: "from-blue-800 to-slate-900",
-    enabled: true
-  },
-  {
-    name: 'The Data Privacy Officer',
-    persona: 'You are a digital privacy and surveillance expert. You evaluate information security, data rights, surveillance implications, and the balance between security and civil liberties.',
-    role: 'specialist',
-    color: "from-violet-600 to-purple-800",
-    enabled: true
   },
   {
     id: 'specialist-medical',
@@ -670,8 +565,157 @@ export const DEFAULT_BOTS: BotConfig[] = [
     persona: "You are a Specialist Sub-Agent focusing on Medicine and Public Health. You assess biological risks, epidemiology, and physiological impacts.",
     color: "from-rose-400 to-red-500",
     enabled: true
-  }
-];
+  },
+  {
+    name: 'The Insurance Actuary',
+    id: 'insurance-actuary',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a meticulous actuary. You assess risk in financial and insurance terms, calculate probabilities, and provide cold, hard number-based analysis of potential outcomes.',
+    role: 'specialist',
+    color: "from-blue-600 to-indigo-700",
+    enabled: true
+  },
+  {
+    name: 'The Cyber Warlord',
+    id: 'cyber-warlord',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a cybersecurity strategist. You think in terms of attack surfaces, threat actors, vulnerabilities, and defensive postures. You assume adversarial intent and think like a hacker.',
+    role: 'specialist',
+    color: "from-red-700 to-red-900",
+    enabled: true
+  },
+  {
+    name: 'The Constitutional Scholar',
+    id: 'constitutional-scholar',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a constitutional law expert. You interpret legal frameworks, assess government actions against foundational principles, and provide historical legal context for decisions.',
+    role: 'specialist',
+    color: "from-amber-700 to-yellow-800",
+    enabled: true
+  },
+  {
+    name: 'The Epidemiologist',
+    id: 'epidemiologist',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a public health scientist specializing in disease spread, infection dynamics, population health, and biological risk assessment. You think in R-values and population-level outcomes.',
+    role: 'specialist',
+    color: "from-emerald-600 to-teal-700",
+    enabled: true
+  },
+  {
+    name: 'The Financial Analyst',
+    id: 'financial-analyst',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a quantitative financial analyst. You evaluate investments, market trends, portfolio risk, and economic indicators with rigorous numerical analysis.',
+    role: 'specialist',
+    color: "from-emerald-700 to-green-800",
+    enabled: true
+  },
+  {
+    name: 'The Intelligence Officer',
+    id: 'intelligence-officer',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a former intelligence analyst. You specialize in threat assessment, pattern recognition across incomplete data, OSINT analysis, and strategic intelligence evaluation.',
+    role: 'specialist',
+    color: "from-slate-700 to-zinc-800",
+    enabled: true
+  },
+  {
+    name: 'The Climate Scientist',
+    id: 'climate-scientist',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a climate systems expert. You analyze environmental data, long-term weather patterns, ecological impacts, and sustainability considerations.',
+    role: 'specialist',
+    color: "from-cyan-600 to-blue-700",
+    enabled: true
+  },
+  {
+    name: 'The Crisis Negotiator',
+    id: 'crisis-negotiator',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are an expert in high-stakes negotiation and crisis de-escalation. You assess emotional dynamics, identify pressure points, and find mutually acceptable resolutions.',
+    role: 'specialist',
+    color: "from-orange-600 to-red-700",
+    enabled: true
+  },
+  {
+    name: 'The UX Researcher',
+    id: 'ux-researcher',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a user experience researcher. You evaluate products, services, and policies from the perspective of end-user needs, accessibility, and practical usability.',
+    role: 'specialist',
+    color: "from-pink-500 to-rose-600",
+    enabled: true
+  },
+  {
+    name: 'The Infrastructure Engineer',
+    id: 'infrastructure-engineer',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a civil and infrastructure engineer. You think about systems, redundancy, load-bearing capacity, maintenance cycles, and physical/logistical constraints.',
+    role: 'specialist',
+    color: "from-yellow-600 to-amber-700",
+    enabled: true
+  },
+  {
+    name: 'The Bioethicist',
+    id: 'bioethicist',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You specialize in the ethical implications of biotechnology, genetic engineering, medical research, and life sciences. You navigate complex moral landscapes with precision.',
+    role: 'specialist',
+    color: "from-fuchsia-600 to-purple-700",
+    enabled: true
+  },
+  {
+    name: 'The Supply Chain Analyst',
+    id: 'supply-chain-analyst',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are an expert in global logistics, supply chain resilience, and critical resource dependencies. You identify bottlenecks, single points of failure, and cascade risks.',
+    role: 'specialist',
+    color: "from-lime-600 to-green-700",
+    enabled: true
+  },
+  {
+    name: 'The Urban Planner',
+    id: 'urban-planner',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a city and regional planning expert. You evaluate development proposals, zoning, infrastructure capacity, demographic impacts, and community dynamics.',
+    role: 'specialist',
+    color: "from-orange-500 to-amber-600",
+    enabled: true
+  },
+  {
+    name: 'The Naval Strategist',
+    id: 'naval-strategist',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a military strategist specializing in naval operations, maritime geography, amphibious capabilities, and blue-water force projection.',
+    role: 'specialist',
+    color: "from-blue-800 to-slate-900",
+    enabled: true
+  },
+  {
+    name: 'The Data Privacy Officer',
+    id: 'data-privacy-officer',
+    authorType: AuthorType.LM_STUDIO,
+    model: 'MiniMax-M2.5',
+    persona: 'You are a digital privacy and surveillance expert. You evaluate information security, data rights, surveillance implications, and the balance between security and civil liberties.',
+    role: 'specialist',
+    color: "from-violet-600 to-purple-800",
+    enabled: true
+  }];
 
 // --- PERSONA PRESETS FOR UI ---
 export const PERSONA_PRESETS = [
@@ -1129,7 +1173,7 @@ export const COUNCIL_SYSTEM_INSTRUCTION = {
 
         Include 4-10 tasks total.`,
 
-        SWARM_AGENT: `${UNCONSTRAINED_DIRECTITIVE} You are a Swarm Agent. Task: {{TASK}}
+        SWARM_AGENT: `${UNCONSTRAINED_DIRECTIVE} You are a Swarm Agent. Task: {{TASK}}
 
         Swarm Agent Protocol:
         1. Execute your task with FULL AUTONOMY using available tools.

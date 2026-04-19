@@ -12,7 +12,8 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { BotConfig, Settings, SessionMode, CoordinationPattern, OrchestratorSession } from '../types';
+import { BotConfig, Settings, SessionMode, Message } from '../types';
+import { CoordinationPattern, OrchestratorSession } from '../services/CouncilOrchestrationService';
 import { CouncilOrchestrationService } from '../services/CouncilOrchestrationService';
 
 // Minimal types for the service (we import it from the service file)
@@ -30,7 +31,7 @@ interface OrchestrationPanelProps {
   onOrchestratorReady?: (service: CouncilOrchestrationService, selectCouncilors: (topic: string) => BotConfig[], runByPattern: any) => void;
 }
 
-const PATTERN_DESCRIPTIONS: Record<CoordinationPattern, { icon: string; label: string; desc: string; best: string }> = {
+const PATTERN_DESCRIPTIONS = {
   'orchestrator-subagent': { icon: '🎛️', label: 'Orchestrator-Subagent', desc: 'Hierarchical task decomposition with leader dispatching sub-tasks', best: 'Swarm Coding, Government, Research' },
   'agent-teams': { icon: '👥', label: 'Agent Teams', desc: 'Parallel independent agents executing simultaneously', best: 'Swarm Hive, Prediction' },
   'generator-verifier': { icon: '🔄', label: 'Generator-Verifier', desc: 'Generate → Quality gate → Retry loop until verified', best: 'Inspector, Prediction' },
@@ -38,7 +39,7 @@ const PATTERN_DESCRIPTIONS: Record<CoordinationPattern, { icon: string; label: s
   'shared-state': { icon: '📊', label: 'Shared State', desc: 'Collaborative building with shared memory and incremental progress', best: 'Proposal, Deliberation' },
 };
 
-const MODE_LABELS: Record<SessionMode, string> = {
+const MODE_LABELS: Record<string, string> = {
   [SessionMode.PROPOSAL]: '⚖️ Proposal',
   [SessionMode.DELIBERATION]: '🗣️ Deliberation',
   [SessionMode.INQUIRY]: '🔍 Inquiry',
@@ -48,8 +49,6 @@ const MODE_LABELS: Record<SessionMode, string> = {
   [SessionMode.PREDICTION]: '🎯 Prediction',
   [SessionMode.GOVERNMENT]: '🏛️ Legislature',
   [SessionMode.INSPECTOR]: '🔬 Inspector',
-  [SessionMode.WEATHER]: '🌪️ Weather',
-  [SessionMode.EMERGENCY]: '🚨 Emergency',
 };
 
 const OrchestrationPanel: React.FC<OrchestrationPanelProps> = ({
@@ -194,7 +193,7 @@ const OrchestrationPanel: React.FC<OrchestrationPanelProps> = ({
       <div className="space-y-1.5">
         <label className="text-xs text-slate-400 font-medium">Coordination Pattern</label>
         <div className="grid grid-cols-1 gap-1.5">
-          {(Object.entries(PATTERN_DESCRIPTIONS) as [CoordinationPattern, typeof PATTERN_DESCRIPTIONS[string]][]).map(([key, p]) => (
+          {(Object.entries(PATTERN_DESCRIPTIONS) as [string, { icon: string; label: string; desc: string; best: string }][]).map(([key, p]) => (
             <button
               key={key}
               onClick={() => setPattern(key)}
