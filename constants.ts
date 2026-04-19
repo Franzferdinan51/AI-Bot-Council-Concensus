@@ -1,6 +1,19 @@
 import { BotConfig, AuthorType, Settings, MCPTool } from './types';
 import { Type } from '@google/genai';
 
+// ── Agent Mesh API Integration (v2.0) ────────────────────────────────────────
+export const MESH_CONFIG = {
+  enabled: process.env.MESH_ENABLED === 'true',
+  apiUrl: process.env.MESH_API_URL || 'http://localhost:4000/api',
+  apiKey: process.env.MESH_API_KEY || 'openclaw-mesh-default-key',
+  agentType: 'council',
+  capabilities: [
+    'deliberation', 'voting', 'consensus',
+    'multi-perspective-analysis', 'structured-response',
+    'anti-sycophancy', 'fresh-eyes-validation'
+  ]
+};
+
 export const OPENROUTER_MODELS = [
   "anthropic/claude-3.7-sonnet",
   "anthropic/claude-3.5-sonnet",
@@ -273,6 +286,80 @@ export const PUBLIC_MCP_REGISTRY = [
                     nationality: { type: Type.STRING, description: "Optional nationality code (e.g. 'us', 'gb')" }
                 },
                 required: []
+            }
+        }
+    },
+
+    // ── v2.0: New tools ────────────────────────────────────────────────
+
+    {
+        id: 'github_pr_review',
+        name: 'github_pr_review',
+        description: 'Review a GitHub Pull Request and return code analysis.',
+        functionDeclaration: {
+            name: 'github_pr_review',
+            description: 'Review a GitHub PR. Returns code changes, file diffs, and analysis.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    owner: { type: Type.STRING, description: 'Repository owner (e.g. "facebook")' },
+                    repo: { type: Type.STRING, description: 'Repository name (e.g. "react")' },
+                    prNumber: { type: Type.NUMBER, description: 'PR number' }
+                },
+                required: ['owner', 'repo', 'prNumber']
+            }
+        }
+    },
+
+    {
+        id: 'execute_code',
+        name: 'execute_code',
+        description: 'Execute Python or JavaScript code in a sandbox.',
+        functionDeclaration: {
+            name: 'execute_code',
+            description: 'Run code in a sandboxed environment and return stdout/stderr.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    language: { type: Type.STRING, enum: ['python', 'javascript'], description: 'Language to execute' },
+                    code: { type: Type.STRING, description: 'Code to run' }
+                },
+                required: ['language', 'code']
+            }
+        }
+    },
+
+    {
+        id: 'get_news',
+        name: 'get_news',
+        description: 'Get current news headlines for a topic.',
+        functionDeclaration: {
+            name: 'get_news',
+            description: 'Fetch current news headlines from news API.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    topic: { type: Type.STRING, description: 'Topic to search' },
+                    count: { type: Type.NUMBER, description: 'Number of headlines (default 5)' }
+                },
+                required: ['topic']
+            }
+        }
+    },
+
+    {
+        id: 'wolfram_query',
+        name: 'wolfram_query',
+        description: 'Query Wolfram Alpha for factual or computational answers.',
+        functionDeclaration: {
+            name: 'wolfram_query',
+            description: 'Get factual or computational answer from Wolfram Alpha.',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    query: { type: Type.STRING, description: 'Query for Wolfram Alpha' }
+                },
+                required: ['query']
             }
         }
     }
