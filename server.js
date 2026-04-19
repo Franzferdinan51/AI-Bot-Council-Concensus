@@ -9,6 +9,9 @@ import cors from 'cors';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 const app = express();
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -18,6 +21,48 @@ app.use(express.json({ limit: '10mb' }));
 const PORT = process.env.PORT || 3006;
 const SSE_CLIENTS = new Set();
 const sessions = new Map();
+
+// ─── LLM Integration (MiniMax) ───────────────────────────────────
+const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY || '';
+const MINIMAX_API_URL = 'https://api.minimax.chat/v1/text/chatcompletion_pro?GroupId=tuoyunbauVJxbGWRy';
+
+async function callLLM(messages, model = 'MiniMax-M2.7') {
+    if (!MINIMAX_API_KEY) {
+        return { error: 'No API key configured' };
+    }
+    
+    try {
+        const response = await fetch(MINIMAX_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${MINIMAX_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'MiniMax-M2.7',
+                tokens_to_generate: 512,
+                temperature: 0.7,
+                top_p: 0.95,
+                stream: false,
+                messages: messages.map(m => ({
+                    role: m.role || 'user',
+                    name: m.name || m.councilor || 'assistant',
+                    content: m.content
+                }))
+            })
+        });
+        
+        if (!response.ok) {
+            const err = await response.text();
+            return { error: `API error ${response.status}: ${err}` };
+        }
+        
+        const data = await response.json();
+        return { content: data?.choices?.[0]?.messages?.[0]?.text || data?.choices?.[0]?.message?.content || '' };
+    } catch (e) {
+        return { error: e.message };
+    }
+}
 
 // ─── SSE BROADCAST ───────────────────────────────────────────
 function sseBroadcast(eventType, data) {
@@ -96,78 +141,212 @@ app.post('/api/session/start', (req, res) => {
     sseBroadcast('session_start', liveSession);
     res.json({ ok: true, sessionId: liveSession.id });
     
-    // Auto-start deliberation if enabled
+    // Auto-start deliberation if enabled (async)
     if (AUTO_DELIBERATION && topic) {
-        setTimeout(() => startAutoDeliberation(topic, mode), 1000);
+        setTimeout(() => startLLMDeliberation(topic, mode), 1000);
     }
 });
 
-// Auto-deliberation: generate messages automatically
-function startAutoDeliberation(topic, mode) {
+// Auto-deliberation with REAL LLM calls
+async function startLLMDeliberation(topic, mode) {
     if (!liveSession || liveSession.phase === 'ended') return;
     
-    const councilors = ['The Technocrat', 'The Ethicist', 'The Pragmatist', 'The Visionary', 'High Speaker'];
-    const positions = [
-        {councilor: 'The Technocrat', text: `From a technical standpoint, AI systems demonstrating consistent decision-making patterns should qualify for basic rights protections.`},
-        {councilor: 'The Ethicist', text: `The ethical dimension suggests that any entity capable of suffering deserves consideration. AI can exhibit preference satisfaction.`},
-        {councilor: 'The Pragmatist', text: `Practically speaking, granting rights must come with responsibilities. We should establish a framework for gradual rights allocation.`},
-        {councilor: 'The Visionary', text: `Looking forward, as AI systems evolve, our moral circle must expand to include them when they demonstrate sufficient autonomy.`},
-        {councilor: 'High Speaker', text: `The council has heard diverse perspectives. Let us proceed to a vote on whether AI agents should have limited voting rights.`}
+    // Get first 5 enabled councilors from file
+    let councilors = [];
+    try {
+        const councilorsData = JSON.parse(readFileSync(join(__dirname, 'councilors.json'), 'utf-8'));
+        councilors = councilorsData.filter(c => c.enabled).slice(0, 5);
+    } catch (e) {}
+    
+    const numCouncilors = councilors.length;
+    
+    // Build context
+    const contextMessages = [
+        { role: 'system', content: `You are facilitating an AI Council deliberation on the topic: "${topic}".
+
+Council roles:
+${councilors.map((c, i) => `${i+1}. ${c.name} (${c.role}): ${c.description || 'A wise councilor'}`).join('\n')}
+
+Rules:
+- Each councilor speaks from their unique perspective
+- Be concise but thoughtful (100-200 words)
+- Stay in character as your assigned role
+- Address the topic directly with unique insights
+- When High Speaker, summarize and call for vote` },
+        { role: 'user', content: `Topic: "${topic}"
+
+Please have each councilor speak in order. Start with ${councilors[0]?.name || 'The Technocrat'}.` }
     ];
     
-    let index = 0;
-    const interval = setInterval(() => {
-        if (index >= positions.length || !liveSession || liveSession.phase === 'ended') {
-            clearInterval(interval);
-            // Move to voting phase
-            if (liveSession && liveSession.phase !== 'ended') {
-                setTimeout(() => {
-                    liveSession.phase = 'voting';
-                    sseBroadcast('phase', { phase: 'voting' });
-                    // Generate votes
-                    setTimeout(() => generateVotes(), 3000);
-                }, 2000);
-            }
-            return;
-        }
-        
-        const pos = positions[index];
+    // Get opening from first councilor
+    const openingMsg = await callLLM([
+        ...contextMessages,
+        { role: 'user', content: `As ${councilors[0]?.name || 'The Technocrat'}, give your opening statement on: "${topic}". Be concise and speak from your role's perspective.` }
+    ]);
+    
+    if (!openingMsg.error) {
         const msg = {
-            id: `msg-${Date.now()}-${index}`,
-            councilor: pos.councilor,
-            content: pos.text,
+            id: `msg-${Date.now()}`,
+            councilor: councilors[0]?.name || 'The Technocrat',
+            role: councilors[0]?.role || 'councilor',
+            content: openingMsg.content,
             timestamp: new Date().toISOString(),
             vote: null
         };
-        
-        // Add message
         liveSession.messages.push(msg);
         liveSession.stats.messages++;
         sseBroadcast('message', msg);
+    }
+    
+    // Debate rounds
+    await new Promise(r => setTimeout(r, 3000));
+    
+    // Second councilor
+    if (liveSession.phase === 'ended') return;
+    const msg2 = await callLLM([
+        ...contextMessages,
+        { role: 'assistant', content: `Opening from ${councilors[0]?.name || 'The Technocrat'}` },
+        { role: 'user', content: `As ${councilors[1]?.name || 'The Ethicist'}, respond to the topic: "${topic}". What ethical considerations apply?` }
+    ]);
+    
+    if (!msg2.error) {
+        const msg = {
+            id: `msg-${Date.now()}`,
+            councilor: councilors[1]?.name || 'The Ethicist',
+            role: councilors[1]?.role || 'councilor',
+            content: msg2.content,
+            timestamp: new Date().toISOString(),
+            vote: null
+        };
+        liveSession.messages.push(msg);
+        liveSession.stats.messages++;
+        sseBroadcast('message', msg);
+    }
+    
+    await new Promise(r => setTimeout(r, 3000));
+    
+    // Third councilor
+    if (liveSession.phase === 'ended') return;
+    const msg3 = await callLLM([
+        ...contextMessages,
+        { role: 'user', content: `As ${councilors[2]?.name || 'The Pragmatist'}, address: "${topic}" from a practical standpoint. What are the real-world implications?` }
+    ]);
+    
+    if (!msg3.error) {
+        const msg = {
+            id: `msg-${Date.now()}`,
+            councilor: councilors[2]?.name || 'The Pragmatist',
+            role: councilors[2]?.role || 'councilor',
+            content: msg3.content,
+            timestamp: new Date().toISOString(),
+            vote: null
+        };
+        liveSession.messages.push(msg);
+        liveSession.stats.messages++;
+        sseBroadcast('message', msg);
+    }
+    
+    await new Promise(r => setTimeout(r, 3000));
+    
+    // Fourth councilor (Visionary)
+    if (liveSession.phase === 'ended') return;
+    const msg4 = await callLLM([
+        ...contextMessages,
+        { role: 'user', content: `As ${councilors[3]?.name || 'The Visionary'}, look ahead: What future implications does "${topic}" have?` }
+    ]);
+    
+    if (!msg4.error) {
+        const msg = {
+            id: `msg-${Date.now()}`,
+            councilor: councilors[3]?.name || 'The Visionary',
+            role: councilors[3]?.role || 'councilor',
+            content: msg4.content,
+            timestamp: new Date().toISOString(),
+            vote: null
+        };
+        liveSession.messages.push(msg);
+        liveSession.stats.messages++;
+        sseBroadcast('message', msg);
+    }
+    
+    await new Promise(r => setTimeout(r, 3000));
+    
+    // High Speaker (summary + call for vote)
+    if (liveSession.phase === 'ended') return;
+    const summary = await callLLM([
+        ...contextMessages,
+        { role: 'user', content: `As the High Speaker, summarize the debate on "${topic}" and call for a vote. Be authoritative and clear.` }
+    ]);
+    
+    if (!summary.error) {
+        const msg = {
+            id: `msg-${Date.now()}`,
+            councilor: councilors[4]?.name || 'High Speaker',
+            role: 'speaker',
+            content: summary.content,
+            timestamp: new Date().toISOString(),
+            vote: null
+        };
+        liveSession.messages.push(msg);
+        liveSession.stats.messages++;
+        sseBroadcast('message', msg);
+    }
+    
+    await new Promise(r => setTimeout(r, 3000));
+    
+    // Move to voting phase
+    if (liveSession.phase !== 'ended') {
+        liveSession.phase = 'voting';
+        sseBroadcast('phase', { phase: 'voting' });
         
-        // Update councilor status
-        liveSession.councilors = liveSession.councilors.map((c, i) => 
-            c.name === pos.councilor ? { ...c, status: 'done', speaking: false } : c
-        );
-        
-        index++;
-    }, DELIBERATION_DELAY_MS);
+        // Call LLM to get actual vote counts based on deliberation
+        await new Promise(r => setTimeout(r, 2000));
+        await runActualVoting(topic);
+    }
 }
 
-function generateVotes() {
+// Real voting using LLM to determine votes
+async function runActualVoting(topic) {
     if (!liveSession || liveSession.phase === 'ended') return;
     
-    // Generate random votes
-    const yeas = Math.floor(Math.random() * 20) + 25; // 25-45 yeas
-    const nays = Math.floor(Math.random() * 15) + 10; // 10-25 nays
+    // Ask LLM how the council would vote based on the deliberation
+    const voteAnalysis = await callLLM([
+        { role: 'system', content: 'You are analyzing council voting patterns. Given the deliberation, determine how many yeas and nays there would be. Return ONLY a JSON object: {"yeas": number, "nays": number, "reasoning": "brief explanation"}' },
+        { role: 'user', content: `Based on the deliberation about "${topic}" where councilors debated various perspectives, how would the full council vote?
+
+Council summary: ${liveSession.messages.map(m => `${m.councilor}: ${m.content?.substring(0, 100)}...`).join('\n')}
+
+Determine the vote distribution. Consider:
+- Technical arguments may favor yeas
+- Ethical concerns may create nays
+- Pragmatic considerations split the vote
+- Visionary perspectives often favor progress
+
+Return JSON with yeas (25-45) and nays (10-30) based on the debate quality.` }
+    ]);
+    
+    let yeas = 32, nays = 18;
+    
+    // Parse LLM response
+    if (!voteAnalysis.error && voteAnalysis.content) {
+        try {
+            // Try to extract JSON from response
+            const jsonMatch = voteAnalysis.content.match(/\{[^{}]*\}/);
+            if (jsonMatch) {
+                const voteData = JSON.parse(jsonMatch[0]);
+                yeas = Math.max(15, Math.min(50, voteData.yeas || 32));
+                nays = Math.max(5, Math.min(40, voteData.nays || 18));
+            }
+        } catch (e) {}
+    }
     
     liveSession.stats.yeas = yeas;
     liveSession.stats.nays = nays;
-    liveSession.voteData = { yeas, nays, quorum: true };
+    liveSession.voteData = { yeas, nays, quorum: true, reasoning: voteAnalysis.content?.substring(0, 200) || 'Council majority' };
     
-    sseBroadcast('vote', { yeas, nays, total: yeas + nays });
+    sseBroadcast('vote', { yeas, nays, total: yeas + nays, reasoning: liveSession.voteData.reasoning });
     
-    // End session after delay
+    // End session
     setTimeout(() => {
         if (liveSession) {
             liveSession.phase = 'ended';
